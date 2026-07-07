@@ -1,7 +1,9 @@
 import { createPlayer, type Player } from "./entities/Player";
+import { KeyboardInput, type HorizontalIntent } from "./input/KeyboardInput";
 import { updatePlayerPhysics } from "./systems/PhysicsSystem";
 
 const MAX_DELTA_MS = 50;
+const NO_HORIZONTAL_INPUT: HorizontalIntent = 0;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -10,6 +12,7 @@ export class Game {
   private rafId: number | null = null;
   private lastTimestamp = 0;
   private player: Player;
+  private keyboardInput: KeyboardInput | null = null;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
@@ -19,6 +22,7 @@ export class Game {
 
   start(): void {
     if (this.running) return;
+    this.keyboardInput = new KeyboardInput();
     this.running = true;
     this.lastTimestamp = performance.now();
     this.rafId = requestAnimationFrame(this.tick);
@@ -26,6 +30,12 @@ export class Game {
 
   stop(): void {
     this.running = false;
+
+    if (this.keyboardInput !== null) {
+      this.keyboardInput.destroy();
+      this.keyboardInput = null;
+    }
+
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
@@ -45,7 +55,9 @@ export class Game {
   };
 
   private update(deltaTime: number): void {
-    updatePlayerPhysics(this.player, deltaTime);
+    const horizontalIntent =
+      this.keyboardInput?.getHorizontalIntent() ?? NO_HORIZONTAL_INPUT;
+    updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
   }
 
   private render(): void {
