@@ -1,13 +1,23 @@
 /** Horizontal arrow-key intent: -1 left, 0 neutral, 1 right. */
 export type HorizontalIntent = -1 | 0 | 1;
 
+export type KeyboardEventType = "keydown" | "keyup";
+export type KeyboardListener = (event: KeyboardEvent) => void;
+
+export interface KeyboardEventTarget {
+  addEventListener(type: KeyboardEventType, listener: KeyboardListener): void;
+  removeEventListener(type: KeyboardEventType, listener: KeyboardListener): void;
+}
+
 export class KeyboardInput {
+  private readonly eventTarget: KeyboardEventTarget;
   private leftPressed = false;
   private rightPressed = false;
 
-  constructor() {
-    window.addEventListener("keydown", this.handleKeyDown);
-    window.addEventListener("keyup", this.handleKeyUp);
+  constructor(eventTarget: KeyboardEventTarget = window) {
+    this.eventTarget = eventTarget;
+    this.eventTarget.addEventListener("keydown", this.handleKeyDown);
+    this.eventTarget.addEventListener("keyup", this.handleKeyUp);
   }
 
   getHorizontalIntent(): HorizontalIntent {
@@ -19,8 +29,8 @@ export class KeyboardInput {
   }
 
   destroy(): void {
-    window.removeEventListener("keydown", this.handleKeyDown);
-    window.removeEventListener("keyup", this.handleKeyUp);
+    this.eventTarget.removeEventListener("keydown", this.handleKeyDown);
+    this.eventTarget.removeEventListener("keyup", this.handleKeyUp);
     this.leftPressed = false;
     this.rightPressed = false;
   }
