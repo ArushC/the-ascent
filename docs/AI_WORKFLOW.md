@@ -13,7 +13,7 @@
 | Debugging | `npm run ai:debug` | Agent | Cursor Agent mode |
 | Refactor | `npm run ai:refactor` | Agent | Cursor Agent mode |
 | Tests | `npm run ai:test` | Agent | Cursor Agent mode |
-| Feature flow | `npm run ai:feature` | Mixed | Params file plus first prompt |
+| Feature flow | `npm run ai:feature` | Mixed | Params file, guided checklist, first prompt |
 
 ## Common flags
 
@@ -32,7 +32,7 @@ Start here:
 npm run ai:feature -- --copy
 ```
 
-That command asks for the feature name and requirements, creates `agents/params/<feature-slug>.json`, renders the architecture prompt, and copies it to your clipboard.
+That command asks for the feature name and requirements, creates `agents/params/<feature-slug>.json`, prints the guided checklist, renders the architecture prompt, and copies the prompt to your clipboard.
 
 Paste the copied prompt into a new Cursor chat in Plan mode. After you approve the architecture, paste the approved architecture into the `ARCHITECTURE` field in `agents/params/<feature-slug>.json`.
 
@@ -52,6 +52,17 @@ npm run ai:test -- --params agents/params/<feature-slug>.json --copy
 ```
 
 Paste review prompts into Cursor Ask mode. Paste test prompts into Cursor Agent mode.
+
+Before moving from architecture to implementation, explicitly approve the architecture yourself. Do not run `ai:impl` until the `ARCHITECTURE` field contains the approved plan.
+
+## Cursor rules
+
+This repo includes two Cursor rules:
+
+| Rule | Scope |
+| --- | --- |
+| `.cursor/rules/ai-workflow.mdc` | Portable AI workflow conventions |
+| `.cursor/rules/doodle-jump-game.mdc` | Doodle Jump game stack conventions for `src/game/**` |
 
 ## Params files
 

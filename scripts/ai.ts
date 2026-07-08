@@ -183,9 +183,22 @@ async function startFeature(options: CliOptions): Promise<void> {
 
   const archPrompt = render("arch", { FEATURE: feature, REQUIREMENTS: requirements });
   console.log(`Created ${paramsPath}\n`);
-  console.log("Next: paste this prompt into Cursor Plan mode.\n");
-  console.log(`To regenerate it later:\nnpm run ai:arch -- --params ${paramsPath} --copy\n`);
+  printFeatureChecklist(paramsPath);
   writeOutput(archPrompt, { ...options, outPath: undefined });
+}
+
+function printFeatureChecklist(paramsPath: string): void {
+  console.log("Guided feature flow:\n");
+  console.log("1. Paste the prompt below into Cursor Plan mode.");
+  console.log(`2. After approval, paste the architecture into ARCHITECTURE in ${paramsPath}.`);
+  console.log(`3. Run: npm run ai:impl -- --params ${paramsPath} --copy`);
+  console.log("4. Paste that prompt into Cursor Agent mode.");
+  console.log("5. Run implementation checks: npm run test:run");
+  console.log("6. Run: npm run ai:review -- --copy");
+  console.log(`7. Run: npm run ai:test -- --params ${paramsPath} --copy`);
+  console.log("8. Add a dated note to docs/AI_NOTES.md.\n");
+  console.log(`To regenerate the architecture prompt:\nnpm run ai:arch -- --params ${paramsPath} --copy\n`);
+  console.log("Architecture prompt:\n");
 }
 
 function createFeatureParams(feature: string, requirements: string): Record<string, string> {

@@ -1,0 +1,15 @@
+---
+description: AI-assisted engineering workflow conventions
+alwaysApply: true
+---
+
+# AI Workflow
+
+- Use `docs/AI_WORKFLOW.md` as the command reference for AI workflow steps.
+- Use role-separated templates from `prompts/` when the user invokes a workflow step.
+- Prefer `npm run ai:feature` for a new feature and `npm run ai:arch` when only design is needed.
+- Treat architecture approval as a human gate. Do not move from `ai:arch` to `ai:impl` until the user approves the plan.
+- Keep implementation diffs small and scoped to the approved feature.
+- Explain assumptions after changes.
+- Log meaningful AI-assisted work in `docs/AI_NOTES.md`.
+- Do not duplicate prompt text in rules. Rules point to `prompts/` and `docs/AI_WORKFLOW.md`.

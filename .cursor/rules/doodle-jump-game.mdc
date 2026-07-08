@@ -1,0 +1,16 @@
+---
+description: Doodle Jump game stack and conventions
+globs: src/game/**
+alwaysApply: false
+---
+
+# Doodle Jump Game
+
+- This project uses React, TypeScript, Canvas, and Vitest.
+- Game code lives under `src/game/`, organized by entities, systems, input, rendering, and testing helpers.
+- Keep game logic testable by putting pure behavior in systems or small entities.
+- Co-locate unit tests with the source area they cover.
+- Prefer tests for pure logic over tests for canvas drawing details.
+- Do not add dependencies unless the user explicitly asks.
+- Keep constants local unless they are shared across three or more files.
+- Preserve existing rendering and input behavior when changing physics, collision, or movement.
