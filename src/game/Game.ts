@@ -5,10 +5,22 @@ import {
 } from "./entities/StaticPlatform";
 import { KeyboardInput, type HorizontalIntent } from "./input/KeyboardInput";
 import { resolvePlatformLanding } from "./systems/CollisionSystem";
+import { updateCamera } from "./systems/CameraSystem";
 import { updatePlayerPhysics } from "./systems/PhysicsSystem";
+import {
+  createScoreState,
+  getScore,
+  updateScore,
+  type ScoreState,
+} from "./systems/ScoreSystem";
 
 const MAX_DELTA_MS = 50;
 const NO_HORIZONTAL_INPUT: HorizontalIntent = 0;
+const SCORE_TEXT_COLOR = "white";
+const SCORE_TEXT_FONT = "24px sans-serif";
+// Note: the below x/y values are all defined in screen coordinates
+const SCORE_TEXT_X = 16;
+const SCORE_TEXT_Y = 32;
 const STARTING_STATIC_PLATFORM_POSITIONS = [
   { x: 155, y: 500 },
   { x: 260, y: 410 },
@@ -26,11 +38,14 @@ export class Game {
   private player: Player;
   private staticPlatforms: StaticPlatform[];
   private keyboardInput: KeyboardInput | null = null;
+  private screenTopY = 0;
+  private scoreState: ScoreState;
 
   constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.player = createPlayer(canvas);
+    this.scoreState = createScoreState(this.player.y);
     this.staticPlatforms = STARTING_STATIC_PLATFORM_POSITIONS.map(({ x, y }) =>
       createStaticPlatform(x, y),
     );
@@ -77,6 +92,12 @@ export class Game {
 
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
     resolvePlatformLanding(this.player, this.staticPlatforms, previousY);
+    this.screenTopY = updateCamera(
+      this.screenTopY,
+      this.player.y,
+      this.canvas.height,
+    );
+    this.scoreState = updateScore(this.scoreState, this.player.y);
   }
 
   private render(): void {
@@ -85,14 +106,24 @@ export class Game {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "white";
-    ctx.font = "24px sans-serif";
-    ctx.fillText("Doodle Jump AI", 100, 60);
+    // Save the unshifted canvas state before applying the camera offset.
+    ctx.save();
+    ctx.translate(0, -this.screenTopY);
 
     for (const platform of this.staticPlatforms) {
       platform.draw(ctx);
     }
 
     this.player.draw(ctx);
+
+    ctx.restore();
+
+    ctx.fillStyle = SCORE_TEXT_COLOR;
+    ctx.font = SCORE_TEXT_FONT;
+    ctx.fillText(
+      `Score: ${getScore(this.scoreState)}`,
+      SCORE_TEXT_X,
+      SCORE_TEXT_Y,
+    );
   }
 }
