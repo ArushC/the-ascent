@@ -9,6 +9,10 @@ Requirements:
 - Improve naming.
 - Do not introduce unnecessary abstractions.
 
+Code to refactor:
+
+{{CODE}}
+
 Afterward explain:
 
 1. Every change
