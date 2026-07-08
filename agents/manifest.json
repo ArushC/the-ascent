@@ -1,0 +1,58 @@
+{
+  "spec": {
+    "template": "prompts/01-product-spec.md",
+    "description": "Break a project into engineering milestones",
+    "params": ["PROJECT", "REQUIREMENTS"],
+    "cursorMode": "plan",
+    "gather": [],
+    "defaultOut": null
+  },
+  "arch": {
+    "template": "prompts/02-architecture-review.md",
+    "description": "Design a feature before coding",
+    "params": ["FEATURE", "REQUIREMENTS"],
+    "cursorMode": "plan",
+    "gather": [],
+    "defaultOut": null
+  },
+  "impl": {
+    "template": "prompts/03-implementation.md",
+    "description": "Implement an approved feature plan",
+    "params": ["FEATURE", "REQUIREMENTS", "ARCHITECTURE"],
+    "cursorMode": "agent",
+    "gather": [],
+    "defaultOut": null
+  },
+  "review": {
+    "template": "prompts/04-code-review.md",
+    "description": "Review the current git diff",
+    "params": [],
+    "cursorMode": "ask",
+    "gather": ["git-diff"],
+    "defaultOut": null
+  },
+  "debug": {
+    "template": "prompts/05-debugging.md",
+    "description": "Diagnose a bug with reproduction details",
+    "params": ["EXPECTED", "ACTUAL", "REPRODUCTION", "CODE", "LOGS"],
+    "cursorMode": "agent",
+    "gather": ["read-file:CODE", "test-output"],
+    "defaultOut": null
+  },
+  "refactor": {
+    "template": "prompts/07-refactoring.md",
+    "description": "Refactor code without changing behavior",
+    "params": ["CODE"],
+    "cursorMode": "agent",
+    "gather": ["read-file:CODE"],
+    "defaultOut": null
+  },
+  "test": {
+    "template": "prompts/08-testing.md",
+    "description": "Generate focused unit tests",
+    "params": ["SYSTEM", "SOURCE_FILE", "REQUIREMENTS", "EDGE_CASES"],
+    "cursorMode": "agent",
+    "gather": [],
+    "defaultOut": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "PROJECT": "Doodle Jump clone in React, TypeScript, and Canvas",
+  "FEATURE": "Collision detection and platforms",
+  "REQUIREMENTS": "Read milestone 5 in doodle_jump_ai_workflow_plan.md",
+  "ARCHITECTURE": "Paste approved architecture here before running ai:impl.",
+  "EXPECTED": "",
+  "ACTUAL": "",
+  "REPRODUCTION": "",
+  "CODE": "",
+  "LOGS": "",
+  "SYSTEM": "",
+  "SOURCE_FILE": "",
+  "EDGE_CASES": ""
+}

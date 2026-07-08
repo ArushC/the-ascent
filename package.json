@@ -9,7 +9,17 @@
     "lint": "oxlint",
     "test": "vitest",
     "test:run": "vitest run",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ai": "node --experimental-strip-types scripts/ai.ts",
+    "ai:help": "node --experimental-strip-types scripts/ai.ts --help",
+    "ai:spec": "node --experimental-strip-types scripts/ai.ts spec",
+    "ai:arch": "node --experimental-strip-types scripts/ai.ts arch",
+    "ai:impl": "node --experimental-strip-types scripts/ai.ts impl",
+    "ai:review": "node --experimental-strip-types scripts/ai.ts review",
+    "ai:debug": "node --experimental-strip-types scripts/ai.ts debug",
+    "ai:refactor": "node --experimental-strip-types scripts/ai.ts refactor",
+    "ai:test": "node --experimental-strip-types scripts/ai.ts test",
+    "ai:feature": "node --experimental-strip-types scripts/ai.ts feature"
   },
   "dependencies": {
     "react": "^19.2.7",

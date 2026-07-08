@@ -1,0 +1,14 @@
+{
+  "PROJECT": "Doodle Jump clone in React, TypeScript, and Canvas",
+  "FEATURE": "Platform collision",
+  "REQUIREMENTS": "Player lands on platforms only while falling. Landing resets vertical velocity upward. Existing movement and rendering behavior should stay unchanged.",
+  "ARCHITECTURE": "Use this field for the approved architecture output before running ai:impl.",
+  "EXPECTED": "Describe the expected behavior.",
+  "ACTUAL": "Describe the actual behavior.",
+  "REPRODUCTION": "List steps to reproduce the issue.",
+  "CODE": "Paste relevant code here, or leave blank and the CLI will ask for a file path when supported.",
+  "LOGS": "Paste relevant console or test output here.",
+  "SYSTEM": "PhysicsSystem",
+  "SOURCE_FILE": "src/game/systems/PhysicsSystem.ts",
+  "EDGE_CASES": "Player hits platform from below; player overlaps edge; high falling velocity."
+}
