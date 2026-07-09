@@ -1,6 +1,6 @@
 import { INITIAL_JUMP_VELOCITY } from "../systems/PhysicsSystem";
 
-const PLAYER_WIDTH = 40;
+export const PLAYER_WIDTH = 40;
 const PLAYER_HEIGHT = 40;
 const PLAYER_COLOR = "red";
 

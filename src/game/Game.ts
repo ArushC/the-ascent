@@ -1,11 +1,12 @@
 import { createPlayer, type Player } from "./entities/Player";
-import {
-  createStaticPlatform,
-  type StaticPlatform,
-} from "./entities/StaticPlatform";
+import type { StaticPlatform } from "./entities/StaticPlatform";
 import { KeyboardInput, type HorizontalIntent } from "./input/KeyboardInput";
 import { resolvePlatformLanding } from "./systems/CollisionSystem";
 import { updateCamera } from "./systems/CameraSystem";
+import {
+  createInitialPlatforms,
+  updatePlatformsForCamera,
+} from "./systems/PlatformSpawner";
 import { updatePlayerPhysics } from "./systems/PhysicsSystem";
 import {
   createScoreState,
@@ -20,13 +21,6 @@ const SCORE_TEXT_COLOR = "white";
 const SCORE_TEXT_FONT = "24px sans-serif";
 const SCORE_TEXT_SCREEN_X = 16;
 const SCORE_TEXT_SCREEN_Y = 32;
-const STARTING_STATIC_PLATFORM_POSITIONS = [
-  { x: 155, y: 500 },
-  { x: 260, y: 410 },
-  { x: 70, y: 320 },
-  { x: 220, y: 230 },
-  { x: 110, y: 140 },
-] as const;
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -45,9 +39,7 @@ export class Game {
     this.ctx = ctx;
     this.player = createPlayer(canvas);
     this.scoreState = createScoreState(this.player.y);
-    this.staticPlatforms = STARTING_STATIC_PLATFORM_POSITIONS.map(({ x, y }) =>
-      createStaticPlatform(x, y),
-    );
+    this.staticPlatforms = createInitialPlatforms(canvas.width, canvas.height);
   }
 
   start(): void {
@@ -97,6 +89,12 @@ export class Game {
       this.canvas.height,
     );
     this.scoreState = updateScore(this.scoreState, this.player.y);
+    this.staticPlatforms = updatePlatformsForCamera(
+      this.staticPlatforms,
+      this.screenTopY,
+      this.canvas.width,
+      this.canvas.height,
+    );
   }
 
   private render(): void {
