@@ -18,3 +18,11 @@ export function updateCamera(
 export function worldToScreenY(worldY: number, screenTopY: number): number {
   return worldY - screenTopY;
 }
+
+export function isPlayerBelowScreen(
+  playerY: number,
+  screenTopY: number,
+  canvasHeight: number,
+): boolean {
+  return worldToScreenY(playerY, screenTopY) > canvasHeight;
+}

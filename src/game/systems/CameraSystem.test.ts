@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CAMERA_FOLLOW_THRESHOLD_RATIO,
+  isPlayerBelowScreen,
   updateCamera,
   worldToScreenY,
 } from "./CameraSystem";
@@ -36,5 +37,19 @@ describe("updateCamera", () => {
 describe("worldToScreenY", () => {
   it("converts world y to screen y using the current screen top", () => {
     expect(worldToScreenY(500, -50)).toBe(550);
+  });
+});
+
+describe("isPlayerBelowScreen", () => {
+  it("returns false while the player is still inside the screen", () => {
+    expect(isPlayerBelowScreen(599, 0, CANVAS_HEIGHT)).toBe(false);
+  });
+
+  it("returns true after the player falls below the bottom edge", () => {
+    expect(isPlayerBelowScreen(601, 0, CANVAS_HEIGHT)).toBe(true);
+  });
+
+  it("accounts for the current camera offset", () => {
+    expect(isPlayerBelowScreen(551, -50, CANVAS_HEIGHT)).toBe(true);
   });
 });
