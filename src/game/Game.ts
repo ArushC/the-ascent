@@ -1,8 +1,8 @@
 import { createPlayer, type Player } from "./entities/Player";
 import type { StaticPlatform } from "./entities/StaticPlatform";
-import { KeyboardInput, type HorizontalIntent } from "./input/KeyboardInput";
+import { KeyboardInput } from "./input/KeyboardInput";
 import { resolvePlatformLanding } from "./systems/CollisionSystem";
-import { updateCamera } from "./systems/CameraSystem";
+import { isPlayerBelowScreen, updateCamera } from "./systems/CameraSystem";
 import {
   createInitialPlatforms,
   updatePlatformsForCamera,
@@ -16,27 +16,36 @@ import {
 } from "./systems/ScoreSystem";
 
 const MAX_DELTA_MS = 50;
-const NO_HORIZONTAL_INPUT: HorizontalIntent = 0;
-const SCORE_TEXT_COLOR = "white";
-const SCORE_TEXT_FONT = "24px sans-serif";
-const SCORE_TEXT_SCREEN_X = 16;
-const SCORE_TEXT_SCREEN_Y = 32;
+
+export type GamePhase = "ready" | "playing" | "paused" | "over";
+
+export type GameUiState = {
+  phase: GamePhase;
+  score: number;
+};
 
 export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private readonly publishUiState: (uiState: GameUiState) => void;
   private running = false;
   private rafId: number | null = null;
   private lastTimestamp = 0;
   private player: Player;
   private staticPlatforms: StaticPlatform[];
-  private keyboardInput: KeyboardInput | null = null;
+  private readonly keyboardInput = new KeyboardInput();
   private screenTopY = 0;
   private scoreState: ScoreState;
+  private phase: GamePhase = "ready";
 
-  constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    ctx: CanvasRenderingContext2D,
+    publishUiState: (uiState: GameUiState) => void,
+  ) {
     this.canvas = canvas;
     this.ctx = ctx;
+    this.publishUiState = publishUiState;
     this.player = createPlayer(canvas);
     this.scoreState = createScoreState(this.player.y);
     this.staticPlatforms = createInitialPlatforms(canvas.width, canvas.height);
@@ -44,7 +53,6 @@ export class Game {
 
   start(): void {
     if (this.running) return;
-    this.keyboardInput = new KeyboardInput();
     this.running = true;
     this.lastTimestamp = performance.now();
     this.rafId = requestAnimationFrame(this.tick);
@@ -52,11 +60,7 @@ export class Game {
 
   stop(): void {
     this.running = false;
-
-    if (this.keyboardInput !== null) {
-      this.keyboardInput.destroy();
-      this.keyboardInput = null;
-    }
+    this.keyboardInput.destroy();
 
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
@@ -64,10 +68,36 @@ export class Game {
     }
   }
 
+  beginRun(): void {
+    if (this.phase !== "ready") return;
+
+    this.setPhase("playing");
+  }
+
+  pause(): void {
+    if (this.phase !== "playing") return;
+
+    this.setPhase("paused");
+  }
+
+  resume(): void {
+    if (this.phase !== "paused") return;
+
+    this.setPhase("playing");
+  }
+
+  restart(): void {
+    if (this.phase !== "paused" && this.phase !== "over") return;
+
+    this.resetWorld();
+    this.setPhase("playing");
+  }
+
   private tick = (timestamp: number): void => {
     const deltaTime = Math.min(timestamp - this.lastTimestamp, MAX_DELTA_MS);
     this.lastTimestamp = timestamp;
 
+    this.applyKeyboardShortcuts();
     this.update(deltaTime);
     this.render();
 
@@ -76,10 +106,46 @@ export class Game {
     }
   };
 
+  private applyKeyboardShortcuts(): void {
+    const keyPresses = this.keyboardInput.consumePhaseKeyPresses();
+
+    const startedFromReady = keyPresses.start && this.phase === "ready";
+
+    if (keyPresses.start) {
+      this.beginRun();
+    }
+
+    if (keyPresses.pauseOrResume && !startedFromReady) {
+      this.applyPauseOrResumeShortcut();
+    }
+
+    if (keyPresses.restart) {
+      this.restart();
+    }
+  }
+
+  private applyPauseOrResumeShortcut(): void {
+    switch (this.phase) {
+      case "ready":
+        this.beginRun();
+        break;
+      case "playing":
+        this.pause();
+        break;
+      case "paused":
+        this.resume();
+        break;
+      case "over":
+        break;
+    }
+  }
+
   private update(deltaTime: number): void {
-    const horizontalIntent =
-      this.keyboardInput?.getHorizontalIntent() ?? NO_HORIZONTAL_INPUT;
+    if (this.phase !== "playing") return;
+
+    const horizontalIntent = this.keyboardInput.getHorizontalIntent();
     const previousY = this.player.y;
+    const scoreBeforeUpdate = getScore(this.scoreState);
 
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
     resolvePlatformLanding(this.player, this.staticPlatforms, previousY);
@@ -95,6 +161,17 @@ export class Game {
       this.canvas.width,
       this.canvas.height,
     );
+
+    if (
+      isPlayerBelowScreen(this.player.y, this.screenTopY, this.canvas.height)
+    ) {
+      this.setPhase("over");
+      return;
+    }
+
+    if (getScore(this.scoreState) !== scoreBeforeUpdate) {
+      this.publishCurrentUiState();
+    }
   }
 
   private render(): void {
@@ -114,13 +191,29 @@ export class Game {
     this.player.draw(ctx);
 
     ctx.restore();
+  }
 
-    ctx.fillStyle = SCORE_TEXT_COLOR;
-    ctx.font = SCORE_TEXT_FONT;
-    ctx.fillText(
-      `Score: ${getScore(this.scoreState)}`,
-      SCORE_TEXT_SCREEN_X,
-      SCORE_TEXT_SCREEN_Y,
+  private resetWorld(): void {
+    this.player = createPlayer(this.canvas);
+    this.scoreState = createScoreState(this.player.y);
+    this.staticPlatforms = createInitialPlatforms(
+      this.canvas.width,
+      this.canvas.height,
     );
+    this.screenTopY = 0;
+  }
+
+  private setPhase(phase: GamePhase): void {
+    if (this.phase === phase) return;
+
+    this.phase = phase;
+    this.publishCurrentUiState();
+  }
+
+  private publishCurrentUiState(): void {
+    this.publishUiState({
+      phase: this.phase,
+      score: getScore(this.scoreState),
+    });
   }
 }

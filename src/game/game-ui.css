@@ -1,0 +1,117 @@
+.game-shell {
+  position: relative;
+  --game-surface: #1a1a1a;
+  --game-page: #111;
+  --game-canvas: black;
+  --game-text: white;
+  --game-border: 2px solid var(--game-text);
+  --game-backdrop: rgba(0, 0, 0, 0.6);
+  --game-space-sm: 0.75rem;
+  --game-space-md: 1.5rem;
+  --game-button-size: 2.5rem;
+  --game-button-padding-y: 0.5rem;
+  --game-menu-width: 18rem;
+  --game-score-size: 1.1rem;
+  --game-score-weight: 700;
+  --game-title-size: 2rem;
+  --game-icon-size: 1.5rem;
+  --game-shadow: 0 1px 2px black;
+  --game-paused-opacity: 0.65;
+  --game-disabled-opacity: 0.5;
+  border: var(--game-border);
+  background: var(--game-canvas);
+  color: var(--game-text);
+  font-family: sans-serif;
+}
+
+.game-shell canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--game-canvas);
+}
+
+.game-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--game-space-sm);
+  pointer-events: none;
+}
+
+.game-hud.is-paused {
+  opacity: var(--game-paused-opacity);
+}
+
+.game-score {
+  font-size: var(--game-score-size);
+  font-weight: var(--game-score-weight);
+  text-shadow: var(--game-shadow);
+}
+
+.game-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--game-button-size);
+  height: var(--game-button-size);
+  border: var(--game-border);
+  background: var(--game-page);
+  color: var(--game-text);
+  font-size: var(--game-icon-size);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.game-icon-button:disabled,
+.game-btn:disabled {
+  cursor: default;
+  opacity: var(--game-disabled-opacity);
+}
+
+.game-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--game-backdrop);
+}
+
+.game-menu {
+  width: min(var(--game-menu-width), calc(100% - var(--game-space-md)));
+  padding: var(--game-space-md);
+  border: var(--game-border);
+  background: var(--game-surface);
+  text-align: center;
+}
+
+.game-menu h1 {
+  margin: 0;
+  color: var(--game-text);
+  font-size: var(--game-title-size);
+}
+
+.game-menu p {
+  margin: var(--game-space-sm) 0 0;
+  font-size: var(--game-score-size);
+}
+
+.game-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--game-space-sm);
+  margin-top: var(--game-space-md);
+}
+
+.game-btn {
+  padding: var(--game-button-padding-y) var(--game-space-md);
+  font-size: var(--game-score-size);
+  cursor: pointer;
+}
