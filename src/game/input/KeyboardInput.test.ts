@@ -19,7 +19,7 @@ class TestKeyboardTarget {
     this.listeners[type].delete(listener);
   }
 
-  dispatch(type: KeyboardEventType, code: string): void {
+  dispatch(type: KeyboardEventType, code: string): KeyboardEvent {
     const event = {
       code,
       preventDefault: vi.fn(),
@@ -28,6 +28,8 @@ class TestKeyboardTarget {
     for (const listener of this.listeners[type]) {
       listener(event);
     }
+
+    return event;
   }
 }
 
@@ -81,5 +83,61 @@ describe("KeyboardInput", () => {
     target.dispatch("keydown", "ArrowRight");
 
     expect(input.getHorizontalIntent()).toBe(0);
+  });
+
+  it("consumes start as an edge-triggered Space action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "Space");
+
+    expect(input.consumePhaseKeyPresses()).toEqual({
+      start: true,
+      pauseOrResume: false,
+      restart: false,
+    });
+    expect(input.consumePhaseKeyPresses()).toEqual({
+      start: false,
+      pauseOrResume: false,
+      restart: false,
+    });
+  });
+
+  it("does not repeat an action while the key stays pressed", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyR");
+    target.dispatch("keydown", "KeyR");
+
+    expect(input.consumePhaseKeyPresses().restart).toBe(true);
+    expect(input.consumePhaseKeyPresses().restart).toBe(false);
+  });
+
+  it("consumes pause-or-resume from P or Escape", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyP");
+
+    expect(input.consumePhaseKeyPresses().pauseOrResume).toBe(true);
+
+    target.dispatch("keyup", "KeyP");
+    target.dispatch("keydown", "Escape");
+
+    expect(input.consumePhaseKeyPresses().pauseOrResume).toBe(true);
+  });
+
+  it("prevents default browser scrolling for Space", () => {
+    const { target } = createKeyboardInput();
+
+    const event = target.dispatch("keydown", "Space");
+
+    expect(event.preventDefault).toHaveBeenCalled();
+  });
+
+  it("leaves letter shortcuts to the browser", () => {
+    const { target } = createKeyboardInput();
+
+    const event = target.dispatch("keydown", "KeyP");
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
   });
 });

@@ -4,6 +4,25 @@ export type HorizontalIntent = -1 | 0 | 1;
 export type KeyboardEventType = "keydown" | "keyup";
 export type KeyboardListener = (event: KeyboardEvent) => void;
 
+/**
+ * One-frame phase shortcuts consumed by Game.
+ * true means the key was newly pressed since the previous consume call.
+ */
+export type PhaseKeyPresses = {
+  start: boolean;
+  pauseOrResume: boolean;
+  restart: boolean;
+};
+
+type PhaseActionKey = keyof PhaseKeyPresses;
+
+const PHASE_ACTION_BY_CODE: Partial<Record<string, PhaseActionKey>> = {
+  Space: "start",
+  KeyP: "pauseOrResume",
+  Escape: "pauseOrResume",
+  KeyR: "restart",
+};
+
 export interface KeyboardEventTarget {
   addEventListener(type: KeyboardEventType, listener: KeyboardListener): void;
   removeEventListener(type: KeyboardEventType, listener: KeyboardListener): void;
@@ -13,6 +32,8 @@ export class KeyboardInput {
   private readonly eventTarget: KeyboardEventTarget;
   private leftPressed = false;
   private rightPressed = false;
+  private readonly heldPhaseActionKeys = new Set<PhaseActionKey>();
+  private readonly queuedPhaseActionKeys = new Set<PhaseActionKey>();
 
   constructor(eventTarget: KeyboardEventTarget = window) {
     this.eventTarget = eventTarget;
@@ -28,11 +49,25 @@ export class KeyboardInput {
     return this.leftPressed ? -1 : 1;
   }
 
+  consumePhaseKeyPresses(): PhaseKeyPresses {
+    const actions = {
+      start: this.queuedPhaseActionKeys.has("start"),
+      pauseOrResume: this.queuedPhaseActionKeys.has("pauseOrResume"),
+      restart: this.queuedPhaseActionKeys.has("restart"),
+    };
+
+    this.queuedPhaseActionKeys.clear();
+
+    return actions;
+  }
+
   destroy(): void {
     this.eventTarget.removeEventListener("keydown", this.handleKeyDown);
     this.eventTarget.removeEventListener("keyup", this.handleKeyUp);
     this.leftPressed = false;
     this.rightPressed = false;
+    this.heldPhaseActionKeys.clear();
+    this.queuedPhaseActionKeys.clear();
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {
@@ -59,6 +94,35 @@ export class KeyboardInput {
       case "KeyD":
         this.rightPressed = pressed;
         break;
+      case "Space":
+        event.preventDefault();
+        this.recordPhaseActionKey(event.code, pressed);
+        break;
+      case "KeyP":
+      case "Escape":
+      case "KeyR":
+        this.recordPhaseActionKey(event.code, pressed);
+        break;
     }
+  }
+
+  /**
+   * Queues a shortcut only on the first keydown, then waits for keyup
+   * before the same shortcut can be queued again.
+   */
+  private recordPhaseActionKey(code: string, pressed: boolean): void {
+    const action = PHASE_ACTION_BY_CODE[code];
+    if (!action) return;
+
+    if (!pressed) {
+      this.heldPhaseActionKeys.delete(action);
+      return;
+    }
+
+    if (!this.heldPhaseActionKeys.has(action)) {
+      this.queuedPhaseActionKeys.add(action);
+    }
+
+    this.heldPhaseActionKeys.add(action);
   }
 }
