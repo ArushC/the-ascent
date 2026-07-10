@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "node --experimental-strip-types server/index.ts",
+    "dev:all": "npm run dev:server & npm run dev",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest",
@@ -23,7 +25,8 @@
   },
   "dependencies": {
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",
