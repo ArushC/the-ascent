@@ -3,14 +3,14 @@ import type {
   PlayerBest,
   ScoreSubmission,
   ScoreSubmissionResult,
-} from "../../shared/leaderboardTypes.ts";
+} from "../../../shared/leaderboard/types.ts";
 
 export type {
   LeaderboardEntry,
   PlayerBest,
   ScoreSubmission,
   ScoreSubmissionResult,
-} from "../../shared/leaderboardTypes.ts";
+} from "../../../shared/leaderboard/types.ts";
 
 export async function submitScore(
   submission: ScoreSubmission,

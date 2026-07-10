@@ -1,7 +1,7 @@
 import {
   normalizePlayerName,
   validatePlayerName,
-} from "../../shared/validation.ts";
+} from "../../shared/leaderboard/validation.ts";
 
 const PLAYER_ID_KEY = "doodle-jump:player-id";
 const PLAYER_NAME_KEY = "doodle-jump:player-name";
