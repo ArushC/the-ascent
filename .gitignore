@@ -27,6 +27,9 @@ test-results
 # Local config
 *.local
 
+# Local SQLite databases
+data/*.sqlite
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

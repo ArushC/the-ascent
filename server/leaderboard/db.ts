@@ -6,7 +6,7 @@ import type {
   PlayerBest,
   ScoreSubmission,
   ScoreSubmissionResult,
-} from "../shared/leaderboardTypes.ts";
+} from "../../shared/leaderboard/types.ts";
 import {
   INSERT_SCORE_RUN_SQL,
   SELECT_BEST_SCORE_SQL,

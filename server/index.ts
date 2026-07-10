@@ -1,12 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { createLeaderboardDb, type LeaderboardDb } from "./db.ts";
+import { createLeaderboardDb, type LeaderboardDb } from "./leaderboard/db.ts";
 import { HTTP_STATUS, type JsonResponse } from "./http.ts";
-import { DEFAULT_DATABASE_FILE } from "./schema.ts";
-import {
-  getLeaderboardEntries,
-  getTopPlayerScore,
-} from "./routes/leaderboard.ts";
-import { recordScore } from "./routes/scores.ts";
+import { DEFAULT_DATABASE_FILE } from "./leaderboard/schema.ts";
+import { getLeaderboardEntries } from "./leaderboard/routes/getLeaderboardEntries.ts";
+import { getTopPlayerScore } from "./leaderboard/routes/getPlayerBest.ts";
+import { recordScore } from "./leaderboard/routes/postScoreSubmission.ts";
 
 const DEFAULT_PORT = 3001;
 const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
