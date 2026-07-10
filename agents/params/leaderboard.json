@@ -13,7 +13,7 @@
   "ARCHITECTURE": {
     "networkIo": "React GameCanvas effects only; Game.ts and systems remain synchronous.",
     "identity": "Client-generated UUID stored as doodle-jump:player-id and display name stored as doodle-jump:player-name.",
-    "validation": "shared/validation.ts is imported by frontend prompt and server policy.",
+    "validation": "shared/leaderboard/schemas.ts for server routes; shared/leaderboard/validation.ts for client UX helpers.",
     "server": "Node http server with node:sqlite to avoid adding dependencies.",
     "database": "players table stores personal bests; score_runs table stores individual runs ranked by score desc and created_at asc.",
     "frontend": "GameCanvas orchestrates submit/fetch; GameMenu remains presentational; PlayerNamePrompt owns name entry."
