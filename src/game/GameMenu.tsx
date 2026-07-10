@@ -1,5 +1,9 @@
 import type { GamePhase } from "./Game";
 import type { GameControls } from "./GameControls";
+import { Leaderboard } from "./Leaderboard";
+import { renderPersonalBestText } from "./leaderboardMenu";
+import type { LeaderboardState, PersonalBestState } from "./leaderboardState";
+import "./leaderboard-ui.css";
 
 export type GameMenuPhase = Exclude<GamePhase, "playing">;
 
@@ -7,6 +11,8 @@ type GameMenuProps = {
   phase: GameMenuPhase;
   score: number;
   controls: GameControls;
+  personalBest: PersonalBestState;
+  leaderboard: LeaderboardState;
 };
 
 type GameMenuAction = {
@@ -29,7 +35,13 @@ const MENU_ACTIONS: Record<GameMenuPhase, GameMenuAction[]> = {
   over: [{ label: "Restart", control: "restart" }],
 };
 
-export function GameMenu({ phase, score, controls }: GameMenuProps) {
+export function GameMenu({
+  phase,
+  score,
+  controls,
+  personalBest,
+  leaderboard,
+}: GameMenuProps) {
   const title = MENU_TITLES[phase];
   const actions = MENU_ACTIONS[phase];
 
@@ -37,7 +49,13 @@ export function GameMenu({ phase, score, controls }: GameMenuProps) {
     <div className="game-menu-backdrop">
       <div className="game-menu" role="dialog" aria-modal="true">
         <h1>{title}</h1>
-        {phase === "over" ? <p>Final score: {score}</p> : null}
+        {phase === "over" ? (
+          <>
+            <p>Final score: {score}</p>
+            <p>{renderPersonalBestText(personalBest)}</p>
+            <Leaderboard leaderboard={leaderboard} />
+          </>
+        ) : null}
         <div className="game-menu-actions">
           {actions.map((action) => (
             <button

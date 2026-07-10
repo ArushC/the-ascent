@@ -1,0 +1,50 @@
+.game-name-input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: var(--game-space-md);
+  padding: var(--game-button-padding-y) var(--game-space-sm);
+  border: var(--game-border);
+  background: var(--game-page);
+  color: var(--game-text);
+  font-size: var(--game-score-size);
+}
+
+.game-leaderboard {
+  margin-top: var(--game-space-md);
+  max-height: 10rem;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.game-leaderboard h2 {
+  margin: 0 0 var(--game-space-sm);
+  font-size: var(--game-score-size);
+}
+
+.game-leaderboard-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  gap: var(--game-space-sm);
+  align-items: center;
+  font-size: var(--game-score-size);
+}
+
+.game-leaderboard-row span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-leaderboard-pagination {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--game-space-sm);
+  align-items: center;
+  margin-top: var(--game-space-sm);
+  text-align: center;
+}
+
+.game-leaderboard-pagination .game-btn {
+  padding-right: var(--game-space-sm);
+  padding-left: var(--game-space-sm);
+}

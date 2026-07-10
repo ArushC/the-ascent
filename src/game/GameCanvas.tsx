@@ -3,6 +3,13 @@ import { Game, type GameUiState } from "./Game";
 import type { GameControls } from "./GameControls";
 import { GameHud } from "./GameHud";
 import { GameMenu, type GameMenuPhase } from "./GameMenu";
+import { PlayerNamePrompt } from "./PlayerNamePrompt";
+import {
+  getOrCreatePlayerId,
+  getPlayerName,
+  setPlayerName,
+} from "./playerIdentity";
+import { useGameOverLeaderboard } from "./useGameOverLeaderboard";
 import "./game-ui.css";
 
 type GameCanvasProps = {
@@ -13,9 +20,19 @@ type GameCanvasProps = {
 export function GameCanvas({ width, height }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [uiControls, setUiControls] = useState<GameControls | null>(null);
+  const [playerId] = useState(() => getOrCreatePlayerId());
+  const [playerName, setPlayerNameState] = useState<string | null>(() =>
+    getPlayerName(),
+  );
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
     score: 0,
+  });
+  const { personalBest, leaderboard } = useGameOverLeaderboard({
+    phase: ui.phase,
+    playerId,
+    playerName,
+    score: ui.score,
   });
 
   useEffect(() => {
@@ -44,6 +61,11 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const menuPhase: GameMenuPhase | null =
     ui.phase === "playing" ? null : ui.phase;
 
+  function handlePlayerNameSubmit(nextPlayerName: string): void {
+    setPlayerName(nextPlayerName);
+    setPlayerNameState(nextPlayerName);
+  }
+
   return (
     <div className="game-shell" style={{ width, height }}>
       <canvas ref={canvasRef} width={width} height={height} />
@@ -55,7 +77,16 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
         />
       ) : null}
       {menuPhase && uiControls ? (
-        <GameMenu phase={menuPhase} score={ui.score} controls={uiControls} />
+        <GameMenu
+          phase={menuPhase}
+          score={ui.score}
+          controls={uiControls}
+          personalBest={personalBest}
+          leaderboard={leaderboard}
+        />
+      ) : null}
+      {ui.phase === "over" && !playerName ? (
+        <PlayerNamePrompt onSubmit={handlePlayerNameSubmit} />
       ) : null}
     </div>
   );

@@ -103,6 +103,10 @@
   font-size: var(--game-score-size);
 }
 
+.game-menu-error {
+  opacity: 0.85;
+}
+
 .game-menu-actions {
   display: flex;
   flex-direction: column;
