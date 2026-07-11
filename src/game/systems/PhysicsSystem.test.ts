@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { CANVAS_WIDTH } from "../../App";
 import {
   createTestPlayer,
   TEST_PLAYER_DEFAULTS,
 } from "../testing/entityFactories";
 import {
+  applyHorizontalWrap,
   GRAVITY,
   HORIZONTAL_SPEED,
   updatePlayerPhysics,
@@ -73,5 +75,31 @@ describe("updatePlayerPhysics", () => {
 
     expect(doubleFrameX).toBeCloseTo(singleFrameX * 2);
     expect(doubleFrameY).toBeCloseTo(singleFrameY * 4);
+  });
+});
+
+describe("applyHorizontalWrap", () => {
+  it("wraps the player from the left edge to the right edge", () => {
+    const player = createTestPlayer({ x: -TEST_PLAYER_DEFAULTS.width });
+
+    applyHorizontalWrap(player, CANVAS_WIDTH);
+
+    expect(player.x).toBe(CANVAS_WIDTH - TEST_PLAYER_DEFAULTS.width);
+  });
+
+  it("wraps the player from the right edge to the left edge", () => {
+    const player = createTestPlayer({ x: CANVAS_WIDTH });
+
+    applyHorizontalWrap(player, CANVAS_WIDTH);
+
+    expect(player.x).toBe(0);
+  });
+
+  it("leaves an in-bounds player unchanged", () => {
+    const player = createTestPlayer({ x: TEST_PLAYER_DEFAULTS.x });
+
+    applyHorizontalWrap(player, CANVAS_WIDTH);
+
+    expect(player.x).toBe(TEST_PLAYER_DEFAULTS.x);
   });
 });

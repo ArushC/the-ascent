@@ -1,7 +1,7 @@
 import "./App.css";
 import { GameCanvas } from "./game/GameCanvas";
 
-const CANVAS_WIDTH = 400;
+export const CANVAS_WIDTH = 400;
 const CANVAS_HEIGHT = 600;
 
 function App() {

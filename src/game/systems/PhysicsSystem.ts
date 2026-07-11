@@ -15,3 +15,11 @@ export function updatePlayerPhysics(
   player.x += player.velocityX * deltaTime;
   player.y += player.velocityY * deltaTime;
 }
+
+export function applyHorizontalWrap(player: Player, canvasWidth: number): void {
+  if (player.x + player.width <= 0) {
+    player.x += canvasWidth;
+  } else if (player.x >= canvasWidth) {
+    player.x -= canvasWidth;
+  }
+}

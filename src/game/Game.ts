@@ -7,7 +7,10 @@ import {
   createInitialPlatforms,
   updatePlatformsForCamera,
 } from "./systems/PlatformSpawner";
-import { updatePlayerPhysics } from "./systems/PhysicsSystem";
+import {
+  applyHorizontalWrap,
+  updatePlayerPhysics,
+} from "./systems/PhysicsSystem";
 import {
   createScoreState,
   getScore,
@@ -148,6 +151,7 @@ export class Game {
     const scoreBeforeUpdate = getScore(this.scoreState);
 
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
+    applyHorizontalWrap(this.player, this.canvas.width);
     resolvePlatformLanding(this.player, this.staticPlatforms, previousY);
     this.screenTopY = updateCamera(
       this.screenTopY,
