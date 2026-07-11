@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { SPRING_ACTIVATION_DURATION_MS } from "../entities/Spring";
 import {
+  createTestHorizontalMonster,
   createTestMovingPlatform,
   createTestPlayer,
   createTestStaticPlatform,
   createTestVerticalMovingPlatform,
 } from "../testing/entityFactories";
-import { resolvePlatformLanding } from "./CollisionSystem";
+import {
+  playerCollidesWithMonster,
+  resolvePlatformLanding,
+} from "./CollisionSystem";
 import { INITIAL_JUMP_VELOCITY, SPRING_JUMP_VELOCITY } from "./PhysicsSystem";
 
 describe("resolvePlatformLanding", () => {
@@ -186,5 +190,38 @@ describe("resolvePlatformLanding", () => {
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+  });
+});
+
+describe("playerCollidesWithMonster", () => {
+  it("returns true when the player overlaps a monster", () => {
+    const player = createTestPlayer({ x: 100, y: 100, width: 40, height: 40 });
+    const monster = createTestHorizontalMonster({
+      x: 120,
+      y: 120,
+      width: 56,
+      height: 14,
+    });
+
+    expect(playerCollidesWithMonster(player, monster)).toBe(true);
+  });
+
+  it("returns false when the player only touches a monster edge", () => {
+    const monster = createTestHorizontalMonster({ x: 140, y: 100 });
+    const player = createTestPlayer({
+      x: monster.x - 40,
+      y: monster.y,
+      width: 40,
+      height: 40,
+    });
+
+    expect(playerCollidesWithMonster(player, monster)).toBe(false);
+  });
+
+  it("returns false when there are no monster overlaps", () => {
+    const player = createTestPlayer({ x: 0, y: 0 });
+    const monster = createTestHorizontalMonster({ x: 100, y: 100 });
+
+    expect(playerCollidesWithMonster(player, monster)).toBe(false);
   });
 });

@@ -2,6 +2,7 @@ import {
   getPlatformPreviousY,
   type Platform,
 } from "../entities/Platform";
+import type { Monster } from "../entities/Monster";
 import type { Player } from "../entities/Player";
 import {
   playerOverlapsSpringHitZone,
@@ -48,4 +49,23 @@ export function resolvePlatformLanding(
   }
 
   player.velocityY = -INITIAL_JUMP_VELOCITY;
+}
+
+export function playerCollidesWithMonster(
+  player: Player,
+  monster: Monster,
+): boolean {
+  return rectanglesOverlap(player, monster);
+}
+
+function rectanglesOverlap(
+  first: { x: number; y: number; width: number; height: number },
+  second: { x: number; y: number; width: number; height: number },
+): boolean {
+  return (
+    first.x < second.x + second.width &&
+    first.x + first.width > second.x &&
+    first.y < second.y + second.height &&
+    first.y + first.height > second.y
+  );
 }
