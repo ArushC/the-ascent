@@ -1,6 +1,10 @@
-import { createHorizontalMovingPlatform } from "../entities/HorizontalMovingPlatform";
+import { createDiagonalMovingPlatform } from "../entities/movingPlatform/DiagonalMovingPlatform";
+import { createHorizontalMovingPlatform } from "../entities/movingPlatform/HorizontalMovingPlatform";
+import { createVerticalMovingPlatform } from "../entities/movingPlatform/VerticalMovingPlatform";
 import {
+  DEFAULT_PLATFORM_HEIGHT,
   DEFAULT_PLATFORM_WIDTH,
+  getPlatformTopY,
   type Platform,
 } from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
@@ -8,7 +12,16 @@ import { createStaticPlatform } from "../entities/StaticPlatform";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
 
 export const BOTTOM_PLATFORM_OFFSET = 100;
-export const MOVING_PLATFORM_SPAWN_CHANCE = 0.25;
+export const STATIC_PLATFORM_SPAWN_WEIGHT = 0.75;
+export const HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT = 0.125;
+export const VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT = 0.0625;
+export const DIAGONAL_MOVING_PLATFORM_SPAWN_WEIGHT = 0.0625;
+export const MOVING_PLATFORM_TRAVEL_DISTANCE_RATIO = 0.32;
+const PLATFORM_SPAWN_WEIGHT_TOTAL =
+  STATIC_PLATFORM_SPAWN_WEIGHT +
+  HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+  VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+  DIAGONAL_MOVING_PLATFORM_SPAWN_WEIGHT;
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
@@ -34,7 +47,7 @@ export function getTopmostPlatformY(platforms: readonly Platform[]): number {
     return Number.POSITIVE_INFINITY;
   }
 
-  return Math.min(...platforms.map((platform) => platform.y));
+  return Math.min(...platforms.map(getPlatformTopY));
 }
 
 export function spawnNextPlatform(
@@ -43,15 +56,37 @@ export function spawnNextPlatform(
 ): Platform {
   const { minGap, maxGap } = getGapBounds();
   const gap = randomBetween(minGap, maxGap);
-  const maxX = Math.max(0, canvasWidth - DEFAULT_PLATFORM_WIDTH);
-  const x = Math.random() * maxX;
   const y = topmostY - gap;
+  const travelDistance = getMovingPlatformTravelDistance(canvasWidth);
 
-  if (Math.random() < MOVING_PLATFORM_SPAWN_CHANCE) {
-    return createHorizontalMovingPlatform(x, y);
+  switch (pickPlatformKind(Math.random() * PLATFORM_SPAWN_WEIGHT_TOTAL)) {
+    case "horizontalMoving": {
+      const x = getRandomPlatformX(canvasWidth, travelDistance);
+
+      return createHorizontalMovingPlatform(x, y, undefined, travelDistance);
+    }
+    case "verticalMoving": {
+      const x = getRandomPlatformX(canvasWidth);
+
+      return createVerticalMovingPlatform(x, y, undefined, travelDistance);
+    }
+    case "diagonalMoving": {
+      const x = getRandomPlatformX(canvasWidth, travelDistance);
+
+      return createDiagonalMovingPlatform(
+        x,
+        y,
+        undefined,
+        undefined,
+        travelDistance,
+      );
+    }
+    case "static": {
+      const x = getRandomPlatformX(canvasWidth);
+
+      return createStaticPlatform(x, y);
+    }
   }
-
-  return createStaticPlatform(x, y);
 }
 
 export function spawnPlatformsAboveCamera(
@@ -74,7 +109,7 @@ export function spawnPlatformsAboveCamera(
   while (topmostY > lookaheadTopY) {
     const platform = spawnNextPlatform(topmostY, canvasWidth);
     platformsAhead.push(platform);
-    topmostY = platform.y;
+    topmostY = getPlatformTopY(platform);
   }
 
   return platformsAhead;
@@ -124,4 +159,58 @@ export function updatePlatformsForCamera(
 
 function randomBetween(min: number, max: number): number {
   return min + Math.random() * (max - min);
+}
+
+/**
+ * Returns a travel distance that keeps vertical motion safe and horizontal
+ * motion comparable within the available canvas width.
+ */
+export function getMovingPlatformTravelDistance(canvasWidth: number): number {
+  const freeHorizontalRange = Math.max(0, canvasWidth - DEFAULT_PLATFORM_WIDTH);
+  const { minGap } = getGapBounds();
+  const safeVerticalRange = Math.max(0, (minGap - DEFAULT_PLATFORM_HEIGHT) * 2);
+
+  return Math.min(
+    freeHorizontalRange * MOVING_PLATFORM_TRAVEL_DISTANCE_RATIO,
+    safeVerticalRange,
+  );
+}
+
+export function pickPlatformKind(roll: number): Platform["kind"] {
+  if (roll < STATIC_PLATFORM_SPAWN_WEIGHT) {
+    return "static";
+  }
+
+  const horizontalThreshold =
+    STATIC_PLATFORM_SPAWN_WEIGHT + HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT;
+  if (roll < horizontalThreshold) {
+    return "horizontalMoving";
+  }
+
+  const verticalThreshold =
+    horizontalThreshold + VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT;
+  if (roll < verticalThreshold) {
+    return "verticalMoving";
+  }
+
+  return "diagonalMoving";
+}
+
+/**
+ * Returns a random spawn x whose full horizontal travel path stays onscreen.
+ * `horizontalTravelDistance` acts like extra width around the platform center.
+ */
+export function getRandomPlatformX(
+  canvasWidth: number,
+  horizontalTravelDistance = 0,
+): number {
+  const maxPlatformX = Math.max(0, canvasWidth - DEFAULT_PLATFORM_WIDTH);
+  const halfTravelDistance = Math.min(
+    horizontalTravelDistance / 2,
+    maxPlatformX / 2,
+  );
+  const minX = halfTravelDistance;
+  const maxX = maxPlatformX - halfTravelDistance;
+
+  return minX + Math.random() * Math.max(0, maxX - minX);
 }

@@ -1,4 +1,6 @@
-import { HorizontalMovingPlatform } from "../entities/HorizontalMovingPlatform";
+import { DiagonalMovingPlatform } from "../entities/movingPlatform/DiagonalMovingPlatform";
+import { HorizontalMovingPlatform } from "../entities/movingPlatform/HorizontalMovingPlatform";
+import { VerticalMovingPlatform } from "../entities/movingPlatform/VerticalMovingPlatform";
 import { Player } from "../entities/Player";
 import { StaticPlatform } from "../entities/StaticPlatform";
 
@@ -18,9 +20,43 @@ export const TEST_STATIC_PLATFORM_DEFAULTS = {
   height: 14,
 } as const;
 
-export const TEST_MOVING_PLATFORM_DEFAULTS = {
+export const TEST_MOVING_PLATFORM_TRAVEL_DISTANCE = 100;
+
+export const TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS = {
   ...TEST_STATIC_PLATFORM_DEFAULTS,
   velocityX: 0.1,
+  minX:
+    TEST_STATIC_PLATFORM_DEFAULTS.x - TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+  maxX:
+    TEST_STATIC_PLATFORM_DEFAULTS.x + TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+} as const;
+
+export const TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS = {
+  ...TEST_STATIC_PLATFORM_DEFAULTS,
+  velocityY: 0.1,
+  minY:
+    TEST_STATIC_PLATFORM_DEFAULTS.y - TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+  maxY:
+    TEST_STATIC_PLATFORM_DEFAULTS.y + TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+} as const;
+
+export const TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS = {
+  ...TEST_STATIC_PLATFORM_DEFAULTS,
+  velocityX: 0.1,
+  velocityY: 0.1,
+  minX:
+    TEST_STATIC_PLATFORM_DEFAULTS.x - TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+  maxX:
+    TEST_STATIC_PLATFORM_DEFAULTS.x + TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+  minY:
+    TEST_STATIC_PLATFORM_DEFAULTS.y - TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+  maxY:
+    TEST_STATIC_PLATFORM_DEFAULTS.y + TEST_MOVING_PLATFORM_TRAVEL_DISTANCE / 2,
+} as const;
+
+export const TEST_MOVING_PLATFORM_DEFAULTS = {
+  ...TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS,
+  velocityY: 0,
 } as const;
 
 type NumericOverrides<T> = Partial<{ [Key in keyof T]: number }>;
@@ -31,6 +67,15 @@ export type TestStaticPlatformOverrides = NumericOverrides<
 >;
 export type TestMovingPlatformOverrides = NumericOverrides<
   typeof TEST_MOVING_PLATFORM_DEFAULTS
+>;
+export type TestHorizontalMovingPlatformOverrides = NumericOverrides<
+  typeof TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS
+>;
+export type TestVerticalMovingPlatformOverrides = NumericOverrides<
+  typeof TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS
+>;
+export type TestDiagonalMovingPlatformOverrides = NumericOverrides<
+  typeof TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS
 >;
 
 export function createTestPlayer(
@@ -60,11 +105,51 @@ export function createTestStaticPlatform(
 export function createTestMovingPlatform(
   overrides: TestMovingPlatformOverrides = {},
 ): HorizontalMovingPlatform {
+  return createTestHorizontalMovingPlatform(overrides);
+}
+
+export function createTestHorizontalMovingPlatform(
+  overrides: TestHorizontalMovingPlatformOverrides = {},
+): HorizontalMovingPlatform {
   return new HorizontalMovingPlatform(
-    overrides.x ?? TEST_MOVING_PLATFORM_DEFAULTS.x,
-    overrides.y ?? TEST_MOVING_PLATFORM_DEFAULTS.y,
-    overrides.width ?? TEST_MOVING_PLATFORM_DEFAULTS.width,
-    overrides.height ?? TEST_MOVING_PLATFORM_DEFAULTS.height,
-    overrides.velocityX ?? TEST_MOVING_PLATFORM_DEFAULTS.velocityX,
+    overrides.x ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.x,
+    overrides.y ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.y,
+    overrides.width ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.width,
+    overrides.height ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.height,
+    overrides.velocityX ??
+      TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.velocityX,
+    overrides.minX ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.minX,
+    overrides.maxX ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.maxX,
+  );
+}
+
+export function createTestVerticalMovingPlatform(
+  overrides: TestVerticalMovingPlatformOverrides = {},
+): VerticalMovingPlatform {
+  return new VerticalMovingPlatform(
+    overrides.x ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.x,
+    overrides.y ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.y,
+    overrides.width ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.width,
+    overrides.height ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.height,
+    overrides.velocityY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.velocityY,
+    overrides.minY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.minY,
+    overrides.maxY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.maxY,
+  );
+}
+
+export function createTestDiagonalMovingPlatform(
+  overrides: TestDiagonalMovingPlatformOverrides = {},
+): DiagonalMovingPlatform {
+  return new DiagonalMovingPlatform(
+    overrides.x ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.x,
+    overrides.y ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.y,
+    overrides.width ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.width,
+    overrides.height ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.height,
+    overrides.velocityX ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.velocityX,
+    overrides.velocityY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.velocityY,
+    overrides.minX ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.minX,
+    overrides.maxX ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.maxX,
+    overrides.minY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.minY,
+    overrides.maxY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.maxY,
   );
 }

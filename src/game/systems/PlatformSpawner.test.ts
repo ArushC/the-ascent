@@ -1,16 +1,32 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DEFAULT_PLATFORM_WIDTH } from "../entities/Platform";
+import {
+  DEFAULT_PLATFORM_WIDTH,
+  getPlatformTopY,
+  isDiagonalMovingPlatform,
+  isHorizontalMovingPlatform,
+  isVerticalMovingPlatform,
+} from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
-import { createTestStaticPlatform } from "../testing/entityFactories";
+import {
+  createTestVerticalMovingPlatform,
+  createTestStaticPlatform,
+} from "../testing/entityFactories";
 import {
   BOTTOM_PLATFORM_OFFSET,
   computeMaxJumpHeight,
   createInitialPlatforms,
+  DIAGONAL_MOVING_PLATFORM_SPAWN_WEIGHT,
   getGapBounds,
-  MOVING_PLATFORM_SPAWN_CHANCE,
+  getMovingPlatformTravelDistance,
+  getRandomPlatformX,
+  getTopmostPlatformY,
+  HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT,
+  pickPlatformKind,
   removePlatformsBelowCamera,
   spawnNextPlatform,
   spawnPlatformsAboveCamera,
+  STATIC_PLATFORM_SPAWN_WEIGHT,
+  VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT,
   updatePlatformsForCamera,
 } from "./PlatformSpawner";
 
@@ -21,6 +37,7 @@ const EXPECTED_BOTTOM_PLATFORM_X =
   (PLAYER_WIDTH - DEFAULT_PLATFORM_WIDTH) / 2;
 const EXPECTED_BOTTOM_PLATFORM_Y =
   TEST_CANVAS_HEIGHT - BOTTOM_PLATFORM_OFFSET;
+const PLATFORM_KIND_ROLL_OFFSET = 0.01;
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -40,7 +57,7 @@ describe("createInitialPlatforms", () => {
       x: EXPECTED_BOTTOM_PLATFORM_X,
       y: EXPECTED_BOTTOM_PLATFORM_Y,
     });
-    expect(Math.min(...platforms.map((platform) => platform.y))).toBeLessThanOrEqual(
+    expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
       -TEST_CANVAS_HEIGHT,
     );
     expect(platforms.length).toBeGreaterThan(5);
@@ -73,7 +90,9 @@ describe("createInitialPlatforms", () => {
     );
 
     for (let index = 1; index < platforms.length; index += 1) {
-      const gap = platforms[index - 1].y - platforms[index].y;
+      const gap =
+        getPlatformTopY(platforms[index - 1]) -
+        getPlatformTopY(platforms[index]);
 
       expect(gap).toBeGreaterThanOrEqual(minGap);
       expect(gap).toBeLessThanOrEqual(maxGap);
@@ -89,6 +108,69 @@ describe("platform gap bounds", () => {
   });
 });
 
+describe("platform spawn weights", () => {
+  it("keeps platform kind weights normalized", () => {
+    expect(
+      STATIC_PLATFORM_SPAWN_WEIGHT +
+        HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+        VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+        DIAGONAL_MOVING_PLATFORM_SPAWN_WEIGHT,
+    ).toBe(1);
+  });
+
+  it("picks platform kinds from the weighted ranges", () => {
+    expect(pickPlatformKind(0)).toBe("static");
+    expect(
+      pickPlatformKind(STATIC_PLATFORM_SPAWN_WEIGHT + PLATFORM_KIND_ROLL_OFFSET),
+    ).toBe("horizontalMoving");
+    expect(
+      pickPlatformKind(
+        STATIC_PLATFORM_SPAWN_WEIGHT +
+          HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+          PLATFORM_KIND_ROLL_OFFSET,
+      ),
+    ).toBe("verticalMoving");
+    expect(
+      pickPlatformKind(
+        STATIC_PLATFORM_SPAWN_WEIGHT +
+          HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+          VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+          PLATFORM_KIND_ROLL_OFFSET,
+      ),
+    ).toBe("diagonalMoving");
+  });
+});
+
+describe("getRandomPlatformX", () => {
+  it("keeps the platform inside the canvas when no horizontal travel is needed", () => {
+    vi.spyOn(Math, "random").mockReturnValue(1);
+
+    expect(getRandomPlatformX(TEST_CANVAS_WIDTH)).toBe(
+      TEST_CANVAS_WIDTH - DEFAULT_PLATFORM_WIDTH,
+    );
+  });
+
+  it("leaves room for horizontal travel on both sides of the platform", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    expect(getRandomPlatformX(TEST_CANVAS_WIDTH, 100)).toBe(50);
+  });
+});
+
+describe("getTopmostPlatformY", () => {
+  it("uses a moving platform's highest reachable vertical position", () => {
+    const staticPlatform = createTestStaticPlatform({ y: 100 });
+    const movingPlatform = createTestVerticalMovingPlatform({
+      y: 50,
+      velocityY: 0.1,
+      minY: 25,
+      maxY: 75,
+    });
+
+    expect(getTopmostPlatformY([staticPlatform, movingPlatform])).toBe(25);
+  });
+});
+
 describe("spawnNextPlatform", () => {
   it("spawns above the current topmost platform", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
@@ -98,24 +180,84 @@ describe("spawnNextPlatform", () => {
     expect(platform.y).toBeLessThan(100);
   });
 
-  it("can spawn moving platforms based on the spawn chance", () => {
+  it("can spawn horizontal moving platforms based on the spawn chance", () => {
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(MOVING_PLATFORM_SPAWN_CHANCE - 0.01)
+      .mockReturnValueOnce(
+        STATIC_PLATFORM_SPAWN_WEIGHT + PLATFORM_KIND_ROLL_OFFSET,
+      )
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
 
     const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
 
     expect(platform.kind).toBe("horizontalMoving");
+    if (isHorizontalMovingPlatform(platform)) {
+      expect(platform.velocityX).not.toBe(0);
+      expect(platform.maxX - platform.minX).toBeCloseTo(
+        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+      );
+    }
+  });
+
+  it("can spawn vertical moving platforms", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(
+        STATIC_PLATFORM_SPAWN_WEIGHT +
+          HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+          PLATFORM_KIND_ROLL_OFFSET,
+      )
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+
+    expect(platform.kind).toBe("verticalMoving");
+    if (isVerticalMovingPlatform(platform)) {
+      expect(platform.velocityY).not.toBe(0);
+      expect(platform.maxY - platform.minY).toBeCloseTo(
+        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+      );
+    }
+  });
+
+  it("can spawn diagonal moving platforms", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(
+        STATIC_PLATFORM_SPAWN_WEIGHT +
+          HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+          VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT +
+          PLATFORM_KIND_ROLL_OFFSET,
+      )
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+
+    expect(platform.kind).toBe("diagonalMoving");
+    if (isDiagonalMovingPlatform(platform)) {
+      expect(platform.velocityX).not.toBe(0);
+      expect(platform.velocityY).not.toBe(0);
+      expect(platform.maxX - platform.minX).toBeCloseTo(
+        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+      );
+      expect(platform.maxY - platform.minY).toBeCloseTo(
+        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+      );
+    }
   });
 
   it("can spawn static platforms based on the spawn chance", () => {
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(MOVING_PLATFORM_SPAWN_CHANCE);
+      .mockReturnValueOnce(0.5);
 
     const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
 
@@ -137,9 +279,30 @@ describe("spawnPlatformsAboveCamera", () => {
       TEST_CANVAS_HEIGHT,
     );
 
-    expect(Math.min(...platforms.map((platform) => platform.y))).toBeLessThanOrEqual(
+    expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
       -TEST_CANVAS_HEIGHT,
     );
+  });
+
+  it("continues spawning from a moving platform's effective top", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const { minGap, maxGap } = getGapBounds();
+    const currentTop = 60;
+    const movingPlatform = createTestVerticalMovingPlatform({
+      y: 100,
+      velocityY: 0.1,
+      minY: currentTop,
+      maxY: 140,
+    });
+
+    const platforms = spawnPlatformsAboveCamera(
+      [movingPlatform],
+      0,
+      TEST_CANVAS_WIDTH,
+      100,
+    );
+
+    expect(platforms[1].y).toBeCloseTo(currentTop - (minGap + maxGap) / 2);
   });
 });
 

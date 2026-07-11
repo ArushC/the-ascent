@@ -1,21 +1,27 @@
 import {
   DEFAULT_PLATFORM_HEIGHT,
   DEFAULT_PLATFORM_WIDTH,
-  type Platform,
-} from "./Platform";
+  type HorizontalMovingPlatform as HorizontalMovingPlatformEntity,
+} from "../Platform";
+import { constrainHorizontalMovementToBounds } from "./movementBounds";
+import {
+  generateRandomMovingPlatformTravelDistance,
+  generateRandomMovingPlatformVelocity,
+} from "./random";
 
-const MOVING_PLATFORM_COLOR = "blue";
+const HORIZONTAL_MOVING_PLATFORM_COLOR = "blue";
 
-export const MIN_MOVING_PLATFORM_SPEED = 0.07;
-export const MAX_MOVING_PLATFORM_SPEED = 0.11;
-
-export class HorizontalMovingPlatform implements Platform {
+export class HorizontalMovingPlatform
+  implements HorizontalMovingPlatformEntity
+{
   readonly kind = "horizontalMoving";
   x: number;
   y: number;
   width: number;
   height: number;
   velocityX: number;
+  minX: number;
+  maxX: number;
 
   constructor(
     x: number,
@@ -23,28 +29,26 @@ export class HorizontalMovingPlatform implements Platform {
     width: number,
     height: number,
     velocityX: number,
+    minX: number,
+    maxX: number,
   ) {
     this.x = x;
     this.y = y;
     this.width = width;
     this.height = height;
     this.velocityX = velocityX;
+    this.minX = minX;
+    this.maxX = maxX;
   }
 
   update(deltaTime: number, canvasWidth: number): void {
     this.x += this.velocityX * deltaTime;
 
-    if (this.x < 0) {
-      this.x = 0;
-      this.velocityX = Math.abs(this.velocityX);
-    } else if (this.x + this.width > canvasWidth) {
-      this.x = Math.max(0, canvasWidth - this.width);
-      this.velocityX = -Math.abs(this.velocityX);
-    }
+    constrainHorizontalMovementToBounds(this, canvasWidth);
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = MOVING_PLATFORM_COLOR;
+    ctx.fillStyle = HORIZONTAL_MOVING_PLATFORM_COLOR;
     ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 }
@@ -52,22 +56,18 @@ export class HorizontalMovingPlatform implements Platform {
 export function createHorizontalMovingPlatform(
   x: number,
   y: number,
-  velocityX = generateRandomVelocityX(),
+  velocityX = generateRandomMovingPlatformVelocity(),
+  travelDistance = generateRandomMovingPlatformTravelDistance(),
 ): HorizontalMovingPlatform {
+  const halfTravelDistance = travelDistance / 2;
+
   return new HorizontalMovingPlatform(
     x,
     y,
     DEFAULT_PLATFORM_WIDTH,
     DEFAULT_PLATFORM_HEIGHT,
     velocityX,
+    x - halfTravelDistance,
+    x + halfTravelDistance,
   );
-}
-
-function generateRandomVelocityX(): number {
-  const speed =
-    MIN_MOVING_PLATFORM_SPEED +
-    Math.random() * (MAX_MOVING_PLATFORM_SPEED - MIN_MOVING_PLATFORM_SPEED);
-  const direction = Math.random() < 0.5 ? -1 : 1;
-
-  return speed * direction;
 }

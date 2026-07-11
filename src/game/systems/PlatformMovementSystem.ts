@@ -1,7 +1,4 @@
-import {
-  isHorizontalMovingPlatform,
-  type Platform,
-} from "../entities/Platform";
+import { isMovingPlatform, type Platform } from "../entities/Platform";
 
 export function updateMovingPlatforms(
   platforms: readonly Platform[],
@@ -9,7 +6,7 @@ export function updateMovingPlatforms(
   canvasWidth: number,
 ): void {
   for (const platform of platforms) {
-    if (isHorizontalMovingPlatform(platform)) {
+    if (isMovingPlatform(platform)) {
       platform.update(deltaTime, canvasWidth);
     }
   }
