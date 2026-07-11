@@ -8,6 +8,7 @@ import {
   type Platform,
 } from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
+import { computeSpringJumpHeight } from "../entities/Spring";
 import { createStaticPlatform } from "../entities/StaticPlatform";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
 
@@ -25,8 +26,11 @@ const PLATFORM_SPAWN_WEIGHT_TOTAL =
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
+export const MIN_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.08;
+export const MAX_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.65;
+export const SPRING_SPAWN_PROBABILITY = 0.1;
 // Number of visible screen heights to keep spawned above the camera.
-export const SPAWN_LOOKAHEAD_SCREENS = 1;
+export const SPAWN_LOOKAHEAD_SCREENS = 4;
 
 export function computeMaxJumpHeight(): number {
   // Jump apex from v^2 = 2ad, using the current launch velocity and gravity.
@@ -42,19 +46,29 @@ export function getGapBounds(): { minGap: number; maxGap: number } {
   };
 }
 
-export function getTopmostPlatformY(platforms: readonly Platform[]): number {
-  if (platforms.length === 0) {
-    return Number.POSITIVE_INFINITY;
-  }
+export function getSpringGapBounds(): { minGap: number; maxGap: number } {
+  const springJumpHeight = computeSpringJumpHeight();
 
-  return Math.min(...platforms.map(getPlatformTopY));
+  return {
+    minGap: springJumpHeight * MIN_SPRING_PLATFORM_SPAWN_GAP_RATIO,
+    maxGap: springJumpHeight * MAX_SPRING_PLATFORM_SPAWN_GAP_RATIO,
+  };
+}
+
+export function getTopmostPlatformY(platforms: readonly Platform[]): number {
+  const topmostPlatform = getTopmostPlatform(platforms);
+
+  return topmostPlatform === null
+    ? Number.POSITIVE_INFINITY
+    : getPlatformTopY(topmostPlatform);
 }
 
 export function spawnNextPlatform(
   topmostY: number,
   canvasWidth: number,
+  gapBounds = getGapBounds(),
 ): Platform {
-  const { minGap, maxGap } = getGapBounds();
+  const { minGap, maxGap } = gapBounds;
   const gap = randomBetween(minGap, maxGap);
   const y = topmostY - gap;
   const travelDistance = getMovingPlatformTravelDistance(canvasWidth);
@@ -63,12 +77,24 @@ export function spawnNextPlatform(
     case "horizontalMoving": {
       const x = getRandomPlatformX(canvasWidth, travelDistance);
 
-      return createHorizontalMovingPlatform(x, y, undefined, travelDistance);
+      return createHorizontalMovingPlatform(
+        x,
+        y,
+        undefined,
+        travelDistance,
+        rollPlatformSpring(),
+      );
     }
     case "verticalMoving": {
       const x = getRandomPlatformX(canvasWidth);
 
-      return createVerticalMovingPlatform(x, y, undefined, travelDistance);
+      return createVerticalMovingPlatform(
+        x,
+        y,
+        undefined,
+        travelDistance,
+        rollPlatformSpring(),
+      );
     }
     case "diagonalMoving": {
       const x = getRandomPlatformX(canvasWidth, travelDistance);
@@ -79,12 +105,13 @@ export function spawnNextPlatform(
         undefined,
         undefined,
         travelDistance,
+        rollPlatformSpring(),
       );
     }
     case "static": {
       const x = getRandomPlatformX(canvasWidth);
 
-      return createStaticPlatform(x, y);
+      return createStaticPlatform(x, y, rollPlatformSpring());
     }
   }
 }
@@ -97,7 +124,12 @@ export function spawnPlatformsAboveCamera(
 ): Platform[] {
   const platformsAhead = [...currentPlatforms];
   const lookaheadTopY = screenTopY - canvasHeight * SPAWN_LOOKAHEAD_SCREENS;
-  let topmostY = getTopmostPlatformY(platformsAhead);
+  // Keep the topmost platform entity so the next gap can react to springs.
+  let topmostPlatform = getTopmostPlatform(platformsAhead);
+  let topmostY =
+    topmostPlatform === null
+      ? Number.POSITIVE_INFINITY
+      : getPlatformTopY(topmostPlatform);
 
   if (!Number.isFinite(topmostY)) {
     // Recover from an empty platform state by seeding from the camera bottom.
@@ -107,8 +139,13 @@ export function spawnPlatformsAboveCamera(
   // World Y decreases upward, so keep spawning until topmostY reaches the
   // upper edge of the lookahead region.
   while (topmostY > lookaheadTopY) {
-    const platform = spawnNextPlatform(topmostY, canvasWidth);
+    const gapBounds =
+      topmostPlatform?.hasSpring === true
+        ? getSpringGapBounds()
+        : getGapBounds();
+    const platform = spawnNextPlatform(topmostY, canvasWidth, gapBounds);
     platformsAhead.push(platform);
+    topmostPlatform = platform;
     topmostY = getPlatformTopY(platform);
   }
 
@@ -133,7 +170,11 @@ export function createInitialPlatforms(
   const bottomPlatformX =
     playerStartX + (PLAYER_WIDTH - DEFAULT_PLATFORM_WIDTH) / 2;
   const bottomPlatformY = canvasHeight - BOTTOM_PLATFORM_OFFSET;
-  const bottomPlatform = createStaticPlatform(bottomPlatformX, bottomPlatformY);
+  const bottomPlatform = createStaticPlatform(
+    bottomPlatformX,
+    bottomPlatformY,
+    false,
+  );
 
   return spawnPlatformsAboveCamera(
     [bottomPlatform],
@@ -159,6 +200,10 @@ export function updatePlatformsForCamera(
 
 function randomBetween(min: number, max: number): number {
   return min + Math.random() * (max - min);
+}
+
+export function rollPlatformSpring(): boolean {
+  return Math.random() < SPRING_SPAWN_PROBABILITY;
 }
 
 /**
@@ -213,4 +258,14 @@ export function getRandomPlatformX(
   const maxX = maxPlatformX - halfTravelDistance;
 
   return minX + Math.random() * Math.max(0, maxX - minX);
+}
+
+function getTopmostPlatform(platforms: readonly Platform[]): Platform | null {
+  if (platforms.length === 0) return null;
+
+  return platforms.reduce((topmostPlatform, platform) =>
+    getPlatformTopY(platform) < getPlatformTopY(topmostPlatform)
+      ? platform
+      : topmostPlatform,
+  );
 }

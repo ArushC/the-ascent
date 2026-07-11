@@ -7,6 +7,7 @@ import {
   isVerticalMovingPlatform,
 } from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
+import { computeSpringJumpHeight } from "../entities/Spring";
 import {
   createTestVerticalMovingPlatform,
   createTestStaticPlatform,
@@ -19,12 +20,16 @@ import {
   getGapBounds,
   getMovingPlatformTravelDistance,
   getRandomPlatformX,
+  getSpringGapBounds,
   getTopmostPlatformY,
   HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT,
   pickPlatformKind,
   removePlatformsBelowCamera,
+  rollPlatformSpring,
   spawnNextPlatform,
   spawnPlatformsAboveCamera,
+  SPAWN_LOOKAHEAD_SCREENS,
+  SPRING_SPAWN_PROBABILITY,
   STATIC_PLATFORM_SPAWN_WEIGHT,
   VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT,
   updatePlatformsForCamera,
@@ -57,10 +62,23 @@ describe("createInitialPlatforms", () => {
       x: EXPECTED_BOTTOM_PLATFORM_X,
       y: EXPECTED_BOTTOM_PLATFORM_Y,
     });
+    expect(platforms[0].hasSpring).toBe(false);
     expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
-      -TEST_CANVAS_HEIGHT,
+      -TEST_CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
     );
     expect(platforms.length).toBeGreaterThan(5);
+  });
+
+  it("does not attach a spring to the guaranteed bottom platform", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const platforms = createInitialPlatforms(
+      TEST_CANVAS_WIDTH,
+      TEST_CANVAS_HEIGHT,
+    );
+
+    expect(platforms[0].hasSpring).toBe(false);
+    expect(platforms[1].hasSpring).toBe(true);
   });
 
   it("uses random platform placement for different new game layouts", () => {
@@ -105,6 +123,13 @@ describe("platform gap bounds", () => {
     const { maxGap } = getGapBounds();
 
     expect(maxGap).toBeLessThan(computeMaxJumpHeight());
+  });
+
+  it("scales spring gaps from the spring jump height", () => {
+    const { minGap, maxGap } = getSpringGapBounds();
+
+    expect(minGap).toBeGreaterThan(getGapBounds().minGap);
+    expect(maxGap).toBeLessThan(computeSpringJumpHeight());
   });
 });
 
@@ -187,6 +212,8 @@ describe("spawnNextPlatform", () => {
         STATIC_PLATFORM_SPAWN_WEIGHT + PLATFORM_KIND_ROLL_OFFSET,
       )
       .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(1);
 
     const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
@@ -209,6 +236,7 @@ describe("spawnNextPlatform", () => {
           PLATFORM_KIND_ROLL_OFFSET,
       )
       .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(1)
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
 
@@ -233,6 +261,7 @@ describe("spawnNextPlatform", () => {
           PLATFORM_KIND_ROLL_OFFSET,
       )
       .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(1)
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1)
       .mockReturnValueOnce(0)
@@ -257,11 +286,36 @@ describe("spawnNextPlatform", () => {
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(0.5);
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(1);
 
     const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
 
     expect(platform.kind).toBe("static");
+  });
+
+  it("attaches springs based on the spring roll", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+
+    expect(platform.hasSpring).toBe(true);
+  });
+});
+
+describe("rollPlatformSpring", () => {
+  it("uses the configured spring spawn probability", () => {
+    const randomSpy = vi.spyOn(Math, "random");
+
+    randomSpy.mockReturnValue(SPRING_SPAWN_PROBABILITY - 0.01);
+    expect(rollPlatformSpring()).toBe(true);
+
+    randomSpy.mockReturnValue(SPRING_SPAWN_PROBABILITY);
+    expect(rollPlatformSpring()).toBe(false);
   });
 });
 
@@ -280,8 +334,26 @@ describe("spawnPlatformsAboveCamera", () => {
     );
 
     expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
-      -TEST_CANVAS_HEIGHT,
+      -TEST_CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
     );
+  });
+
+  it("uses spring-aware gaps above a sprung topmost platform", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const sprungPlatform = createTestStaticPlatform({
+      y: 100,
+      hasSpring: true,
+    });
+    const { minGap } = getSpringGapBounds();
+
+    const platforms = spawnPlatformsAboveCamera(
+      [sprungPlatform],
+      0,
+      TEST_CANVAS_WIDTH,
+      10,
+    );
+
+    expect(platforms[1].y).toBeCloseTo(sprungPlatform.y - minGap);
   });
 
   it("continues spawning from a moving platform's effective top", () => {
@@ -343,7 +415,7 @@ describe("updatePlatformsForCamera", () => {
       maxPlatformCount = Math.max(maxPlatformCount, platforms.length);
     }
 
-    expect(maxPlatformCount).toBeLessThanOrEqual(25);
+    expect(maxPlatformCount).toBeLessThanOrEqual(30);
   });
 });
 
