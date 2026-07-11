@@ -1,14 +1,23 @@
 import { createPlayer, type Player } from "./entities/Player";
 import type { Platform } from "./entities/Platform";
+import type { Monster } from "./entities/Monster";
 import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
-import { resolvePlatformLanding } from "./systems/CollisionSystem";
+import {
+  playerCollidesWithMonster,
+  resolvePlatformLanding,
+} from "./systems/CollisionSystem";
 import { isPlayerBelowScreen, updateCamera } from "./systems/CameraSystem";
 import {
   createInitialPlatforms,
   updatePlatformsForCamera,
 } from "./systems/PlatformSpawner";
 import { updateMovingPlatforms } from "./systems/PlatformMovementSystem";
+import { updateMonsters } from "./systems/MonsterMovementSystem";
+import {
+  createInitialMonsters,
+  updateMonstersForCamera,
+} from "./systems/MonsterSpawner";
 import {
   applyHorizontalWrap,
   updatePlayerPhysics,
@@ -38,6 +47,7 @@ export class Game {
   private lastTimestamp = 0;
   private player: Player;
   private platforms: Platform[];
+  private monsters: Monster[];
   private readonly keyboardInput = new KeyboardInput();
   private screenTopY = 0;
   private scoreState: ScoreState;
@@ -54,6 +64,7 @@ export class Game {
     this.player = createPlayer(canvas);
     this.scoreState = createScoreState(this.player.y);
     this.platforms = createInitialPlatforms(canvas.width, canvas.height);
+    this.monsters = createInitialMonsters();
   }
 
   start(): void {
@@ -151,18 +162,35 @@ export class Game {
     const horizontalIntent = this.keyboardInput.getHorizontalIntent();
     const scoreBeforeUpdate = getScore(this.scoreState);
 
+    updateMonsters(this.monsters, deltaTime, this.canvas.width);
     updateMovingPlatforms(this.platforms, deltaTime, this.canvas.width);
     updatePlatformSpringAnimations(this.platforms, deltaTime);
     const previousY = this.player.y;
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
     applyHorizontalWrap(this.player, this.canvas.width);
     resolvePlatformLanding(this.player, this.platforms, previousY);
+
+    if (
+      this.monsters.some((monster) =>
+        playerCollidesWithMonster(this.player, monster),
+      )
+    ) {
+      this.setPhase("over");
+      return;
+    }
+
     this.screenTopY = updateCamera(
       this.screenTopY,
       this.player.y,
       this.canvas.height,
     );
     this.scoreState = updateScore(this.scoreState, this.player.y);
+    this.monsters = updateMonstersForCamera(
+      this.monsters,
+      this.screenTopY,
+      this.canvas.width,
+      this.canvas.height,
+    );
     this.platforms = updatePlatformsForCamera(
       this.platforms,
       this.screenTopY,
@@ -196,6 +224,10 @@ export class Game {
       platform.draw(ctx);
     }
 
+    for (const monster of this.monsters) {
+      monster.draw(ctx);
+    }
+
     this.player.draw(ctx);
 
     ctx.restore();
@@ -208,6 +240,7 @@ export class Game {
       this.canvas.width,
       this.canvas.height,
     );
+    this.monsters = createInitialMonsters();
     this.screenTopY = 0;
   }
 
