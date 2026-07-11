@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_PLATFORM_WIDTH } from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
-import { STATIC_PLATFORM_WIDTH } from "../entities/StaticPlatform";
 import { createTestStaticPlatform } from "../testing/entityFactories";
 import {
   BOTTOM_PLATFORM_OFFSET,
   computeMaxJumpHeight,
   createInitialPlatforms,
   getGapBounds,
+  MOVING_PLATFORM_SPAWN_CHANCE,
   removePlatformsBelowCamera,
   spawnNextPlatform,
   spawnPlatformsAboveCamera,
@@ -17,7 +18,7 @@ const TEST_CANVAS_WIDTH = 400;
 const TEST_CANVAS_HEIGHT = 600;
 const EXPECTED_BOTTOM_PLATFORM_X =
   (TEST_CANVAS_WIDTH - PLAYER_WIDTH) / 2 +
-  (PLAYER_WIDTH - STATIC_PLATFORM_WIDTH) / 2;
+  (PLAYER_WIDTH - DEFAULT_PLATFORM_WIDTH) / 2;
 const EXPECTED_BOTTOM_PLATFORM_Y =
   TEST_CANVAS_HEIGHT - BOTTOM_PLATFORM_OFFSET;
 
@@ -35,6 +36,7 @@ describe("createInitialPlatforms", () => {
     );
 
     expect(platforms[0]).toMatchObject({
+      kind: "static",
       x: EXPECTED_BOTTOM_PLATFORM_X,
       y: EXPECTED_BOTTOM_PLATFORM_Y,
     });
@@ -94,6 +96,30 @@ describe("spawnNextPlatform", () => {
     const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
 
     expect(platform.y).toBeLessThan(100);
+  });
+
+  it("can spawn moving platforms based on the spawn chance", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(MOVING_PLATFORM_SPAWN_CHANCE - 0.01)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+
+    expect(platform.kind).toBe("horizontalMoving");
+  });
+
+  it("can spawn static platforms based on the spawn chance", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(MOVING_PLATFORM_SPAWN_CHANCE);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+
+    expect(platform.kind).toBe("static");
   });
 });
 

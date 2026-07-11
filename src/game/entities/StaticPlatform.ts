@@ -1,8 +1,12 @@
-export const STATIC_PLATFORM_WIDTH = 90;
-const STATIC_PLATFORM_HEIGHT = 14;
+import {
+  DEFAULT_PLATFORM_HEIGHT,
+  DEFAULT_PLATFORM_WIDTH,
+  type Platform,
+} from "./Platform";
 const STATIC_PLATFORM_COLOR = "green";
 
-export class StaticPlatform {
+export class StaticPlatform implements Platform {
+  readonly kind = "static";
   x: number;
   y: number;
   width: number;
@@ -25,7 +29,7 @@ export function createStaticPlatform(x: number, y: number): StaticPlatform {
   return new StaticPlatform(
     x,
     y,
-    STATIC_PLATFORM_WIDTH,
-    STATIC_PLATFORM_HEIGHT,
+    DEFAULT_PLATFORM_WIDTH,
+    DEFAULT_PLATFORM_HEIGHT,
   );
 }

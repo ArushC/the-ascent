@@ -1,5 +1,5 @@
 import { createPlayer, type Player } from "./entities/Player";
-import type { StaticPlatform } from "./entities/StaticPlatform";
+import type { Platform } from "./entities/Platform";
 import { KeyboardInput } from "./input/KeyboardInput";
 import { resolvePlatformLanding } from "./systems/CollisionSystem";
 import { isPlayerBelowScreen, updateCamera } from "./systems/CameraSystem";
@@ -7,6 +7,7 @@ import {
   createInitialPlatforms,
   updatePlatformsForCamera,
 } from "./systems/PlatformSpawner";
+import { updateMovingPlatforms } from "./systems/PlatformMovementSystem";
 import {
   applyHorizontalWrap,
   updatePlayerPhysics,
@@ -35,7 +36,7 @@ export class Game {
   private rafId: number | null = null;
   private lastTimestamp = 0;
   private player: Player;
-  private staticPlatforms: StaticPlatform[];
+  private platforms: Platform[];
   private readonly keyboardInput = new KeyboardInput();
   private screenTopY = 0;
   private scoreState: ScoreState;
@@ -51,7 +52,7 @@ export class Game {
     this.publishUiState = publishUiState;
     this.player = createPlayer(canvas);
     this.scoreState = createScoreState(this.player.y);
-    this.staticPlatforms = createInitialPlatforms(canvas.width, canvas.height);
+    this.platforms = createInitialPlatforms(canvas.width, canvas.height);
   }
 
   start(): void {
@@ -147,20 +148,21 @@ export class Game {
     if (this.phase !== "playing") return;
 
     const horizontalIntent = this.keyboardInput.getHorizontalIntent();
-    const previousY = this.player.y;
     const scoreBeforeUpdate = getScore(this.scoreState);
 
+    updateMovingPlatforms(this.platforms, deltaTime, this.canvas.width);
+    const previousY = this.player.y;
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
     applyHorizontalWrap(this.player, this.canvas.width);
-    resolvePlatformLanding(this.player, this.staticPlatforms, previousY);
+    resolvePlatformLanding(this.player, this.platforms, previousY);
     this.screenTopY = updateCamera(
       this.screenTopY,
       this.player.y,
       this.canvas.height,
     );
     this.scoreState = updateScore(this.scoreState, this.player.y);
-    this.staticPlatforms = updatePlatformsForCamera(
-      this.staticPlatforms,
+    this.platforms = updatePlatformsForCamera(
+      this.platforms,
       this.screenTopY,
       this.canvas.width,
       this.canvas.height,
@@ -188,7 +190,7 @@ export class Game {
     ctx.save();
     ctx.translate(0, -this.screenTopY);
 
-    for (const platform of this.staticPlatforms) {
+    for (const platform of this.platforms) {
       platform.draw(ctx);
     }
 
@@ -200,7 +202,7 @@ export class Game {
   private resetWorld(): void {
     this.player = createPlayer(this.canvas);
     this.scoreState = createScoreState(this.player.y);
-    this.staticPlatforms = createInitialPlatforms(
+    this.platforms = createInitialPlatforms(
       this.canvas.width,
       this.canvas.height,
     );

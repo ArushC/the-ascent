@@ -1,3 +1,4 @@
+import { HorizontalMovingPlatform } from "../entities/HorizontalMovingPlatform";
 import { Player } from "../entities/Player";
 import { StaticPlatform } from "../entities/StaticPlatform";
 
@@ -17,11 +18,19 @@ export const TEST_STATIC_PLATFORM_DEFAULTS = {
   height: 14,
 } as const;
 
+export const TEST_MOVING_PLATFORM_DEFAULTS = {
+  ...TEST_STATIC_PLATFORM_DEFAULTS,
+  velocityX: 0.1,
+} as const;
+
 type NumericOverrides<T> = Partial<{ [Key in keyof T]: number }>;
 
 export type TestPlayerOverrides = NumericOverrides<typeof TEST_PLAYER_DEFAULTS>;
 export type TestStaticPlatformOverrides = NumericOverrides<
   typeof TEST_STATIC_PLATFORM_DEFAULTS
+>;
+export type TestMovingPlatformOverrides = NumericOverrides<
+  typeof TEST_MOVING_PLATFORM_DEFAULTS
 >;
 
 export function createTestPlayer(
@@ -45,5 +54,17 @@ export function createTestStaticPlatform(
     overrides.y ?? TEST_STATIC_PLATFORM_DEFAULTS.y,
     overrides.width ?? TEST_STATIC_PLATFORM_DEFAULTS.width,
     overrides.height ?? TEST_STATIC_PLATFORM_DEFAULTS.height,
+  );
+}
+
+export function createTestMovingPlatform(
+  overrides: TestMovingPlatformOverrides = {},
+): HorizontalMovingPlatform {
+  return new HorizontalMovingPlatform(
+    overrides.x ?? TEST_MOVING_PLATFORM_DEFAULTS.x,
+    overrides.y ?? TEST_MOVING_PLATFORM_DEFAULTS.y,
+    overrides.width ?? TEST_MOVING_PLATFORM_DEFAULTS.width,
+    overrides.height ?? TEST_MOVING_PLATFORM_DEFAULTS.height,
+    overrides.velocityX ?? TEST_MOVING_PLATFORM_DEFAULTS.velocityX,
   );
 }

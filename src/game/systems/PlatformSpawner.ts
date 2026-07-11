@@ -1,12 +1,14 @@
-import { PLAYER_WIDTH } from "../entities/Player";
+import { createHorizontalMovingPlatform } from "../entities/HorizontalMovingPlatform";
 import {
-  createStaticPlatform,
-  STATIC_PLATFORM_WIDTH,
-  type StaticPlatform,
-} from "../entities/StaticPlatform";
+  DEFAULT_PLATFORM_WIDTH,
+  type Platform,
+} from "../entities/Platform";
+import { PLAYER_WIDTH } from "../entities/Player";
+import { createStaticPlatform } from "../entities/StaticPlatform";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
 
 export const BOTTOM_PLATFORM_OFFSET = 100;
+export const MOVING_PLATFORM_SPAWN_CHANCE = 0.25;
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
@@ -27,7 +29,7 @@ export function getGapBounds(): { minGap: number; maxGap: number } {
   };
 }
 
-export function getTopmostPlatformY(platforms: StaticPlatform[]): number {
+export function getTopmostPlatformY(platforms: readonly Platform[]): number {
   if (platforms.length === 0) {
     return Number.POSITIVE_INFINITY;
   }
@@ -38,21 +40,26 @@ export function getTopmostPlatformY(platforms: StaticPlatform[]): number {
 export function spawnNextPlatform(
   topmostY: number,
   canvasWidth: number,
-): StaticPlatform {
+): Platform {
   const { minGap, maxGap } = getGapBounds();
   const gap = randomBetween(minGap, maxGap);
-  const maxX = Math.max(0, canvasWidth - STATIC_PLATFORM_WIDTH);
+  const maxX = Math.max(0, canvasWidth - DEFAULT_PLATFORM_WIDTH);
   const x = Math.random() * maxX;
+  const y = topmostY - gap;
 
-  return createStaticPlatform(x, topmostY - gap);
+  if (Math.random() < MOVING_PLATFORM_SPAWN_CHANCE) {
+    return createHorizontalMovingPlatform(x, y);
+  }
+
+  return createStaticPlatform(x, y);
 }
 
 export function spawnPlatformsAboveCamera(
-  currentPlatforms: StaticPlatform[],
+  currentPlatforms: readonly Platform[],
   screenTopY: number,
   canvasWidth: number,
   canvasHeight: number,
-): StaticPlatform[] {
+): Platform[] {
   const platformsAhead = [...currentPlatforms];
   const lookaheadTopY = screenTopY - canvasHeight * SPAWN_LOOKAHEAD_SCREENS;
   let topmostY = getTopmostPlatformY(platformsAhead);
@@ -74,10 +81,10 @@ export function spawnPlatformsAboveCamera(
 }
 
 export function removePlatformsBelowCamera(
-  platforms: StaticPlatform[],
+  platforms: readonly Platform[],
   screenTopY: number,
   canvasHeight: number,
-): StaticPlatform[] {
+): Platform[] {
   const screenBottomY = screenTopY + canvasHeight;
 
   return platforms.filter((platform) => platform.y <= screenBottomY);
@@ -86,10 +93,10 @@ export function removePlatformsBelowCamera(
 export function createInitialPlatforms(
   canvasWidth: number,
   canvasHeight: number,
-): StaticPlatform[] {
+): Platform[] {
   const playerStartX = (canvasWidth - PLAYER_WIDTH) / 2;
   const bottomPlatformX =
-    playerStartX + (PLAYER_WIDTH - STATIC_PLATFORM_WIDTH) / 2;
+    playerStartX + (PLAYER_WIDTH - DEFAULT_PLATFORM_WIDTH) / 2;
   const bottomPlatformY = canvasHeight - BOTTOM_PLATFORM_OFFSET;
   const bottomPlatform = createStaticPlatform(bottomPlatformX, bottomPlatformY);
 
@@ -102,11 +109,11 @@ export function createInitialPlatforms(
 }
 
 export function updatePlatformsForCamera(
-  platforms: StaticPlatform[],
+  platforms: readonly Platform[],
   screenTopY: number,
   canvasWidth: number,
   canvasHeight: number,
-): StaticPlatform[] {
+): Platform[] {
   return spawnPlatformsAboveCamera(
     removePlatformsBelowCamera(platforms, screenTopY, canvasHeight),
     screenTopY,

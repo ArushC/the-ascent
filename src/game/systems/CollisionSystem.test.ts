@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createTestMovingPlatform,
   createTestPlayer,
   createTestStaticPlatform,
 } from "../testing/entityFactories";
@@ -121,6 +122,16 @@ describe("resolvePlatformLanding", () => {
     resolvePlatformLanding(player, [lowerPlatform, higherPlatform], 50);
 
     expect(player.y).toBe(higherPlatform.y - player.height);
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+  });
+
+  it("lands on a moving platform using its current position", () => {
+    const player = createTestPlayer({ y: 80, velocityY: 0.5 });
+    const platform = createTestMovingPlatform({ x: 90, y: 100 });
+
+    resolvePlatformLanding(player, [platform], 50);
+
+    expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
   });
 });

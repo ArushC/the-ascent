@@ -1,10 +1,10 @@
+import type { Platform } from "../entities/Platform";
 import type { Player } from "../entities/Player";
-import type { StaticPlatform } from "../entities/StaticPlatform";
 import { INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
 
 export function resolvePlatformLanding(
   player: Player,
-  platforms: readonly StaticPlatform[],
+  platforms: readonly Platform[],
   previousY: number,
 ): void {
   if (player.velocityY <= 0) return;
@@ -13,7 +13,7 @@ export function resolvePlatformLanding(
   const currentBottom = player.y + player.height;
   const playerLeft = player.x;
   const playerRight = player.x + player.width;
-  let landingPlatform: StaticPlatform | null = null;
+  let landingPlatform: Platform | null = null;
 
   for (const platform of platforms) {
     const platformLeft = platform.x;
