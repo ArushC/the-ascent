@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SPRING_ACTIVATION_DURATION_MS } from "../entities/Spring";
 import {
   createTestMovingPlatform,
   createTestPlayer,
@@ -6,7 +7,7 @@ import {
   createTestVerticalMovingPlatform,
 } from "../testing/entityFactories";
 import { resolvePlatformLanding } from "./CollisionSystem";
-import { INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
+import { INITIAL_JUMP_VELOCITY, SPRING_JUMP_VELOCITY } from "./PhysicsSystem";
 
 describe("resolvePlatformLanding", () => {
   it("places a falling player on the crossed platform and bounces upward", () => {
@@ -134,6 +135,41 @@ describe("resolvePlatformLanding", () => {
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+  });
+
+  it("uses spring bounce when the player lands over a spring hit zone", () => {
+    const platform = createTestStaticPlatform({
+      x: 100,
+      y: 100,
+      hasSpring: true,
+    });
+    const player = createTestPlayer({ x: 120, y: 80, velocityY: 0.5 });
+
+    resolvePlatformLanding(player, [platform], 50);
+
+    expect(player.y).toBe(platform.y - player.height);
+    expect(player.velocityY).toBe(-SPRING_JUMP_VELOCITY);
+    expect(platform.springActivationMs).toBe(SPRING_ACTIVATION_DURATION_MS);
+  });
+
+  it("uses normal bounce when the player lands on a spring platform but misses the spring", () => {
+    const platform = createTestStaticPlatform({
+      x: 100,
+      y: 100,
+      hasSpring: true,
+    });
+    const player = createTestPlayer({
+      x: platform.x,
+      y: 80,
+      width: 20,
+      velocityY: 0.5,
+    });
+
+    resolvePlatformLanding(player, [platform], 50);
+
+    expect(player.y).toBe(platform.y - player.height);
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(platform.springActivationMs).toBe(0);
   });
 
   it("lands when a vertical moving platform sweeps upward during the frame", () => {

@@ -60,21 +60,22 @@ export const TEST_MOVING_PLATFORM_DEFAULTS = {
 } as const;
 
 type NumericOverrides<T> = Partial<{ [Key in keyof T]: number }>;
+type PlatformOverrides<T> = NumericOverrides<T> & { hasSpring?: boolean };
 
 export type TestPlayerOverrides = NumericOverrides<typeof TEST_PLAYER_DEFAULTS>;
-export type TestStaticPlatformOverrides = NumericOverrides<
+export type TestStaticPlatformOverrides = PlatformOverrides<
   typeof TEST_STATIC_PLATFORM_DEFAULTS
 >;
-export type TestMovingPlatformOverrides = NumericOverrides<
+export type TestMovingPlatformOverrides = PlatformOverrides<
   typeof TEST_MOVING_PLATFORM_DEFAULTS
 >;
-export type TestHorizontalMovingPlatformOverrides = NumericOverrides<
+export type TestHorizontalMovingPlatformOverrides = PlatformOverrides<
   typeof TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS
 >;
-export type TestVerticalMovingPlatformOverrides = NumericOverrides<
+export type TestVerticalMovingPlatformOverrides = PlatformOverrides<
   typeof TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS
 >;
-export type TestDiagonalMovingPlatformOverrides = NumericOverrides<
+export type TestDiagonalMovingPlatformOverrides = PlatformOverrides<
   typeof TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS
 >;
 
@@ -99,6 +100,7 @@ export function createTestStaticPlatform(
     overrides.y ?? TEST_STATIC_PLATFORM_DEFAULTS.y,
     overrides.width ?? TEST_STATIC_PLATFORM_DEFAULTS.width,
     overrides.height ?? TEST_STATIC_PLATFORM_DEFAULTS.height,
+    overrides.hasSpring ?? false,
   );
 }
 
@@ -120,6 +122,7 @@ export function createTestHorizontalMovingPlatform(
       TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.velocityX,
     overrides.minX ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.minX,
     overrides.maxX ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.maxX,
+    overrides.hasSpring ?? false,
   );
 }
 
@@ -134,6 +137,7 @@ export function createTestVerticalMovingPlatform(
     overrides.velocityY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.velocityY,
     overrides.minY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.minY,
     overrides.maxY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.maxY,
+    overrides.hasSpring ?? false,
   );
 }
 
@@ -151,5 +155,6 @@ export function createTestDiagonalMovingPlatform(
     overrides.maxX ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.maxX,
     overrides.minY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.minY,
     overrides.maxY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.maxY,
+    overrides.hasSpring ?? false,
   );
 }

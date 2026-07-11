@@ -3,6 +3,7 @@ import {
   DEFAULT_PLATFORM_WIDTH,
   type HorizontalMovingPlatform as HorizontalMovingPlatformEntity,
 } from "../Platform";
+import { drawPlatformSpring } from "../Spring";
 import { constrainHorizontalMovementToBounds } from "./movementBounds";
 import {
   generateRandomMovingPlatformTravelDistance,
@@ -22,6 +23,8 @@ export class HorizontalMovingPlatform
   velocityX: number;
   minX: number;
   maxX: number;
+  readonly hasSpring: boolean;
+  springActivationMs: number;
 
   constructor(
     x: number,
@@ -31,6 +34,7 @@ export class HorizontalMovingPlatform
     velocityX: number,
     minX: number,
     maxX: number,
+    hasSpring = false,
   ) {
     this.x = x;
     this.y = y;
@@ -39,6 +43,8 @@ export class HorizontalMovingPlatform
     this.velocityX = velocityX;
     this.minX = minX;
     this.maxX = maxX;
+    this.hasSpring = hasSpring;
+    this.springActivationMs = 0;
   }
 
   update(deltaTime: number, canvasWidth: number): void {
@@ -50,6 +56,7 @@ export class HorizontalMovingPlatform
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = HORIZONTAL_MOVING_PLATFORM_COLOR;
     ctx.fillRect(this.x, this.y, this.width, this.height);
+    drawPlatformSpring(ctx, this);
   }
 }
 
@@ -58,6 +65,7 @@ export function createHorizontalMovingPlatform(
   y: number,
   velocityX = generateRandomMovingPlatformVelocity(),
   travelDistance = generateRandomMovingPlatformTravelDistance(),
+  hasSpring = false,
 ): HorizontalMovingPlatform {
   const halfTravelDistance = travelDistance / 2;
 
@@ -69,5 +77,6 @@ export function createHorizontalMovingPlatform(
     velocityX,
     x - halfTravelDistance,
     x + halfTravelDistance,
+    hasSpring,
   );
 }

@@ -1,6 +1,13 @@
-import { getPlatformPreviousY, type Platform } from "../entities/Platform";
+import {
+  getPlatformPreviousY,
+  type Platform,
+} from "../entities/Platform";
 import type { Player } from "../entities/Player";
-import { INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
+import {
+  playerOverlapsSpringHitZone,
+  triggerPlatformSpring,
+} from "../entities/Spring";
+import { INITIAL_JUMP_VELOCITY, SPRING_JUMP_VELOCITY } from "./PhysicsSystem";
 
 export function resolvePlatformLanding(
   player: Player,
@@ -34,5 +41,11 @@ export function resolvePlatformLanding(
   if (landingPlatform === null) return;
 
   player.y = landingPlatform.y - player.height;
+  if (playerOverlapsSpringHitZone(player, landingPlatform)) {
+    triggerPlatformSpring(landingPlatform);
+    player.velocityY = -SPRING_JUMP_VELOCITY;
+    return;
+  }
+
   player.velocityY = -INITIAL_JUMP_VELOCITY;
 }

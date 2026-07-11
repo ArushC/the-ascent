@@ -1,3 +1,5 @@
+import type { PlatformSpringState } from "./Spring";
+
 export const DEFAULT_PLATFORM_WIDTH = 90;
 export const DEFAULT_PLATFORM_HEIGHT = 14;
 
@@ -7,7 +9,7 @@ export type PlatformKind =
   | "verticalMoving"
   | "diagonalMoving";
 
-export interface Platform {
+export interface Platform extends PlatformSpringState {
   readonly kind: PlatformKind;
   x: number;
   y: number;

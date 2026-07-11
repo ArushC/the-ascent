@@ -3,6 +3,7 @@ import {
   DEFAULT_PLATFORM_WIDTH,
   type DiagonalMovingPlatform as DiagonalMovingPlatformEntity,
 } from "../Platform";
+import { drawPlatformSpring } from "../Spring";
 import {
   constrainHorizontalMovementToBounds,
   constrainVerticalMovementToBounds,
@@ -27,6 +28,8 @@ export class DiagonalMovingPlatform implements DiagonalMovingPlatformEntity {
   maxX: number;
   minY: number;
   maxY: number;
+  readonly hasSpring: boolean;
+  springActivationMs: number;
 
   constructor(
     x: number,
@@ -39,6 +42,7 @@ export class DiagonalMovingPlatform implements DiagonalMovingPlatformEntity {
     maxX: number,
     minY: number,
     maxY: number,
+    hasSpring = false,
   ) {
     this.x = x;
     this.y = y;
@@ -51,6 +55,8 @@ export class DiagonalMovingPlatform implements DiagonalMovingPlatformEntity {
     this.maxX = maxX;
     this.minY = minY;
     this.maxY = maxY;
+    this.hasSpring = hasSpring;
+    this.springActivationMs = 0;
   }
 
   update(deltaTime: number, canvasWidth: number): void {
@@ -65,6 +71,7 @@ export class DiagonalMovingPlatform implements DiagonalMovingPlatformEntity {
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = DIAGONAL_MOVING_PLATFORM_COLOR;
     ctx.fillRect(this.x, this.y, this.width, this.height);
+    drawPlatformSpring(ctx, this);
   }
 }
 
@@ -74,6 +81,7 @@ export function createDiagonalMovingPlatform(
   velocityX = generateRandomMovingPlatformVelocity(),
   velocityY = generateRandomMovingPlatformVelocity(),
   travelDistance = generateRandomMovingPlatformTravelDistance(),
+  hasSpring = false,
 ): DiagonalMovingPlatform {
   const halfTravelDistance = travelDistance / 2;
 
@@ -88,5 +96,6 @@ export function createDiagonalMovingPlatform(
     x + halfTravelDistance,
     y - halfTravelDistance,
     y + halfTravelDistance,
+    hasSpring,
   );
 }

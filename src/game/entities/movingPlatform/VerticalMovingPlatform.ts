@@ -3,6 +3,7 @@ import {
   DEFAULT_PLATFORM_WIDTH,
   type VerticalMovingPlatform as VerticalMovingPlatformEntity,
 } from "../Platform";
+import { drawPlatformSpring } from "../Spring";
 import { constrainVerticalMovementToBounds } from "./movementBounds";
 import {
   generateRandomMovingPlatformTravelDistance,
@@ -21,6 +22,8 @@ export class VerticalMovingPlatform implements VerticalMovingPlatformEntity {
   velocityY: number;
   minY: number;
   maxY: number;
+  readonly hasSpring: boolean;
+  springActivationMs: number;
 
   constructor(
     x: number,
@@ -30,6 +33,7 @@ export class VerticalMovingPlatform implements VerticalMovingPlatformEntity {
     velocityY: number,
     minY: number,
     maxY: number,
+    hasSpring = false,
   ) {
     this.x = x;
     this.y = y;
@@ -39,6 +43,8 @@ export class VerticalMovingPlatform implements VerticalMovingPlatformEntity {
     this.velocityY = velocityY;
     this.minY = minY;
     this.maxY = maxY;
+    this.hasSpring = hasSpring;
+    this.springActivationMs = 0;
   }
 
   update(deltaTime: number, _canvasWidth: number): void {
@@ -51,6 +57,7 @@ export class VerticalMovingPlatform implements VerticalMovingPlatformEntity {
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = VERTICAL_MOVING_PLATFORM_COLOR;
     ctx.fillRect(this.x, this.y, this.width, this.height);
+    drawPlatformSpring(ctx, this);
   }
 }
 
@@ -59,6 +66,7 @@ export function createVerticalMovingPlatform(
   y: number,
   velocityY = generateRandomMovingPlatformVelocity(),
   travelDistance = generateRandomMovingPlatformTravelDistance(),
+  hasSpring = false,
 ): VerticalMovingPlatform {
   const halfTravelDistance = travelDistance / 2;
 
@@ -70,5 +78,6 @@ export function createVerticalMovingPlatform(
     velocityY,
     y - halfTravelDistance,
     y + halfTravelDistance,
+    hasSpring,
   );
 }

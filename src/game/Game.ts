@@ -1,5 +1,6 @@
 import { createPlayer, type Player } from "./entities/Player";
 import type { Platform } from "./entities/Platform";
+import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
 import { resolvePlatformLanding } from "./systems/CollisionSystem";
 import { isPlayerBelowScreen, updateCamera } from "./systems/CameraSystem";
@@ -151,6 +152,7 @@ export class Game {
     const scoreBeforeUpdate = getScore(this.scoreState);
 
     updateMovingPlatforms(this.platforms, deltaTime, this.canvas.width);
+    updatePlatformSpringAnimations(this.platforms, deltaTime);
     const previousY = this.player.y;
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
     applyHorizontalWrap(this.player, this.canvas.width);
