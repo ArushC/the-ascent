@@ -3,6 +3,7 @@ import {
   createTestMovingPlatform,
   createTestPlayer,
   createTestStaticPlatform,
+  createTestVerticalMovingPlatform,
 } from "../testing/entityFactories";
 import { resolvePlatformLanding } from "./CollisionSystem";
 import { INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
@@ -130,6 +131,22 @@ describe("resolvePlatformLanding", () => {
     const platform = createTestMovingPlatform({ x: 90, y: 100 });
 
     resolvePlatformLanding(player, [platform], 50);
+
+    expect(player.y).toBe(platform.y - player.height);
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+  });
+
+  it("lands when a vertical moving platform sweeps upward during the frame", () => {
+    const player = createTestPlayer({ y: 65, velocityY: 0.5 });
+    const platform = createTestVerticalMovingPlatform({
+      x: 90,
+      y: 100,
+      minY: 80,
+      maxY: 120,
+    });
+    platform.previousY = 110;
+
+    resolvePlatformLanding(player, [platform], 65);
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);

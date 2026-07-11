@@ -1,4 +1,4 @@
-import type { Platform } from "../entities/Platform";
+import { getPlatformPreviousY, type Platform } from "../entities/Platform";
 import type { Player } from "../entities/Player";
 import { INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
 
@@ -16,12 +16,13 @@ export function resolvePlatformLanding(
   let landingPlatform: Platform | null = null;
 
   for (const platform of platforms) {
+    const previousPlatformY = getPlatformPreviousY(platform);
     const platformLeft = platform.x;
     const platformRight = platform.x + platform.width;
     const hasHorizontalOverlap =
       playerRight > platformLeft && playerLeft < platformRight;
     const crossedPlatformTop =
-      previousBottom <= platform.y && currentBottom >= platform.y;
+      previousBottom <= previousPlatformY && currentBottom >= platform.y;
 
     if (!hasHorizontalOverlap || !crossedPlatformTop) continue;
 
