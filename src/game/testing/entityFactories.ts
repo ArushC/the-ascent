@@ -100,7 +100,10 @@ export const TEST_PROJECTILE_DEFAULTS = {
 } as const;
 
 type NumericOverrides<T> = Partial<{ [Key in keyof T]: number }>;
-type PlatformOverrides<T> = NumericOverrides<T> & { hasSpring?: boolean };
+type PlatformOverrides<T> = NumericOverrides<T> & {
+  hasSpring?: boolean;
+  hasPowerup?: boolean;
+};
 
 export type TestPlayerOverrides = NumericOverrides<typeof TEST_PLAYER_DEFAULTS>;
 export type TestStaticPlatformOverrides = PlatformOverrides<
@@ -153,6 +156,7 @@ export function createTestStaticPlatform(
     overrides.width ?? TEST_STATIC_PLATFORM_DEFAULTS.width,
     overrides.height ?? TEST_STATIC_PLATFORM_DEFAULTS.height,
     overrides.hasSpring ?? false,
+    overrides.hasPowerup ?? false,
   );
 }
 
@@ -175,6 +179,7 @@ export function createTestHorizontalMovingPlatform(
     overrides.minX ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.minX,
     overrides.maxX ?? TEST_HORIZONTAL_MOVING_PLATFORM_DEFAULTS.maxX,
     overrides.hasSpring ?? false,
+    overrides.hasPowerup ?? false,
   );
 }
 
@@ -190,6 +195,7 @@ export function createTestVerticalMovingPlatform(
     overrides.minY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.minY,
     overrides.maxY ?? TEST_VERTICAL_MOVING_PLATFORM_DEFAULTS.maxY,
     overrides.hasSpring ?? false,
+    overrides.hasPowerup ?? false,
   );
 }
 
@@ -208,6 +214,7 @@ export function createTestDiagonalMovingPlatform(
     overrides.minY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.minY,
     overrides.maxY ?? TEST_DIAGONAL_MOVING_PLATFORM_DEFAULTS.maxY,
     overrides.hasSpring ?? false,
+    overrides.hasPowerup ?? false,
   );
 }
 

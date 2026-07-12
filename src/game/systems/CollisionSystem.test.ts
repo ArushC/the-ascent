@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SPRING_ACTIVATION_DURATION_MS } from "../entities/Spring";
+import { getPlatformPowerup } from "../entities/Powerup";
 import {
   createTestHorizontalMonster,
   createTestMovingPlatform,
@@ -13,6 +14,7 @@ import {
   projectileHitsMonster,
   resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
+  resolvePowerupCollision,
 } from "./CollisionSystem";
 import { INITIAL_JUMP_VELOCITY, SPRING_JUMP_VELOCITY } from "./PhysicsSystem";
 
@@ -193,6 +195,60 @@ describe("resolvePlatformLanding", () => {
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+  });
+
+  it("does not collect a powerup when landing on the platform body", () => {
+    const platform = createTestStaticPlatform({
+      x: 100,
+      y: 100,
+      hasPowerup: true,
+    });
+    const player = createTestPlayer({
+      x: platform.x + 20,
+      y: 80,
+      velocityY: 0.5,
+    });
+
+    resolvePlatformLanding(player, [platform], 50);
+
+    expect(resolvePowerupCollision(player, platform)).toBe(false);
+    expect(platform.hasPowerup).toBe(true);
+  });
+});
+
+describe("resolvePowerupCollision", () => {
+  it("clears a collected floating star", () => {
+    const platform = createTestStaticPlatform({
+      x: 100,
+      y: 100,
+      hasPowerup: true,
+    });
+    const powerup = getPlatformPowerup(platform);
+    if (powerup === null) {
+      throw new Error("Expected a powerup entity");
+    }
+    const player = createTestPlayer({
+      x: powerup.x,
+      y: powerup.y,
+    });
+
+    expect(resolvePowerupCollision(player, platform)).toBe(true);
+    expect(platform.hasPowerup).toBe(false);
+  });
+
+  it("ignores platform bodies outside the star hitbox", () => {
+    const platform = createTestStaticPlatform({
+      x: 100,
+      y: 100,
+      hasPowerup: true,
+    });
+    const player = createTestPlayer({
+      x: platform.x,
+      y: platform.y - 40,
+    });
+
+    expect(resolvePowerupCollision(player, platform)).toBe(false);
+    expect(platform.hasPowerup).toBe(true);
   });
 });
 

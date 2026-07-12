@@ -4,6 +4,7 @@ import {
 } from "../entities/Platform";
 import type { Monster } from "../entities/Monster";
 import type { Player } from "../entities/Player";
+import { playerCollidesWithPlatformPowerup } from "../entities/Powerup";
 import type { Projectile } from "../entities/Projectile";
 import {
   playerOverlapsSpringHitZone,
@@ -50,6 +51,16 @@ export function resolvePlatformLanding(
   }
 
   player.velocityY = -INITIAL_JUMP_VELOCITY;
+}
+
+export function resolvePowerupCollision(
+  player: Player,
+  platform: Platform,
+): boolean {
+  if (!playerCollidesWithPlatformPowerup(player, platform)) return false;
+
+  platform.hasPowerup = false;
+  return true;
 }
 
 export function playerCollidesWithMonster(

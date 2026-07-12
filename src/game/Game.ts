@@ -8,6 +8,10 @@ import {
 import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
 import {
+  createPowerupInventory,
+  type PowerupInventory,
+} from "./powerups/PowerupInventory";
+import {
   playerCollidesWithMonster,
   resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
@@ -31,6 +35,7 @@ import {
   removeOffScreenProjectiles,
   updateProjectiles as moveProjectiles,
 } from "./systems/ProjectileSystem";
+import { updatePowerups } from "./systems/PowerupSystem";
 import {
   createScoreState,
   getScore,
@@ -42,9 +47,15 @@ const MAX_DELTA_MS = 50;
 
 export type GamePhase = "ready" | "playing" | "paused" | "over";
 
+export type PowerupPanelState =
+  | { mode: "empty" }
+  | { mode: "generating" }
+  | { mode: "ready"; label: string };
+
 export type GameUiState = {
   phase: GamePhase;
   score: number;
+  powerupPanel: PowerupPanelState;
 };
 
 export class Game {
@@ -58,6 +69,7 @@ export class Game {
   private platforms: Platform[];
   private monsters: Monster[];
   private projectiles: Projectile[] = [];
+  private powerupInventory: PowerupInventory = createPowerupInventory();
   private readonly keyboardInput = new KeyboardInput();
   private screenTopY = 0;
   private scoreState: ScoreState;
@@ -184,6 +196,13 @@ export class Game {
     const previousY = this.player.y;
     updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
     applyHorizontalWrap(this.player, this.canvas.width);
+    const powerupUpdate = updatePowerups(
+      this.player,
+      this.platforms,
+      this.powerupInventory,
+      deltaTime,
+    );
+    this.powerupInventory = powerupUpdate.inventory;
     resolvePlatformLanding(this.player, this.platforms, previousY);
 
     if (
@@ -226,7 +245,10 @@ export class Game {
       return;
     }
 
-    if (getScore(this.scoreState) !== scoreBeforeUpdate) {
+    if (
+      getScore(this.scoreState) !== scoreBeforeUpdate ||
+      powerupUpdate.didPanelStateChange
+    ) {
       this.publishCurrentUiState();
     }
   }
@@ -277,6 +299,7 @@ export class Game {
     );
     this.monsters = createInitialMonsters();
     this.projectiles = [];
+    this.powerupInventory = createPowerupInventory();
     this.screenTopY = 0;
   }
 
@@ -291,6 +314,21 @@ export class Game {
     this.publishUiState({
       phase: this.phase,
       score: getScore(this.scoreState),
+      powerupPanel: this.getPowerupPanelSnapshot(),
     });
+  }
+
+  private getPowerupPanelSnapshot(): PowerupPanelState {
+    switch (this.powerupInventory.status) {
+      case "empty":
+        return { mode: "empty" };
+      case "generating":
+        return { mode: "generating" };
+      case "ready":
+        return {
+          mode: "ready",
+          label: this.powerupInventory.powerup?.label ?? "No powerups found",
+        };
+    }
   }
 }

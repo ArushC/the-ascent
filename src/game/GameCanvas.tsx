@@ -27,6 +27,7 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
     score: 0,
+    powerupPanel: { mode: "empty" },
   });
   const { personalBest, leaderboard } = useGameOverLeaderboard({
     phase: ui.phase,
@@ -73,6 +74,7 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
         <GameHud
           phase={ui.phase}
           score={ui.score}
+          powerupPanel={ui.powerupPanel}
           onOpenMenu={() => uiControls.pause()}
         />
       ) : null}

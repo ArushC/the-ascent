@@ -3,6 +3,7 @@ import {
   DEFAULT_PLATFORM_WIDTH,
   type Platform,
 } from "./Platform";
+import { drawPlatformPowerup } from "./Powerup";
 import { drawPlatformSpring } from "./Spring";
 const STATIC_PLATFORM_COLOR = "green";
 
@@ -14,6 +15,7 @@ export class StaticPlatform implements Platform {
   height: number;
   readonly hasSpring: boolean;
   springActivationMs: number;
+  hasPowerup: boolean;
 
   constructor(
     x: number,
@@ -21,6 +23,7 @@ export class StaticPlatform implements Platform {
     width: number,
     height: number,
     hasSpring = false,
+    hasPowerup = false,
   ) {
     this.x = x;
     this.y = y;
@@ -28,12 +31,14 @@ export class StaticPlatform implements Platform {
     this.height = height;
     this.hasSpring = hasSpring;
     this.springActivationMs = 0;
+    this.hasPowerup = hasPowerup;
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = STATIC_PLATFORM_COLOR;
     ctx.fillRect(this.x, this.y, this.width, this.height);
     drawPlatformSpring(ctx, this);
+    drawPlatformPowerup(ctx, this);
   }
 }
 
@@ -41,6 +46,7 @@ export function createStaticPlatform(
   x: number,
   y: number,
   hasSpring = false,
+  hasPowerup = false,
 ): StaticPlatform {
   return new StaticPlatform(
     x,
@@ -48,5 +54,6 @@ export function createStaticPlatform(
     DEFAULT_PLATFORM_WIDTH,
     DEFAULT_PLATFORM_HEIGHT,
     hasSpring,
+    hasPowerup,
   );
 }

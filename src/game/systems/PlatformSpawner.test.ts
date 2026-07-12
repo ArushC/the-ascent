@@ -22,8 +22,9 @@ import {
   getTopmostPlatformY,
   HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT,
   pickPlatformKind,
+  POWERUP_SPAWN_PROBABILITY,
   removePlatformsBelowCamera,
-  rollPlatformSpring,
+  rollPlatformExtras,
   spawnNextPlatform,
   spawnPlatformsAboveCamera,
   SPAWN_LOOKAHEAD_SCREENS,
@@ -61,13 +62,14 @@ describe("createInitialPlatforms", () => {
       y: EXPECTED_BOTTOM_PLATFORM_Y,
     });
     expect(platforms[0].hasSpring).toBe(false);
+    expect(platforms[0].hasPowerup).toBe(false);
     expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
       -TEST_CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
     );
     expect(platforms.length).toBeGreaterThan(5);
   });
 
-  it("does not attach a spring to the guaranteed bottom platform", () => {
+  it("does not attach extras to the guaranteed bottom platform", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const platforms = createInitialPlatforms(
@@ -76,7 +78,9 @@ describe("createInitialPlatforms", () => {
     );
 
     expect(platforms[0].hasSpring).toBe(false);
-    expect(platforms[1].hasSpring).toBe(true);
+    expect(platforms[0].hasPowerup).toBe(false);
+    expect(platforms[1].hasSpring).toBe(false);
+    expect(platforms[1].hasPowerup).toBe(true);
   });
 
   it("uses random platform placement for different new game layouts", () => {
@@ -290,23 +294,61 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY)
       .mockReturnValueOnce(0);
 
     const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
 
     expect(platform.hasSpring).toBe(true);
+    expect(platform.hasPowerup).toBe(false);
+  });
+
+  it("attaches powerups before rolling for springs", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY - 0.01);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+
+    expect(platform.hasSpring).toBe(false);
+    expect(platform.hasPowerup).toBe(true);
   });
 });
 
-describe("rollPlatformSpring", () => {
-  it("uses the configured spring spawn probability", () => {
+describe("rollPlatformExtras", () => {
+  it("uses the configured powerup spawn probability first", () => {
     const randomSpy = vi.spyOn(Math, "random");
 
-    randomSpy.mockReturnValue(SPRING_SPAWN_PROBABILITY - 0.01);
-    expect(rollPlatformSpring()).toBe(true);
+    randomSpy.mockReturnValue(POWERUP_SPAWN_PROBABILITY - 0.01);
+    expect(rollPlatformExtras()).toEqual({
+      hasSpring: false,
+      hasPowerup: true,
+    });
 
-    randomSpy.mockReturnValue(SPRING_SPAWN_PROBABILITY);
-    expect(rollPlatformSpring()).toBe(false);
+    randomSpy.mockReturnValue(POWERUP_SPAWN_PROBABILITY);
+    expect(rollPlatformExtras().hasPowerup).toBe(false);
+  });
+
+  it("uses the configured spring spawn probability after powerup misses", () => {
+    const randomSpy = vi.spyOn(Math, "random");
+
+    randomSpy
+      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY)
+      .mockReturnValueOnce(SPRING_SPAWN_PROBABILITY - 0.01);
+    expect(rollPlatformExtras()).toEqual({
+      hasSpring: true,
+      hasPowerup: false,
+    });
+
+    randomSpy
+      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY)
+      .mockReturnValueOnce(SPRING_SPAWN_PROBABILITY);
+    expect(rollPlatformExtras()).toEqual({
+      hasSpring: false,
+      hasPowerup: false,
+    });
   });
 });
 

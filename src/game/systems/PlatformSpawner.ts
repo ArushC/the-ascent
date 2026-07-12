@@ -25,9 +25,15 @@ const PLATFORM_SPAWN_WEIGHT_TOTAL =
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
+export const POWERUP_SPAWN_PROBABILITY = 0.03;
 export const SPRING_SPAWN_PROBABILITY = 0.1;
 // Number of visible screen heights to keep spawned above the camera.
 export const SPAWN_LOOKAHEAD_SCREENS = 4;
+
+export type PlatformExtras = {
+  hasSpring: boolean;
+  hasPowerup: boolean;
+};
 
 export function computeMaxJumpHeight(): number {
   // Jump apex from v^2 = 2ad, using the current launch velocity and gravity.
@@ -64,28 +70,33 @@ export function spawnNextPlatform(
   switch (pickPlatformKind(Math.random() * PLATFORM_SPAWN_WEIGHT_TOTAL)) {
     case "horizontalMoving": {
       const x = getRandomPlatformX(canvasWidth, travelDistance);
+      const extras = rollPlatformExtras();
 
       return createHorizontalMovingPlatform(
         x,
         y,
         undefined,
         travelDistance,
-        rollPlatformSpring(),
+        extras.hasSpring,
+        extras.hasPowerup,
       );
     }
     case "verticalMoving": {
       const x = getRandomPlatformX(canvasWidth);
+      const extras = rollPlatformExtras();
 
       return createVerticalMovingPlatform(
         x,
         y,
         undefined,
         travelDistance,
-        rollPlatformSpring(),
+        extras.hasSpring,
+        extras.hasPowerup,
       );
     }
     case "diagonalMoving": {
       const x = getRandomPlatformX(canvasWidth, travelDistance);
+      const extras = rollPlatformExtras();
 
       return createDiagonalMovingPlatform(
         x,
@@ -93,13 +104,20 @@ export function spawnNextPlatform(
         undefined,
         undefined,
         travelDistance,
-        rollPlatformSpring(),
+        extras.hasSpring,
+        extras.hasPowerup,
       );
     }
     case "static": {
       const x = getRandomPlatformX(canvasWidth);
+      const extras = rollPlatformExtras();
 
-      return createStaticPlatform(x, y, rollPlatformSpring());
+      return createStaticPlatform(
+        x,
+        y,
+        extras.hasSpring,
+        extras.hasPowerup,
+      );
     }
   }
 }
@@ -180,8 +198,22 @@ function randomBetween(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
-export function rollPlatformSpring(): boolean {
-  return Math.random() < SPRING_SPAWN_PROBABILITY;
+/**
+ * Rolls mutually exclusive platform extras.
+ * Outcomes: powerup 3%, spring 9.7% (10% after a powerup miss), neither 87.3%.
+ */
+export function rollPlatformExtras(): PlatformExtras {
+  const hasPowerup = Math.random() < POWERUP_SPAWN_PROBABILITY;
+  if (hasPowerup) {
+    return { hasSpring: false, hasPowerup: true };
+  }
+
+  const hasSpring = Math.random() < SPRING_SPAWN_PROBABILITY;
+
+  return {
+    hasSpring,
+    hasPowerup: false,
+  };
 }
 
 /**
