@@ -24,5 +24,3 @@ npm run build
 npm run build
 npm start
 ```
-
-Production deployment details live in [docs/DEPLOY.md](docs/DEPLOY.md).
