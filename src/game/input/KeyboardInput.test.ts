@@ -96,6 +96,7 @@ describe("KeyboardInput", () => {
       pauseOrResume: false,
       restart: false,
       shrinkPowerupShortcut: false,
+      slowMoPowerupShortcut: false,
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: false,
@@ -103,6 +104,7 @@ describe("KeyboardInput", () => {
       pauseOrResume: false,
       restart: false,
       shrinkPowerupShortcut: false,
+      slowMoPowerupShortcut: false,
     });
   });
 
@@ -155,6 +157,15 @@ describe("KeyboardInput", () => {
 
     expect(input.consumePhaseKeyPresses().shrinkPowerupShortcut).toBe(true);
     expect(input.consumePhaseKeyPresses().shrinkPowerupShortcut).toBe(false);
+  });
+
+  it("consumes the Slow-mo powerup shortcut as an edge-triggered T action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyT");
+
+    expect(input.consumePhaseKeyPresses().slowMoPowerupShortcut).toBe(true);
+    expect(input.consumePhaseKeyPresses().slowMoPowerupShortcut).toBe(false);
   });
 
   it("prevents default browser scrolling for Space", () => {

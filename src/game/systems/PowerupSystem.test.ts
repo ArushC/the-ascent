@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getPlatformPowerup } from "../entities/Powerup";
 import {
   POWERUP_GENERATION_DURATION_MS,
@@ -31,6 +31,7 @@ describe("updatePowerups", () => {
     expect(result.inventory.status).toBe("generating");
     expect(result.didPanelStateChange).toBe(true);
     expect(result.didLoseReadyShrinkPowerup).toBe(false);
+    expect(result.didLoseReadySlowMoPowerup).toBe(false);
   });
 
   it("collects only the first overlapping star in a frame", () => {
@@ -86,12 +87,14 @@ describe("updatePowerups", () => {
   });
 
   it("reports a UI change when generation finishes", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
     const result = updatePowerups(
       createTestPlayer(),
       [],
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
     );
+    randomSpy.mockRestore();
 
     expect(result.inventory).toEqual({
       status: "ready",
@@ -102,6 +105,7 @@ describe("updatePowerups", () => {
     });
     expect(result.didPanelStateChange).toBe(true);
     expect(result.didLoseReadyShrinkPowerup).toBe(false);
+    expect(result.didLoseReadySlowMoPowerup).toBe(false);
   });
 
   it("does not report a UI change for an in-progress countdown tick", () => {
@@ -119,5 +123,26 @@ describe("updatePowerups", () => {
     });
     expect(result.didPanelStateChange).toBe(false);
     expect(result.didLoseReadyShrinkPowerup).toBe(false);
+    expect(result.didLoseReadySlowMoPowerup).toBe(false);
+  });
+
+  it("reports when a held Slow-mo powerup is replaced after generation", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
+    const result = updatePowerups(
+      createTestPlayer(),
+      [],
+      {
+        status: "generating",
+        remainingMs: 0,
+        previousPowerup: {
+          id: "slowMo",
+          label: "T: toggle slow-mo",
+        },
+      },
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(result.didLoseReadySlowMoPowerup).toBe(true);
   });
 });

@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   POWERUP_GENERATION_DURATION_MS,
   beginPowerupGeneration,
   createPowerupInventory,
   didLoseReadyShrinkPowerup,
+  didLoseReadySlowMoPowerup,
   isShrinkPowerupReady,
+  isSlowMoPowerupReady,
   updatePowerupInventory,
 } from "./PowerupInventory";
 
@@ -34,16 +36,35 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Shrink when the timer elapses", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
     );
+    randomSpy.mockRestore();
 
     expect(inventory).toEqual({
       status: "ready",
       powerup: {
         id: "shrink",
         label: "F: toggle size",
+      },
+    });
+  });
+
+  it("becomes ready with Slow-mo when the catalog pick lands on it", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const inventory = updatePowerupInventory(
+      beginPowerupGeneration(),
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(inventory).toEqual({
+      status: "ready",
+      powerup: {
+        id: "slowMo",
+        label: "T: toggle slow-mo",
       },
     });
   });
@@ -78,6 +99,28 @@ describe("PowerupInventory", () => {
         powerup: {
           id: "jetpack",
           label: "Jetpack",
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("reports Slow-mo as ready only when the ready slot holds Slow-mo", () => {
+    expect(
+      isSlowMoPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "slowMo",
+          label: "T: toggle slow-mo",
+        },
+      }),
+    ).toBe(true);
+    expect(isSlowMoPowerupReady({ status: "empty" })).toBe(false);
+    expect(
+      isSlowMoPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "shrink",
+          label: "F: toggle size",
         },
       }),
     ).toBe(false);
@@ -153,6 +196,28 @@ describe("PowerupInventory", () => {
           powerup: {
             id: "jetpack",
             label: "Jetpack",
+          },
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it("reports when generation from held Slow-mo finishes without Slow-mo", () => {
+    expect(
+      didLoseReadySlowMoPowerup(
+        {
+          status: "generating",
+          remainingMs: 0,
+          previousPowerup: {
+            id: "slowMo",
+            label: "T: toggle slow-mo",
+          },
+        },
+        {
+          status: "ready",
+          powerup: {
+            id: "shrink",
+            label: "F: toggle size",
           },
         },
       ),

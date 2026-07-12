@@ -4,11 +4,16 @@ export type PowerupDefinition = {
 };
 
 export const SHRINK_POWERUP_ID = "shrink";
+export const SLOW_MO_POWERUP_ID = "slowMo";
 
 const POWERUP_CATALOG: readonly PowerupDefinition[] = [
   {
     id: SHRINK_POWERUP_ID,
     label: "F: toggle size",
+  },
+  {
+    id: SLOW_MO_POWERUP_ID,
+    label: "T: toggle slow-mo",
   },
 ];
 

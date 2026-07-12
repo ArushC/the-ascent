@@ -10,6 +10,7 @@ import { KeyboardInput } from "./input/KeyboardInput";
 import {
   createPowerupInventory,
   isShrinkPowerupReady,
+  isSlowMoPowerupReady,
   type PowerupInventory,
 } from "./powerups/PowerupInventory";
 import {
@@ -45,6 +46,8 @@ import {
 } from "./systems/ScoreSystem";
 
 const MAX_DELTA_MS = 50;
+const NORMAL_TIME_SCALE = 1;
+const SLOW_MO_TIME_SCALE = 0.4 * NORMAL_TIME_SCALE;
 
 export type GamePhase = "ready" | "playing" | "paused" | "over";
 
@@ -72,6 +75,7 @@ export class Game {
   private projectiles: Projectile[] = [];
   private powerupInventory: PowerupInventory = createPowerupInventory();
   private readonly keyboardInput = new KeyboardInput();
+  private timeScale = NORMAL_TIME_SCALE;
   private screenTopY = 0;
   private scoreState: ScoreState;
   private phase: GamePhase = "ready";
@@ -110,6 +114,7 @@ export class Game {
   beginRun(): void {
     if (this.phase !== "ready") return;
 
+    this.timeScale = NORMAL_TIME_SCALE;
     this.setPhase("playing");
   }
 
@@ -166,6 +171,14 @@ export class Game {
       this.player.toggleSize();
     }
 
+    if (
+      keyPresses.slowMoPowerupShortcut &&
+      this.phase === "playing" &&
+      isSlowMoPowerupReady(this.powerupInventory)
+    ) {
+      this.toggleTimeScale();
+    }
+
     if (keyPresses.pauseOrResume && !startedFromReady) {
       this.applyPauseOrResumeShortcut();
     }
@@ -194,26 +207,30 @@ export class Game {
   private update(deltaTime: number): void {
     if (this.phase !== "playing") return;
 
+    const simDt = deltaTime * this.timeScale;
     const horizontalIntent = this.keyboardInput.getHorizontalIntent();
     const scoreBeforeUpdate = getScore(this.scoreState);
 
-    this.updateProjectiles(deltaTime);
+    this.updateProjectiles(simDt);
 
-    updateMonsters(this.monsters, deltaTime, this.canvas.width);
-    updateMovingPlatforms(this.platforms, deltaTime, this.canvas.width);
-    updatePlatformSpringAnimations(this.platforms, deltaTime);
+    updateMonsters(this.monsters, simDt, this.canvas.width);
+    updateMovingPlatforms(this.platforms, simDt, this.canvas.width);
+    updatePlatformSpringAnimations(this.platforms, simDt);
     const previousY = this.player.y;
-    updatePlayerPhysics(this.player, deltaTime, horizontalIntent);
+    updatePlayerPhysics(this.player, simDt, horizontalIntent);
     applyHorizontalWrap(this.player, this.canvas.width);
     const powerupUpdate = updatePowerups(
       this.player,
       this.platforms,
       this.powerupInventory,
-      deltaTime,
+      simDt,
     );
     this.powerupInventory = powerupUpdate.inventory;
     if (powerupUpdate.didLoseReadyShrinkPowerup) {
       this.player.resetSize();
+    }
+    if (powerupUpdate.didLoseReadySlowMoPowerup) {
+      this.timeScale = NORMAL_TIME_SCALE;
     }
     resolvePlatformLanding(this.player, this.platforms, previousY);
 
@@ -275,6 +292,13 @@ export class Game {
     this.monsters = projectileCollisionResult.monsters;
   }
 
+  private toggleTimeScale(): void {
+    this.timeScale =
+      this.timeScale === NORMAL_TIME_SCALE
+        ? SLOW_MO_TIME_SCALE
+        : NORMAL_TIME_SCALE;
+  }
+
   private render(): void {
     const { ctx, canvas } = this;
 
@@ -312,6 +336,7 @@ export class Game {
     this.monsters = createInitialMonsters();
     this.projectiles = [];
     this.powerupInventory = createPowerupInventory();
+    this.timeScale = NORMAL_TIME_SCALE;
     this.screenTopY = 0;
   }
 

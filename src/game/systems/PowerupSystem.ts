@@ -3,6 +3,7 @@ import type { Player } from "../entities/Player";
 import {
   beginPowerupGeneration,
   didLoseReadyShrinkPowerup,
+  didLoseReadySlowMoPowerup,
   updatePowerupInventory,
   type PowerupInventory,
 } from "../powerups/PowerupInventory";
@@ -12,6 +13,7 @@ export type PowerupUpdateResult = {
   inventory: PowerupInventory;
   didPanelStateChange: boolean;
   didLoseReadyShrinkPowerup: boolean;
+  didLoseReadySlowMoPowerup: boolean;
 };
 
 /**
@@ -43,11 +45,16 @@ export function updatePowerups(
     inventory,
     updatedInventory,
   );
+  const lostReadySlowMoPowerup = didLoseReadySlowMoPowerup(
+    inventory,
+    updatedInventory,
+  );
 
   return {
     inventory: updatedInventory,
     didPanelStateChange: didCollectPowerup || didGenerationFinish,
     didLoseReadyShrinkPowerup: lostReadyShrinkPowerup,
+    didLoseReadySlowMoPowerup: lostReadySlowMoPowerup,
   };
 }
 

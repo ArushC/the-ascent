@@ -1,6 +1,7 @@
 import {
   pickRandomPowerup,
   SHRINK_POWERUP_ID,
+  SLOW_MO_POWERUP_ID,
   type PowerupDefinition,
 } from "./PowerupCatalog";
 
@@ -58,6 +59,13 @@ export function isShrinkPowerupReady(inventory: PowerupInventory): boolean {
   );
 }
 
+export function isSlowMoPowerupReady(inventory: PowerupInventory): boolean {
+  return (
+    inventory.status === "ready" &&
+    inventory.powerup?.id === SLOW_MO_POWERUP_ID
+  );
+}
+
 export function didLoseReadyShrinkPowerup(
   previousInventory: PowerupInventory,
   nextInventory: PowerupInventory,
@@ -68,11 +76,30 @@ export function didLoseReadyShrinkPowerup(
   return !isShrinkPowerupReady(nextInventory);
 }
 
+export function didLoseReadySlowMoPowerup(
+  previousInventory: PowerupInventory,
+  nextInventory: PowerupInventory,
+): boolean {
+  if (nextInventory.status === "generating") return false;
+  if (!wasSlowMoPowerupHeld(previousInventory)) return false;
+
+  return !isSlowMoPowerupReady(nextInventory);
+}
+
 function wasShrinkPowerupHeld(inventory: PowerupInventory): boolean {
   if (isShrinkPowerupReady(inventory)) return true;
 
   return (
     inventory.status === "generating" &&
     inventory.previousPowerup?.id === SHRINK_POWERUP_ID
+  );
+}
+
+function wasSlowMoPowerupHeld(inventory: PowerupInventory): boolean {
+  if (isSlowMoPowerupReady(inventory)) return true;
+
+  return (
+    inventory.status === "generating" &&
+    inventory.previousPowerup?.id === SLOW_MO_POWERUP_ID
   );
 }
