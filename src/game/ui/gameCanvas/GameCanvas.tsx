@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Game, type GameUiState } from "../../Game";
 import type { GameControls } from "../../Game";
 import { GameHud } from "../gameHud/GameHud";
+import { HelpMenu } from "../helpMenu/HelpMenu";
 import { GameMenu, type GameMenuPhase } from "../gameMenu/GameMenu";
 import { PlayerNamePrompt } from "../playerNamePrompt/PlayerNamePrompt";
 import {
@@ -28,6 +29,7 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
     phase: "ready",
     score: 0,
     powerupPanel: { mode: "empty" },
+    helpOpen: false,
   });
   const { personalBest, leaderboard } = useGameOverLeaderboard({
     phase: ui.phase,
@@ -49,6 +51,8 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
       pause: () => game.pause(),
       resume: () => game.resume(),
       restart: () => game.restart(),
+      toggleHelp: () => game.toggleHelp(),
+      closeHelp: () => game.closeHelp(),
     });
 
     game.start();
@@ -86,6 +90,9 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
           personalBest={personalBest}
           leaderboard={leaderboard}
         />
+      ) : null}
+      {ui.helpOpen && uiControls ? (
+        <HelpMenu onClose={() => uiControls.closeHelp()} />
       ) : null}
       {ui.phase === "over" && !playerName ? (
         <PlayerNamePrompt onSubmit={handlePlayerNameSubmit} />

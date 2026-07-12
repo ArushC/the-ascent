@@ -67,6 +67,7 @@ export type GameUiState = {
   phase: GamePhase;
   score: number;
   powerupPanel: PowerupPanelState;
+  helpOpen: boolean;
 };
 
 export type GameControls = {
@@ -74,6 +75,8 @@ export type GameControls = {
   pause: () => void;
   resume: () => void;
   restart: () => void;
+  toggleHelp: () => void;
+  closeHelp: () => void;
 };
 
 export class Game {
@@ -93,6 +96,7 @@ export class Game {
   private screenTopY = 0;
   private scoreState: ScoreState;
   private phase: GamePhase = "ready";
+  private helpOpen = false;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -133,6 +137,7 @@ export class Game {
     if (this.phase !== "ready") return;
 
     this.timeScale = NORMAL_TIME_SCALE;
+    this.helpOpen = false;
     this.setPhase("playing");
   }
 
@@ -145,14 +150,35 @@ export class Game {
   resume(): void {
     if (this.phase !== "paused") return;
 
+    this.helpOpen = false;
     this.setPhase("playing");
   }
 
   restart(): void {
     if (this.phase !== "paused" && this.phase !== "over") return;
 
+    this.helpOpen = false;
     this.resetWorld();
     this.setPhase("playing");
+  }
+
+  toggleHelp(): void {
+    if (this.phase === "playing") {
+      this.pause();
+      this.helpOpen = true;
+      this.publishCurrentUiState();
+      return;
+    }
+
+    this.helpOpen = !this.helpOpen;
+    this.publishCurrentUiState();
+  }
+
+  closeHelp(): void {
+    if (!this.helpOpen) return;
+
+    this.helpOpen = false;
+    this.publishCurrentUiState();
   }
 
   private tick = (timestamp: number): void => {
@@ -172,6 +198,10 @@ export class Game {
     const keyPresses = this.keyboardInput.consumePhaseKeyPresses();
 
     const startedFromReady = keyPresses.start && this.phase === "ready";
+
+    if (keyPresses.help) {
+      this.toggleHelp();
+    }
 
     if (keyPresses.start) {
       this.beginRun();
@@ -239,6 +269,11 @@ export class Game {
     }
 
     if (keyPresses.pauseOrResume && !startedFromReady) {
+      if (this.helpOpen) {
+        this.closeHelp();
+        return;
+      }
+
       this.applyPauseOrResumeShortcut();
     }
   }
@@ -423,6 +458,7 @@ export class Game {
       phase: this.phase,
       score: getScore(this.scoreState),
       powerupPanel: this.getPowerupPanelSnapshot(),
+      helpOpen: this.helpOpen,
     });
   }
 

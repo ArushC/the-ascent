@@ -94,6 +94,7 @@ describe("KeyboardInput", () => {
       start: true,
       shoot: true,
       pauseOrResume: false,
+      help: false,
       powerupShortcuts: {
         shrink: false,
         slowMo: false,
@@ -107,6 +108,7 @@ describe("KeyboardInput", () => {
       start: false,
       shoot: false,
       pauseOrResume: false,
+      help: false,
       powerupShortcuts: {
         shrink: false,
         slowMo: false,
@@ -158,6 +160,24 @@ describe("KeyboardInput", () => {
     target.dispatch("keydown", "Escape");
 
     expect(input.consumePhaseKeyPresses().pauseOrResume).toBe(true);
+  });
+
+  it("consumes help as an edge-triggered H action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyH");
+
+    expect(input.consumePhaseKeyPresses().help).toBe(true);
+    expect(input.consumePhaseKeyPresses().help).toBe(false);
+
+    target.dispatch("keydown", "KeyH");
+
+    expect(input.consumePhaseKeyPresses().help).toBe(false);
+
+    target.dispatch("keyup", "KeyH");
+    target.dispatch("keydown", "KeyH");
+
+    expect(input.consumePhaseKeyPresses().help).toBe(true);
   });
 
   it("consumes the Shrink powerup shortcut as an edge-triggered F action", () => {

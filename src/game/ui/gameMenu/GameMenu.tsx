@@ -24,16 +24,20 @@ type GameMenuAction = {
 };
 
 const MENU_TITLES: Record<GameMenuPhase, string> = {
-  ready: "Doodle Jump AI",
+  ready: "The Ascent",
   paused: "Paused",
   over: "Game Over",
 };
 
 const MENU_ACTIONS: Record<GameMenuPhase, GameMenuAction[]> = {
-  ready: [{ label: "Start", control: "beginRun" }],
+  ready: [
+    { label: "Start", control: "beginRun" },
+    { label: "Help", control: "toggleHelp" },
+  ],
   paused: [
     { label: "Resume", control: "resume" },
     { label: "Restart", control: "restart" },
+    { label: "Help", control: "toggleHelp" },
   ],
   over: [{ label: "Restart", control: "restart" }],
 };

@@ -1,0 +1,43 @@
+.game-help-menu {
+  --game-help-section-gap: var(--game-space-md);
+  --game-help-first-section-offset: var(--game-space-sm);
+  --game-help-heading-size: calc(var(--game-score-size) * 1.15);
+  --game-help-line-gap: calc(var(--game-space-sm) / 2);
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+}
+
+.game-help-menu .game-help-content {
+  flex: 1;
+  min-height: 0;
+  text-align: left;
+}
+
+.game-help-menu .game-help-content section {
+  padding-top: var(--game-help-section-gap);
+  border-top: var(--game-border-muted);
+}
+
+.game-help-menu .game-help-content section:first-child {
+  margin-top: var(--game-help-first-section-offset);
+}
+
+.game-help-menu .game-help-content section + section {
+  margin-top: var(--game-help-section-gap);
+}
+
+.game-help-menu .game-help-content h2 {
+  margin: 0 0 var(--game-space-sm);
+  font-size: var(--game-help-heading-size);
+}
+
+.game-help-menu .game-help-content p {
+  margin: var(--game-help-line-gap) 0 0;
+}
+
+.game-help-menu .game-help-hint {
+  opacity: 0.85;
+}

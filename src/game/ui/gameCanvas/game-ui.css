@@ -4,7 +4,10 @@
   --game-page: #111;
   --game-canvas: black;
   --game-text: white;
-  --game-border: 2px solid var(--game-text);
+  --game-border-width: 2px;
+  --game-border: var(--game-border-width) solid var(--game-text);
+  --game-border-muted-width: 1px;
+  --game-border-muted: var(--game-border-muted-width) solid #737373;
   --game-backdrop: rgba(0, 0, 0, 0.6);
   --game-space-sm: 0.75rem;
   --game-space-md: 1.5rem;
