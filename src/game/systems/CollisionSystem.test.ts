@@ -4,11 +4,14 @@ import {
   createTestHorizontalMonster,
   createTestMovingPlatform,
   createTestPlayer,
+  createTestProjectile,
   createTestStaticPlatform,
   createTestVerticalMovingPlatform,
 } from "../testing/entityFactories";
 import {
   playerCollidesWithMonster,
+  projectileHitsMonster,
+  resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
 } from "./CollisionSystem";
 import { INITIAL_JUMP_VELOCITY, SPRING_JUMP_VELOCITY } from "./PhysicsSystem";
@@ -223,5 +226,85 @@ describe("playerCollidesWithMonster", () => {
     const monster = createTestHorizontalMonster({ x: 100, y: 100 });
 
     expect(playerCollidesWithMonster(player, monster)).toBe(false);
+  });
+});
+
+describe("projectileHitsMonster", () => {
+  it("returns true when a projectile overlaps a monster", () => {
+    const projectile = createTestProjectile({ x: 120, y: 120 });
+    const monster = createTestHorizontalMonster({
+      x: 116,
+      y: 130,
+      width: 56,
+      height: 14,
+    });
+
+    expect(projectileHitsMonster(projectile, monster)).toBe(true);
+  });
+
+  it("returns false when a projectile misses a monster", () => {
+    const projectile = createTestProjectile({ x: 0, y: 0 });
+    const monster = createTestHorizontalMonster({ x: 100, y: 100 });
+
+    expect(projectileHitsMonster(projectile, monster)).toBe(false);
+  });
+});
+
+describe("resolveProjectileMonsterCollisions", () => {
+  it("removes a projectile and monster when they collide", () => {
+    const projectile = createTestProjectile({ x: 120, y: 120 });
+    const monster = createTestHorizontalMonster({ x: 116, y: 130 });
+
+    expect(resolveProjectileMonsterCollisions([projectile], [monster])).toEqual(
+      {
+        projectiles: [],
+        monsters: [],
+      },
+    );
+  });
+
+  it("keeps projectiles and monsters when nothing collides", () => {
+    const projectile = createTestProjectile({ x: 0, y: 0 });
+    const monster = createTestHorizontalMonster({ x: 100, y: 100 });
+
+    expect(resolveProjectileMonsterCollisions([projectile], [monster])).toEqual(
+      {
+        projectiles: [projectile],
+        monsters: [monster],
+      },
+    );
+  });
+
+  it("does not remove unrelated projectiles or monsters", () => {
+    const hitProjectile = createTestProjectile({ x: 120, y: 120 });
+    const missedProjectile = createTestProjectile({ x: 0, y: 0 });
+    const hitMonster = createTestHorizontalMonster({ x: 116, y: 130 });
+    const missedMonster = createTestHorizontalMonster({ x: 200, y: 200 });
+
+    expect(
+      resolveProjectileMonsterCollisions(
+        [hitProjectile, missedProjectile],
+        [hitMonster, missedMonster],
+      ),
+    ).toEqual({
+      projectiles: [missedProjectile],
+      monsters: [missedMonster],
+    });
+  });
+
+  it("lets a second projectile continue when the first projectile removes the monster", () => {
+    const firstProjectile = createTestProjectile({ x: 120, y: 120 });
+    const secondProjectile = createTestProjectile({ x: 122, y: 122 });
+    const monster = createTestHorizontalMonster({ x: 116, y: 130 });
+
+    expect(
+      resolveProjectileMonsterCollisions(
+        [firstProjectile, secondProjectile],
+        [monster],
+      ),
+    ).toEqual({
+      projectiles: [secondProjectile],
+      monsters: [],
+    });
   });
 });

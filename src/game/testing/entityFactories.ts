@@ -5,6 +5,7 @@ import { CircularMonster } from "../entities/monster/CircularMonster";
 import { HorizontalMonster } from "../entities/monster/HorizontalMonster";
 import { TriangularPathMonster } from "../entities/monster/TriangularPathMonster";
 import { Player } from "../entities/Player";
+import { Projectile } from "../entities/Projectile";
 import { StaticPlatform } from "../entities/StaticPlatform";
 
 export const TEST_PLAYER_DEFAULTS = {
@@ -90,6 +91,14 @@ export const TEST_TRIANGULAR_PATH_MONSTER_DEFAULTS = {
   speed: 0.1,
 } as const;
 
+export const TEST_PROJECTILE_DEFAULTS = {
+  x: 120,
+  y: 140,
+  width: 8,
+  height: 16,
+  velocityY: -0.7,
+} as const;
+
 type NumericOverrides<T> = Partial<{ [Key in keyof T]: number }>;
 type PlatformOverrides<T> = NumericOverrides<T> & { hasSpring?: boolean };
 
@@ -117,6 +126,9 @@ export type TestCircularMonsterOverrides = NumericOverrides<
 >;
 export type TestTriangularPathMonsterOverrides = NumericOverrides<
   typeof TEST_TRIANGULAR_PATH_MONSTER_DEFAULTS
+>;
+export type TestProjectileOverrides = NumericOverrides<
+  typeof TEST_PROJECTILE_DEFAULTS
 >;
 
 export function createTestPlayer(
@@ -232,6 +244,18 @@ export function createTestTriangularMonster(
   overrides: TestTriangularPathMonsterOverrides = {},
 ): TriangularPathMonster {
   return createTriangularMonsterForTest(overrides);
+}
+
+export function createTestProjectile(
+  overrides: TestProjectileOverrides = {},
+): Projectile {
+  return new Projectile(
+    overrides.x ?? TEST_PROJECTILE_DEFAULTS.x,
+    overrides.y ?? TEST_PROJECTILE_DEFAULTS.y,
+    overrides.width ?? TEST_PROJECTILE_DEFAULTS.width,
+    overrides.height ?? TEST_PROJECTILE_DEFAULTS.height,
+    overrides.velocityY ?? TEST_PROJECTILE_DEFAULTS.velocityY,
+  );
 }
 
 function createTriangularMonsterForTest(

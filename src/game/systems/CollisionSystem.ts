@@ -4,6 +4,7 @@ import {
 } from "../entities/Platform";
 import type { Monster } from "../entities/Monster";
 import type { Player } from "../entities/Player";
+import type { Projectile } from "../entities/Projectile";
 import {
   playerOverlapsSpringHitZone,
   triggerPlatformSpring,
@@ -56,6 +57,40 @@ export function playerCollidesWithMonster(
   monster: Monster,
 ): boolean {
   return rectanglesOverlap(player, monster);
+}
+
+export function projectileHitsMonster(
+  projectile: Projectile,
+  monster: Monster,
+): boolean {
+  return rectanglesOverlap(projectile, monster);
+}
+
+export function resolveProjectileMonsterCollisions(
+  projectiles: readonly Projectile[],
+  monsters: readonly Monster[],
+): { projectiles: Projectile[]; monsters: Monster[] } {
+  const hitProjectiles = new Set<Projectile>();
+  const hitMonsters = new Set<Monster>();
+
+  for (const projectile of projectiles) {
+    for (const monster of monsters) {
+      if (hitMonsters.has(monster)) continue;
+
+      if (projectileHitsMonster(projectile, monster)) {
+        hitProjectiles.add(projectile);
+        hitMonsters.add(monster);
+        break;
+      }
+    }
+  }
+
+  return {
+    projectiles: projectiles.filter(
+      (projectile) => !hitProjectiles.has(projectile),
+    ),
+    monsters: monsters.filter((monster) => !hitMonsters.has(monster)),
+  };
 }
 
 function rectanglesOverlap(
