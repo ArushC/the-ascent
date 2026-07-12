@@ -5,11 +5,13 @@ import {
   createPowerupInventory,
   didLoseReadyArmorPowerup,
   didLoseReadyBigShotPowerup,
+  didLoseReadyRocketPowerup,
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   isArmorPowerupReady,
   isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
+  isRocketPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   updatePowerupInventory,
@@ -75,7 +77,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Armor when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.4);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -92,7 +94,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Double Jump when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.7);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.55);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -109,7 +111,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Big Shot when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.75);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -121,6 +123,23 @@ describe("PowerupInventory", () => {
       powerup: {
         id: "bigShot",
         label: "B: toggle big shot",
+      },
+    });
+  });
+
+  it("becomes ready with Rocket when the catalog pick lands on it", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const inventory = updatePowerupInventory(
+      beginPowerupGeneration(),
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(inventory).toEqual({
+      status: "ready",
+      powerup: {
+        id: "rocket",
+        label: "R: toggle rocket",
       },
     });
   });
@@ -282,6 +301,35 @@ describe("PowerupInventory", () => {
     ).toBe(false);
   });
 
+  it("reports Rocket as ready only when the ready slot holds Rocket", () => {
+    expect(
+      isRocketPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "rocket",
+          label: "R: toggle rocket",
+        },
+      }),
+    ).toBe(true);
+    expect(isRocketPowerupReady({ status: "empty" })).toBe(false);
+    expect(
+      isRocketPowerupReady({
+        status: "generating",
+        remainingMs: 1000,
+        previousPowerup: null,
+      }),
+    ).toBe(false);
+    expect(
+      isRocketPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "shrink",
+          label: "F: toggle size",
+        },
+      }),
+    ).toBe(false);
+  });
+
   it("reports when a ready Shrink powerup is lost", () => {
     const readyShrink = {
       status: "ready" as const,
@@ -424,6 +472,28 @@ describe("PowerupInventory", () => {
     ).toBe(true);
   });
 
+  it("reports when generation from held Rocket finishes without Rocket", () => {
+    expect(
+      didLoseReadyRocketPowerup(
+        {
+          status: "generating",
+          remainingMs: 0,
+          previousPowerup: {
+            id: "rocket",
+            label: "R: toggle rocket",
+          },
+        },
+        {
+          status: "ready",
+          powerup: {
+            id: "shrink",
+            label: "F: toggle size",
+          },
+        },
+      ),
+    ).toBe(true);
+  });
+
   it("does not report losing Big Shot while replacement generation continues", () => {
     const readyBigShot = {
       status: "ready" as const,
@@ -440,5 +510,26 @@ describe("PowerupInventory", () => {
         previousPowerup: readyBigShot.powerup,
       }),
     ).toBe(false);
+  });
+
+  it("does not report losing Rocket while replacement generation continues", () => {
+    const readyRocket = {
+      status: "ready" as const,
+      powerup: {
+        id: "rocket",
+        label: "R: toggle rocket",
+      },
+    };
+
+    expect(
+      didLoseReadyRocketPowerup(readyRocket, {
+        status: "generating",
+        remainingMs: 1000,
+        previousPowerup: readyRocket.powerup,
+      }),
+    ).toBe(false);
+    expect(didLoseReadyRocketPowerup(readyRocket, { status: "empty" })).toBe(
+      true,
+    );
   });
 });

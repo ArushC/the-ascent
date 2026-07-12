@@ -3,6 +3,7 @@ import {
   BIG_SHOT_POWERUP_ID,
   DOUBLE_JUMP_POWERUP_ID,
   pickRandomPowerup,
+  ROCKET_POWERUP_ID,
   SHRINK_POWERUP_ID,
   SLOW_MO_POWERUP_ID,
   type PowerupDefinition,
@@ -91,6 +92,13 @@ export function isBigShotPowerupReady(inventory: PowerupInventory): boolean {
   );
 }
 
+export function isRocketPowerupReady(inventory: PowerupInventory): boolean {
+  return (
+    inventory.status === "ready" &&
+    inventory.powerup?.id === ROCKET_POWERUP_ID
+  );
+}
+
 export function didLoseReadyShrinkPowerup(
   previousInventory: PowerupInventory,
   nextInventory: PowerupInventory,
@@ -131,6 +139,16 @@ export function didLoseReadyBigShotPowerup(
   return !isBigShotPowerupReady(nextInventory);
 }
 
+export function didLoseReadyRocketPowerup(
+  previousInventory: PowerupInventory,
+  nextInventory: PowerupInventory,
+): boolean {
+  if (nextInventory.status === "generating") return false;
+  if (!wasRocketPowerupHeld(previousInventory)) return false;
+
+  return !isRocketPowerupReady(nextInventory);
+}
+
 function wasShrinkPowerupHeld(inventory: PowerupInventory): boolean {
   if (isShrinkPowerupReady(inventory)) return true;
 
@@ -164,5 +182,14 @@ function wasBigShotPowerupHeld(inventory: PowerupInventory): boolean {
   return (
     inventory.status === "generating" &&
     inventory.previousPowerup?.id === BIG_SHOT_POWERUP_ID
+  );
+}
+
+function wasRocketPowerupHeld(inventory: PowerupInventory): boolean {
+  if (isRocketPowerupReady(inventory)) return true;
+
+  return (
+    inventory.status === "generating" &&
+    inventory.previousPowerup?.id === ROCKET_POWERUP_ID
   );
 }

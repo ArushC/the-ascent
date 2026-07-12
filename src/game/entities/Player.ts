@@ -7,6 +7,9 @@ const SMALL_PLAYER_HEIGHT = PLAYER_HEIGHT / 2;
 const PLAYER_COLOR = "red";
 const ARMOR_STROKE_COLOR = "white";
 const ARMOR_STROKE_WIDTH = 3;
+const ROCKET_HULL_STROKE_COLOR = "white";
+const ROCKET_HULL_STROKE_WIDTH = 1;
+const ROCKET_THRUSTER_COLOR = "orange";
 export const BIG_SHOT_COOLDOWN_MS = 500;
 
 export type PlayerSizeMode = "default" | "small";
@@ -18,6 +21,9 @@ export type PlayerProjectileState = {
 export type PlayerArmorState = {
   equipped: boolean;
   pendingKnockbackVx: number | null;
+};
+export type PlayerRocketState = {
+  active: boolean;
 };
 
 export class Player {
@@ -36,6 +42,9 @@ export class Player {
   armor: PlayerArmorState = {
     equipped: false,
     pendingKnockbackVx: null,
+  };
+  rocket: PlayerRocketState = {
+    active: false,
   };
 
   constructor(
@@ -63,6 +72,10 @@ export class Player {
       ctx.lineWidth = ARMOR_STROKE_WIDTH;
       ctx.strokeRect(this.x, this.y, this.width, this.height);
     }
+
+    if (this.rocket.active) {
+      this.drawRocket(ctx);
+    }
   }
 
   toggleSize(): void {
@@ -82,6 +95,14 @@ export class Player {
     this.armor.pendingKnockbackVx = null;
   }
 
+  toggleRocket(): void {
+    this.rocket.active = !this.rocket.active;
+  }
+
+  resetRocket(): void {
+    this.rocket.active = false;
+  }
+
   toggleProjectileSize(): void {
     this.projectile.sizeMode =
       this.projectile.sizeMode === "default" ? "large" : "default";
@@ -92,6 +113,8 @@ export class Player {
   }
 
   canShoot(): boolean {
+    if (this.rocket.active) return false;
+
     return (
       this.projectile.sizeMode === "default" ||
       this.projectile.shootCooldownRemainingMs <= 0
@@ -137,6 +160,58 @@ export class Player {
     this.height = height;
     this.x = centerX - width / 2;
     this.y = bottomY - height;
+  }
+
+  private drawRocket(ctx: CanvasRenderingContext2D): void {
+    const centerX = this.x + this.width / 2;
+    const noseHeight = this.height * 0.3;
+    const thrusterWidth = this.width * 0.18;
+    const thrusterHeight = this.height * 0.22;
+    const thrusterInset = this.width * 0.22;
+    const bottomY = this.y + this.height;
+
+    ctx.strokeStyle = ROCKET_HULL_STROKE_COLOR;
+    ctx.lineWidth = ROCKET_HULL_STROKE_WIDTH;
+    ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+    ctx.fillStyle = ROCKET_HULL_STROKE_COLOR;
+    ctx.beginPath();
+    ctx.moveTo(centerX, this.y - noseHeight);
+    ctx.lineTo(this.x, this.y);
+    ctx.lineTo(this.x + this.width, this.y);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = ROCKET_THRUSTER_COLOR;
+    this.drawThruster(
+      ctx,
+      this.x + thrusterInset,
+      bottomY,
+      thrusterWidth,
+      thrusterHeight,
+    );
+    this.drawThruster(
+      ctx,
+      this.x + this.width - thrusterInset - thrusterWidth,
+      bottomY,
+      thrusterWidth,
+      thrusterHeight,
+    );
+  }
+
+  private drawThruster(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): void {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + width, y);
+    ctx.lineTo(x + width / 2, y + height);
+    ctx.closePath();
+    ctx.fill();
   }
 }
 

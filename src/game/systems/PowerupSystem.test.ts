@@ -34,6 +34,7 @@ describe("updatePowerups", () => {
     expect(result.didLoseReadySlowMoPowerup).toBe(false);
     expect(result.didLoseReadyArmorPowerup).toBe(false);
     expect(result.didLoseReadyBigShotPowerup).toBe(false);
+    expect(result.didLoseReadyRocketPowerup).toBe(false);
   });
 
   it("collects only the first overlapping star in a frame", () => {
@@ -110,6 +111,7 @@ describe("updatePowerups", () => {
     expect(result.didLoseReadySlowMoPowerup).toBe(false);
     expect(result.didLoseReadyArmorPowerup).toBe(false);
     expect(result.didLoseReadyBigShotPowerup).toBe(false);
+    expect(result.didLoseReadyRocketPowerup).toBe(false);
   });
 
   it("does not report a UI change for an in-progress countdown tick", () => {
@@ -130,6 +132,7 @@ describe("updatePowerups", () => {
     expect(result.didLoseReadySlowMoPowerup).toBe(false);
     expect(result.didLoseReadyArmorPowerup).toBe(false);
     expect(result.didLoseReadyBigShotPowerup).toBe(false);
+    expect(result.didLoseReadyRocketPowerup).toBe(false);
   });
 
   it("reports when a held Slow-mo powerup is replaced after generation", () => {
@@ -234,5 +237,25 @@ describe("updatePowerups", () => {
     randomSpy.mockRestore();
 
     expect(result.didLoseReadyBigShotPowerup).toBe(true);
+  });
+
+  it("reports when a held Rocket powerup is replaced after generation", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
+    const result = updatePowerups(
+      createTestPlayer(),
+      [],
+      {
+        status: "generating",
+        remainingMs: 0,
+        previousPowerup: {
+          id: "rocket",
+          label: "R: toggle rocket",
+        },
+      },
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(result.didLoseReadyRocketPowerup).toBe(true);
   });
 });

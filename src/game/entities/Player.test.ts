@@ -50,6 +50,23 @@ describe("Player", () => {
     expect(player.armor.pendingKnockbackVx).toBeNull();
   });
 
+  it("toggles and resets rocket state", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+
+    player.toggleRocket();
+
+    expect(player.rocket.active).toBe(true);
+
+    player.toggleRocket();
+
+    expect(player.rocket.active).toBe(false);
+
+    player.toggleRocket();
+    player.resetRocket();
+
+    expect(player.rocket.active).toBe(false);
+  });
+
   it("toggles and resets projectile size mode", () => {
     const player = new Player(100, 200, 40, 40, 0, 0);
 
@@ -114,6 +131,20 @@ describe("Player", () => {
     player.recordShot();
 
     expect(player.projectile.shootCooldownRemainingMs).toBe(0);
+  });
+
+  it("blocks shots while rocket is active", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+
+    expect(player.canShoot()).toBe(true);
+
+    player.toggleRocket();
+
+    expect(player.canShoot()).toBe(false);
+
+    player.resetRocket();
+
+    expect(player.canShoot()).toBe(true);
   });
 
   it("uses and refreshes one air jump charge", () => {

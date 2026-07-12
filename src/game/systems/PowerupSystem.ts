@@ -5,6 +5,7 @@ import {
   beginPowerupGeneration,
   didLoseReadyArmorPowerup,
   didLoseReadyBigShotPowerup,
+  didLoseReadyRocketPowerup,
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   updatePowerupInventory,
@@ -19,6 +20,7 @@ export type PowerupUpdateResult = {
   didLoseReadySlowMoPowerup: boolean;
   didLoseReadyArmorPowerup: boolean;
   didLoseReadyBigShotPowerup: boolean;
+  didLoseReadyRocketPowerup: boolean;
 };
 
 /**
@@ -61,6 +63,10 @@ export function updatePowerups(
     inventory,
     updatedInventory,
   );
+  const lostReadyRocketPowerup = didLoseReadyRocketPowerup(
+    inventory,
+    updatedInventory,
+  );
 
   return {
     inventory: updatedInventory,
@@ -69,6 +75,7 @@ export function updatePowerups(
     didLoseReadySlowMoPowerup: lostReadySlowMoPowerup,
     didLoseReadyArmorPowerup: lostReadyArmorPowerup,
     didLoseReadyBigShotPowerup: lostReadyBigShotPowerup,
+    didLoseReadyRocketPowerup: lostReadyRocketPowerup,
   };
 }
 

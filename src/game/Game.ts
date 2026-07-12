@@ -12,6 +12,7 @@ import {
   isArmorPowerupReady,
   isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
+  isRocketPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   type PowerupInventory,
@@ -163,12 +164,13 @@ export class Game {
       this.beginRun();
     }
 
-    // Armor blocks shooting while equipped.
+    // Armor and rocket mode block shooting while active.
     if (
       keyPresses.shoot &&
       !startedFromReady &&
       this.phase === "playing" &&
       !this.player.armor.equipped &&
+      !this.player.rocket.active &&
       this.player.canShoot()
     ) {
       this.projectiles.push(createProjectile(this.player));
@@ -215,12 +217,16 @@ export class Game {
       this.player.toggleProjectileSize();
     }
 
-    if (keyPresses.pauseOrResume && !startedFromReady) {
-      this.applyPauseOrResumeShortcut();
+    if (
+      keyPresses.powerupShortcuts.rocket &&
+      this.phase === "playing" &&
+      isRocketPowerupReady(this.powerupInventory)
+    ) {
+      this.player.toggleRocket();
     }
 
-    if (keyPresses.restart) {
-      this.restart();
+    if (keyPresses.pauseOrResume && !startedFromReady) {
+      this.applyPauseOrResumeShortcut();
     }
   }
 
@@ -274,6 +280,9 @@ export class Game {
     }
     if (powerupUpdate.didLoseReadyBigShotPowerup) {
       this.player.resetProjectileSize();
+    }
+    if (powerupUpdate.didLoseReadyRocketPowerup) {
+      this.player.resetRocket();
     }
     resolvePlatformLanding(this.player, this.platforms, previousY);
 

@@ -9,6 +9,7 @@ import {
   GRAVITY,
   HORIZONTAL_SPEED,
   INITIAL_JUMP_VELOCITY,
+  ROCKET_VELOCITY_MULTIPLIER,
   updatePlayerPhysics,
 } from "./PhysicsSystem";
 
@@ -74,6 +75,31 @@ describe("updatePlayerPhysics", () => {
     updatePlayerPhysics(player, 16, 1);
 
     expect(player.velocityX).toBe(HORIZONTAL_SPEED);
+  });
+
+  it("uses fixed upward velocity without gravity while rocket is active", () => {
+    const player = createTestPlayer({ y: 200, velocityY: 1 });
+    const deltaTime = 16;
+    player.toggleRocket();
+
+    updatePlayerPhysics(player, deltaTime, 0);
+
+    const rocketVelocityY = -(
+      ROCKET_VELOCITY_MULTIPLIER * INITIAL_JUMP_VELOCITY
+    );
+    expect(player.velocityY).toBe(rocketVelocityY);
+    expect(player.y).toBeCloseTo(200 + rocketVelocityY * deltaTime);
+  });
+
+  it("keeps horizontal intent while rocket is active", () => {
+    const startingX = TEST_PLAYER_DEFAULTS.x;
+    const player = createTestPlayer({ x: startingX });
+    player.toggleRocket();
+
+    updatePlayerPhysics(player, 16, 1);
+
+    expect(player.velocityX).toBe(HORIZONTAL_SPEED);
+    expect(player.x).toBeCloseTo(startingX + HORIZONTAL_SPEED * 16);
   });
 
   it("scales movement by delta time", () => {

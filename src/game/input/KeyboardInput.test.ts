@@ -94,26 +94,26 @@ describe("KeyboardInput", () => {
       start: true,
       shoot: true,
       pauseOrResume: false,
-      restart: false,
       powerupShortcuts: {
         shrink: false,
         slowMo: false,
         armor: false,
         doubleJump: false,
         bigShot: false,
+        rocket: false,
       },
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: false,
       shoot: false,
       pauseOrResume: false,
-      restart: false,
       powerupShortcuts: {
         shrink: false,
         slowMo: false,
         armor: false,
         doubleJump: false,
         bigShot: false,
+        rocket: false,
       },
     });
   });
@@ -229,6 +229,24 @@ describe("KeyboardInput", () => {
     target.dispatch("keydown", "KeyB");
 
     expect(input.consumePhaseKeyPresses().powerupShortcuts.bigShot).toBe(true);
+  });
+
+  it("consumes the Rocket powerup shortcut as an edge-triggered R action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyR");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.rocket).toBe(true);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.rocket).toBe(false);
+
+    target.dispatch("keydown", "KeyR");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.rocket).toBe(false);
+
+    target.dispatch("keyup", "KeyR");
+    target.dispatch("keydown", "KeyR");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.rocket).toBe(true);
   });
 
   it("prevents default browser scrolling for Space", () => {
