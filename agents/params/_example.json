@@ -1,5 +1,5 @@
 {
-  "PROJECT": "Doodle Jump clone in React, TypeScript, and Canvas",
+  "PROJECT": "Vertical endless climber in React, TypeScript, and Canvas",
   "FEATURE": "Platform collision",
   "REQUIREMENTS": "Player lands on platforms only while falling. Landing resets vertical velocity upward. Existing movement and rendering behavior should stay unchanged.",
   "ARCHITECTURE": "Use this field for the approved architecture output before running ai:impl.",

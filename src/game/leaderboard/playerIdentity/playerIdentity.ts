@@ -3,8 +3,8 @@ import {
   validatePlayerName,
 } from "../../../../shared/leaderboard/validation.ts";
 
-const PLAYER_ID_KEY = "doodle-jump:player-id";
-const PLAYER_NAME_KEY = "doodle-jump:player-name";
+const PLAYER_ID_KEY = "the-ascent:player-id";
+const PLAYER_NAME_KEY = "the-ascent:player-name";
 
 // Anonymous local identity avoids auth while still preserving personal bests.
 export function getOrCreatePlayerId(): string {

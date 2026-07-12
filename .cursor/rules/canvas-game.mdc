@@ -1,10 +1,10 @@
 ---
-description: Doodle Jump game stack and conventions
+description: Canvas game stack and conventions
 globs: src/game/**
 alwaysApply: false
 ---
 
-# Doodle Jump Game
+# Canvas Game
 
 - This project uses React, TypeScript, Canvas, and Vitest.
 - Game code lives under `src/game/`, organized by game module shards and testing helpers.

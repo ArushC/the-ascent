@@ -203,7 +203,7 @@ function printFeatureChecklist(paramsPath: string): void {
 
 function createFeatureParams(feature: string, requirements: string): Record<string, string> {
   return {
-    PROJECT: "Doodle Jump clone in React, TypeScript, and Canvas",
+    PROJECT: "Vertical endless climber in React, TypeScript, and Canvas",
     FEATURE: feature,
     REQUIREMENTS: requirements,
     ARCHITECTURE: "Paste approved architecture here before running ai:impl.",

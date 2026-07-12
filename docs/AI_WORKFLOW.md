@@ -62,7 +62,7 @@ This repo includes two Cursor rules:
 | Rule | Scope |
 | --- | --- |
 | `.cursor/rules/ai-workflow.mdc` | Portable AI workflow conventions |
-| `.cursor/rules/doodle-jump-game.mdc` | Doodle Jump game stack conventions for `src/game/**` |
+| `.cursor/rules/canvas-game.mdc` | Canvas game stack conventions for `src/game/**` |
 
 ## Params files
 

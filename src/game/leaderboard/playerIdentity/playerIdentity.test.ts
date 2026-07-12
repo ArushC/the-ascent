@@ -29,7 +29,7 @@ describe("player identity", () => {
     expect(getOrCreatePlayerId()).toBe(
       "00000000-0000-4000-8000-000000000001",
     );
-    expect(localStorage.getItem("doodle-jump:player-id")).toBe(
+    expect(localStorage.getItem("the-ascent:player-id")).toBe(
       "00000000-0000-4000-8000-000000000001",
     );
   });
@@ -37,7 +37,7 @@ describe("player identity", () => {
   it("returns an existing player id without creating another one", () => {
     const randomUUIDSpy = vi.fn();
     vi.stubGlobal("crypto", { randomUUID: randomUUIDSpy });
-    localStorage.setItem("doodle-jump:player-id", "existing-player-id");
+    localStorage.setItem("the-ascent:player-id", "existing-player-id");
 
     expect(getOrCreatePlayerId()).toBe("existing-player-id");
     expect(randomUUIDSpy).not.toHaveBeenCalled();
@@ -46,13 +46,13 @@ describe("player identity", () => {
   it("returns null when the player name is missing or invalid", () => {
     expect(getPlayerName()).toBeNull();
 
-    localStorage.setItem("doodle-jump:player-name", " ");
+    localStorage.setItem("the-ascent:player-name", " ");
 
     expect(getPlayerName()).toBeNull();
   });
 
   it("returns a normalized player name when stored name is valid", () => {
-    localStorage.setItem("doodle-jump:player-name", "  Ada Lovelace  ");
+    localStorage.setItem("the-ascent:player-name", "  Ada Lovelace  ");
 
     expect(getPlayerName()).toBe("Ada Lovelace");
   });
@@ -60,7 +60,7 @@ describe("player identity", () => {
   it("writes a normalized player name", () => {
     setPlayerName("  Grace Hopper  ");
 
-    expect(localStorage.getItem("doodle-jump:player-name")).toBe(
+    expect(localStorage.getItem("the-ascent:player-name")).toBe(
       "Grace Hopper",
     );
   });

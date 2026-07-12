@@ -15,7 +15,7 @@ Known edge cases:
 {{EDGE_CASES}}
 
 Project context:
-- React + TypeScript + Canvas Doodle Jump clone
+- Vertical endless climber in React, TypeScript, and Canvas
 - Vitest test runner
 - Unit tests live next to the source file they cover
 - Test pure logic only; no canvas, no requestAnimationFrame, no React
