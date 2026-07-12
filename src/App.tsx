@@ -1,8 +1,9 @@
-import "./App.css";
-import { GameCanvas } from "./game/ui/gameCanvas/GameCanvas";
-
-export const CANVAS_WIDTH = 400;
-const CANVAS_HEIGHT = 600;
+import "./global.css";
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  GameCanvas,
+} from "./game/ui/gameCanvas/GameCanvas";
 
 function App() {
   return (

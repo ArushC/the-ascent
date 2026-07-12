@@ -1,3 +1,8 @@
+:root {
+  --game-page: #111;
+  --game-text: white;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -5,7 +10,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #111;
+  background: var(--game-page);
+  color: var(--game-text);
   font-family: sans-serif;
 }
 

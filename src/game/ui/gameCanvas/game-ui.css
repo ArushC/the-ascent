@@ -1,7 +1,6 @@
 .game-shell {
   position: relative;
   --game-surface: #1a1a1a;
-  --game-page: #111;
   --game-canvas: black;
   --game-text: white;
   --game-border-width: 2px;
