@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# The Ascent
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The Ascent is a vertical arcade platformer built with React, TypeScript, and Vite. It includes a local leaderboard API backed by SQLite for submitted scores and personal bests.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React, TypeScript, and Vite for the browser game
+- Node `http` for the API and production static serving
+- Node `node:sqlite` for the leaderboard database
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm run dev
+npm run dev:server
+npm run dev:all
+npm test
+npm run build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Production-Shaped Local Run
+
+```bash
+npm run build
+npm start
+```
+
+Production deployment details live in [docs/DEPLOY.md](docs/DEPLOY.md).

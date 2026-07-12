@@ -5,6 +5,7 @@ import { DEFAULT_DATABASE_FILE } from "./leaderboard/schema.ts";
 import { getLeaderboardEntries } from "./leaderboard/routes/getLeaderboardEntries.ts";
 import { getTopPlayerScore } from "./leaderboard/routes/getPlayerBest.ts";
 import { recordScore } from "./leaderboard/routes/postScoreSubmission.ts";
+import { serveStatic } from "./static.ts";
 
 const DEFAULT_PORT = 3001;
 const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
@@ -32,8 +33,12 @@ server.on("error", (error: NodeJS.ErrnoException) => {
   process.exit(1);
 });
 
-server.listen(PORT, () => {
-  console.log(`Leaderboard API listening on http://localhost:${PORT}`);
+if (process.env.NODE_ENV === "production" && !DATABASE_FILE.startsWith("/data/")) {
+  console.warn(`Production LEADERBOARD_DB is not under /data: ${DATABASE_FILE}`);
+}
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`The Ascent listening on http://0.0.0.0:${PORT}`);
 });
 
 async function handleRequest(
@@ -50,6 +55,11 @@ async function handleRequest(
 
   const pathname = stripApiPrefix(url.pathname);
 
+  if (req.method === "GET" && pathname === "/health") {
+    sendJson(res, { status: HTTP_STATUS.OK, body: { ok: true } });
+    return;
+  }
+
   // Tiny REST router: Node's built-in http server does not provide routing.
   if (req.method === "POST" && pathname === "/scores") {
     sendJson(res, recordScore(database, await readJson(req)));
@@ -65,6 +75,11 @@ async function handleRequest(
 
   if (req.method === "GET" && playerBestMatch) {
     sendJson(res, getTopPlayerScore(database, decodeURIComponent(playerBestMatch[1])));
+    return;
+  }
+
+  if (req.method === "GET") {
+    serveStatic(url.pathname, res);
     return;
   }
 
