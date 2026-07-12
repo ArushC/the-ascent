@@ -1,4 +1,4 @@
-import type { GamePhase, GameUiState } from "./Game";
+import type { GamePhase, GameUiState } from "../Game";
 import { PowerupPanel } from "./PowerupPanel";
 
 type GameHudProps = {

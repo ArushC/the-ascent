@@ -54,27 +54,6 @@
   text-shadow: var(--game-shadow);
 }
 
-.game-powerup-panel {
-  position: absolute;
-  right: var(--game-space-sm);
-  bottom: var(--game-space-sm);
-  z-index: 1;
-  max-width: calc(100% - var(--game-space-md));
-  padding: var(--game-button-padding-y) var(--game-space-sm);
-  border: var(--game-border);
-  background: var(--game-surface);
-  color: var(--game-text);
-  font-size: var(--game-score-size);
-  font-weight: var(--game-score-weight);
-  text-align: right;
-  text-shadow: var(--game-shadow);
-  pointer-events: none;
-}
-
-.game-powerup-panel.is-paused {
-  opacity: var(--game-paused-opacity);
-}
-
 .game-icon-button {
   display: inline-flex;
   align-items: center;

@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Leaderboard } from "./Leaderboard";
-import type { LeaderboardEntry } from "../api/leaderboard";
+import type { LeaderboardEntry } from "../../api/leaderboard";
 
 describe("Leaderboard", () => {
   it("renders fallback states", () => {

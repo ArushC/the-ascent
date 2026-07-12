@@ -2,8 +2,8 @@ import { useState } from "react";
 import {
   getLeaderboardPage,
   getLeaderboardPageCount,
-} from "./leaderboardMenu";
-import type { LeaderboardState } from "./leaderboardState";
+} from "../leaderboardMenu";
+import type { LeaderboardState } from "../leaderboardState";
 
 type LeaderboardProps = {
   leaderboard: LeaderboardState;

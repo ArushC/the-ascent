@@ -47,6 +47,9 @@ export function updatePowerups(
   const didGenerationFinish =
     inventoryAfterCollection.status === "generating" &&
     updatedInventory.status === "ready";
+  const didGeneratingProgress =
+    updatedInventory.status === "generating" &&
+    (didCollectPowerup || inventory.status === "generating");
   const lostReadyShrinkPowerup = didLoseReadyShrinkPowerup(
     inventory,
     updatedInventory,
@@ -70,7 +73,8 @@ export function updatePowerups(
 
   return {
     inventory: updatedInventory,
-    didPanelStateChange: didCollectPowerup || didGenerationFinish,
+    didPanelStateChange:
+      didCollectPowerup || didGenerationFinish || didGeneratingProgress,
     didLoseReadyShrinkPowerup: lostReadyShrinkPowerup,
     didLoseReadySlowMoPowerup: lostReadySlowMoPowerup,
     didLoseReadyArmorPowerup: lostReadyArmorPowerup,

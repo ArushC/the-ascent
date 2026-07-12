@@ -56,6 +56,13 @@ export function updatePowerupInventory(
   };
 }
 
+export function getPowerupGenerationProgress(remainingMs: number): number {
+  return Math.min(
+    1,
+    Math.max(0, 1 - remainingMs / POWERUP_GENERATION_DURATION_MS),
+  );
+}
+
 export function isShrinkPowerupReady(inventory: PowerupInventory): boolean {
   return (
     inventory.status === "ready" &&

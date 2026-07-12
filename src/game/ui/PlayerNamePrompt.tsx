@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import {
   normalizePlayerName,
   validatePlayerName,
-} from "../../shared/leaderboard/validation.ts";
+} from "../../../shared/leaderboard/validation.ts";
 import "./leaderboard-ui.css";
 
 type PlayerNamePromptProps = {

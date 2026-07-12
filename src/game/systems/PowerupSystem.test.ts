@@ -114,7 +114,7 @@ describe("updatePowerups", () => {
     expect(result.didLoseReadyRocketPowerup).toBe(false);
   });
 
-  it("does not report a UI change for an in-progress countdown tick", () => {
+  it("reports a UI change for an in-progress countdown tick", () => {
     const result = updatePowerups(
       createTestPlayer(),
       [],
@@ -127,7 +127,7 @@ describe("updatePowerups", () => {
       remainingMs: POWERUP_GENERATION_DURATION_MS - 500,
       previousPowerup: null,
     });
-    expect(result.didPanelStateChange).toBe(false);
+    expect(result.didPanelStateChange).toBe(true);
     expect(result.didLoseReadyShrinkPowerup).toBe(false);
     expect(result.didLoseReadySlowMoPowerup).toBe(false);
     expect(result.didLoseReadyArmorPowerup).toBe(false);

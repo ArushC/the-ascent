@@ -13,10 +13,16 @@ describe("PowerupPanel", () => {
 
   it("shows the generating state", () => {
     const markup = renderToStaticMarkup(
-      <PowerupPanel panel={{ mode: "generating" }} isPaused={false} />,
+      <PowerupPanel
+        panel={{ mode: "generating", progress: 0.4 }}
+        isPaused={false}
+      />,
     );
 
-    expect(markup).toContain("Generating powerup...");
+    expect(markup).toContain("Generating new powerup...");
+    expect(markup).toContain('role="progressbar"');
+    expect(markup).toContain('aria-valuenow="0.4"');
+    expect(markup).toContain("width:40%");
   });
 
   it("shows the ready powerup hint", () => {

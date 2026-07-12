@@ -9,6 +9,7 @@ import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
 import {
   createPowerupInventory,
+  getPowerupGenerationProgress,
   isArmorPowerupReady,
   isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
@@ -58,7 +59,7 @@ export type GamePhase = "ready" | "playing" | "paused" | "over";
 
 export type PowerupPanelState =
   | { mode: "empty" }
-  | { mode: "generating" }
+  | { mode: "generating"; progress: number }
   | { mode: "ready"; label: string };
 
 export type GameUiState = {
@@ -413,8 +414,14 @@ export class Game {
     switch (this.powerupInventory.status) {
       case "empty":
         return { mode: "empty" };
-      case "generating":
-        return { mode: "generating" };
+      case "generating": {
+        return {
+          mode: "generating",
+          progress: getPowerupGenerationProgress(
+            this.powerupInventory.remainingMs,
+          ),
+        };
+      }
       case "ready":
         return {
           mode: "ready",

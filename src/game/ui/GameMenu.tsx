@@ -1,8 +1,8 @@
-import type { GamePhase } from "./Game";
-import type { GameControls } from "./GameControls";
+import type { GamePhase } from "../Game";
+import type { GameControls } from "../GameControls";
 import { Leaderboard } from "./Leaderboard";
-import { renderPersonalBestText } from "./leaderboardMenu";
-import type { LeaderboardState, PersonalBestState } from "./leaderboardState";
+import { renderPersonalBestText } from "../leaderboardMenu";
+import type { LeaderboardState, PersonalBestState } from "../leaderboardState";
 import "./leaderboard-ui.css";
 
 export type GameMenuPhase = Exclude<GamePhase, "playing">;

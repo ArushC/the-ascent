@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Game, type GameUiState } from "./Game";
-import type { GameControls } from "./GameControls";
+import { Game, type GameUiState } from "../Game";
+import type { GameControls } from "../GameControls";
 import { GameHud } from "./GameHud";
 import { GameMenu, type GameMenuPhase } from "./GameMenu";
 import { PlayerNamePrompt } from "./PlayerNamePrompt";
@@ -8,8 +8,8 @@ import {
   getOrCreatePlayerId,
   getPlayerName,
   setPlayerName,
-} from "./playerIdentity";
-import { useGameOverLeaderboard } from "./useGameOverLeaderboard";
+} from "../playerIdentity";
+import { useGameOverLeaderboard } from "../useGameOverLeaderboard";
 import "./game-ui.css";
 
 type GameCanvasProps = {

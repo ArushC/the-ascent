@@ -1,0 +1,44 @@
+.game-powerup-panel {
+  position: absolute;
+  right: var(--game-space-sm);
+  bottom: var(--game-space-sm);
+  z-index: 1;
+  max-width: calc(100% - var(--game-space-md));
+  padding: var(--game-button-padding-y) var(--game-space-sm);
+  border: var(--game-border);
+  background: var(--game-surface);
+  color: var(--game-text);
+  font-size: var(--game-score-size);
+  font-weight: var(--game-score-weight);
+  text-align: right;
+  text-shadow: var(--game-shadow);
+  pointer-events: none;
+}
+
+.game-powerup-panel.is-paused {
+  opacity: var(--game-paused-opacity);
+}
+
+.game-powerup-generating {
+  display: flex;
+  align-items: center;
+  gap: var(--game-space-sm);
+}
+
+.game-powerup-generating-label {
+  white-space: nowrap;
+}
+
+.game-powerup-progress {
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+  height: 0.65rem;
+  border: var(--game-border);
+  background: var(--game-page);
+  overflow: hidden;
+}
+
+.game-powerup-progress-fill {
+  height: 100%;
+  background: var(--game-text);
+}
