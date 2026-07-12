@@ -1,5 +1,6 @@
 import {
   ARMOR_POWERUP_ID,
+  BIG_SHOT_POWERUP_ID,
   DOUBLE_JUMP_POWERUP_ID,
   pickRandomPowerup,
   SHRINK_POWERUP_ID,
@@ -83,6 +84,13 @@ export function isDoubleJumpPowerupReady(
   );
 }
 
+export function isBigShotPowerupReady(inventory: PowerupInventory): boolean {
+  return (
+    inventory.status === "ready" &&
+    inventory.powerup?.id === BIG_SHOT_POWERUP_ID
+  );
+}
+
 export function didLoseReadyShrinkPowerup(
   previousInventory: PowerupInventory,
   nextInventory: PowerupInventory,
@@ -113,6 +121,16 @@ export function didLoseReadyArmorPowerup(
   return !isArmorPowerupReady(nextInventory);
 }
 
+export function didLoseReadyBigShotPowerup(
+  previousInventory: PowerupInventory,
+  nextInventory: PowerupInventory,
+): boolean {
+  if (nextInventory.status === "generating") return false;
+  if (!wasBigShotPowerupHeld(previousInventory)) return false;
+
+  return !isBigShotPowerupReady(nextInventory);
+}
+
 function wasShrinkPowerupHeld(inventory: PowerupInventory): boolean {
   if (isShrinkPowerupReady(inventory)) return true;
 
@@ -137,5 +155,14 @@ function wasArmorPowerupHeld(inventory: PowerupInventory): boolean {
   return (
     inventory.status === "generating" &&
     inventory.previousPowerup?.id === ARMOR_POWERUP_ID
+  );
+}
+
+function wasBigShotPowerupHeld(inventory: PowerupInventory): boolean {
+  if (isBigShotPowerupReady(inventory)) return true;
+
+  return (
+    inventory.status === "generating" &&
+    inventory.previousPowerup?.id === BIG_SHOT_POWERUP_ID
   );
 }

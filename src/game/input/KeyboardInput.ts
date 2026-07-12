@@ -13,6 +13,7 @@ export type PowerupShortcutKeyPresses = {
   slowMo: boolean;
   armor: boolean;
   doubleJump: boolean;
+  bigShot: boolean;
 };
 
 export type PhaseKeyPresses = {
@@ -34,6 +35,7 @@ const PHASE_ACTIONS_BY_CODE: Partial<Record<string, readonly PhaseActionKey[]>> 
     KeyT: ["slowMo"],
     KeyG: ["armor"],
     KeyW: ["doubleJump"],
+    KeyB: ["bigShot"],
     KeyP: ["pauseOrResume"],
     Escape: ["pauseOrResume"],
     KeyR: ["restart"],
@@ -76,6 +78,7 @@ export class KeyboardInput {
         slowMo: this.queuedPhaseActionKeys.has("slowMo"),
         armor: this.queuedPhaseActionKeys.has("armor"),
         doubleJump: this.queuedPhaseActionKeys.has("doubleJump"),
+        bigShot: this.queuedPhaseActionKeys.has("bigShot"),
       },
     };
 
@@ -127,6 +130,7 @@ export class KeyboardInput {
       case "KeyT":
       case "KeyG":
       case "KeyW":
+      case "KeyB":
       case "KeyR":
         this.recordPhaseActionKey(event.code, pressed);
         break;

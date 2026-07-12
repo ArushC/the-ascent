@@ -1,7 +1,9 @@
 import type { Player } from "./Player";
 
-export const PROJECTILE_WIDTH = 8;
-export const PROJECTILE_HEIGHT = 16;
+export const DEFAULT_PROJECTILE_WIDTH = 8;
+export const DEFAULT_PROJECTILE_HEIGHT = 16;
+export const LARGE_PROJECTILE_WIDTH = DEFAULT_PROJECTILE_WIDTH * 3;
+export const LARGE_PROJECTILE_HEIGHT = DEFAULT_PROJECTILE_HEIGHT * 3;
 export const PROJECTILE_SPEED = 0.7;
 
 const PROJECTILE_COLOR = "yellow";
@@ -34,11 +36,20 @@ export class Projectile {
 }
 
 export function createProjectile(player: Player): Projectile {
+  const width =
+    player.projectile.sizeMode === "large"
+      ? LARGE_PROJECTILE_WIDTH
+      : DEFAULT_PROJECTILE_WIDTH;
+  const height =
+    player.projectile.sizeMode === "large"
+      ? LARGE_PROJECTILE_HEIGHT
+      : DEFAULT_PROJECTILE_HEIGHT;
+
   return new Projectile(
-    player.x + player.width / 2 - PROJECTILE_WIDTH / 2,
+    player.x + player.width / 2 - width / 2,
     player.y,
-    PROJECTILE_WIDTH,
-    PROJECTILE_HEIGHT,
+    width,
+    height,
     -PROJECTILE_SPEED,
   );
 }

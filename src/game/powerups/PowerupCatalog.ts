@@ -7,6 +7,7 @@ export const SHRINK_POWERUP_ID = "shrink";
 export const SLOW_MO_POWERUP_ID = "slowMo";
 export const ARMOR_POWERUP_ID = "armor";
 export const DOUBLE_JUMP_POWERUP_ID = "doubleJump";
+export const BIG_SHOT_POWERUP_ID = "bigShot";
 
 const POWERUP_CATALOG: readonly PowerupDefinition[] = [
   {
@@ -24,6 +25,10 @@ const POWERUP_CATALOG: readonly PowerupDefinition[] = [
   {
     id: DOUBLE_JUMP_POWERUP_ID,
     label: "W: double jump",
+  },
+  {
+    id: BIG_SHOT_POWERUP_ID,
+    label: "B: toggle big shot",
   },
 ];
 

@@ -10,6 +10,7 @@ import { KeyboardInput } from "./input/KeyboardInput";
 import {
   createPowerupInventory,
   isArmorPowerupReady,
+  isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
@@ -167,9 +168,11 @@ export class Game {
       keyPresses.shoot &&
       !startedFromReady &&
       this.phase === "playing" &&
-      !this.player.armor.equipped
+      !this.player.armor.equipped &&
+      this.player.canShoot()
     ) {
       this.projectiles.push(createProjectile(this.player));
+      this.player.recordShot();
     }
 
     if (
@@ -204,6 +207,14 @@ export class Game {
       this.player.tryAirJump();
     }
 
+    if (
+      keyPresses.powerupShortcuts.bigShot &&
+      this.phase === "playing" &&
+      isBigShotPowerupReady(this.powerupInventory)
+    ) {
+      this.player.toggleProjectileSize();
+    }
+
     if (keyPresses.pauseOrResume && !startedFromReady) {
       this.applyPauseOrResumeShortcut();
     }
@@ -236,6 +247,7 @@ export class Game {
     const horizontalIntent = this.keyboardInput.getHorizontalIntent();
     const scoreBeforeUpdate = getScore(this.scoreState);
 
+    this.player.updateShootCooldown(simDt);
     this.updateProjectiles(simDt);
 
     updateMonsters(this.monsters, simDt, this.canvas.width);
@@ -259,6 +271,9 @@ export class Game {
     }
     if (powerupUpdate.didLoseReadyArmorPowerup) {
       this.player.resetArmor();
+    }
+    if (powerupUpdate.didLoseReadyBigShotPowerup) {
+      this.player.resetProjectileSize();
     }
     resolvePlatformLanding(this.player, this.platforms, previousY);
 

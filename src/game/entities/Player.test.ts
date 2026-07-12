@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Player } from "./Player";
+import { BIG_SHOT_COOLDOWN_MS, Player } from "./Player";
 import { INITIAL_JUMP_VELOCITY } from "../systems/PhysicsSystem";
 
 describe("Player", () => {
@@ -48,6 +48,72 @@ describe("Player", () => {
 
     expect(player.armor.equipped).toBe(false);
     expect(player.armor.pendingKnockbackVx).toBeNull();
+  });
+
+  it("toggles and resets projectile size mode", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+
+    player.toggleProjectileSize();
+
+    expect(player.projectile.sizeMode).toBe("large");
+
+    player.toggleProjectileSize();
+
+    expect(player.projectile.sizeMode).toBe("default");
+
+    player.toggleProjectileSize();
+    player.resetProjectileSize();
+
+    expect(player.projectile.sizeMode).toBe("default");
+  });
+
+  it("rate-limits only large projectiles", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+
+    expect(player.canShoot()).toBe(true);
+
+    player.recordShot();
+
+    expect(player.projectile.shootCooldownRemainingMs).toBe(0);
+    expect(player.canShoot()).toBe(true);
+
+    player.toggleProjectileSize();
+    player.recordShot();
+
+    expect(player.projectile.shootCooldownRemainingMs).toBe(
+      BIG_SHOT_COOLDOWN_MS,
+    );
+    expect(player.canShoot()).toBe(false);
+
+    player.updateShootCooldown(200);
+
+    expect(player.projectile.shootCooldownRemainingMs).toBe(
+      BIG_SHOT_COOLDOWN_MS - 200,
+    );
+    expect(player.canShoot()).toBe(false);
+
+    player.updateShootCooldown(BIG_SHOT_COOLDOWN_MS);
+
+    expect(player.projectile.shootCooldownRemainingMs).toBe(0);
+    expect(player.canShoot()).toBe(true);
+  });
+
+  it("allows default shots while a previous big-shot cooldown is draining", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+
+    player.toggleProjectileSize();
+    player.recordShot();
+    player.toggleProjectileSize();
+
+    expect(player.projectile.sizeMode).toBe("default");
+    expect(player.projectile.shootCooldownRemainingMs).toBe(
+      BIG_SHOT_COOLDOWN_MS,
+    );
+    expect(player.canShoot()).toBe(true);
+
+    player.recordShot();
+
+    expect(player.projectile.shootCooldownRemainingMs).toBe(0);
   });
 
   it("uses and refreshes one air jump charge", () => {

@@ -100,6 +100,7 @@ describe("KeyboardInput", () => {
         slowMo: false,
         armor: false,
         doubleJump: false,
+        bigShot: false,
       },
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
@@ -112,6 +113,7 @@ describe("KeyboardInput", () => {
         slowMo: false,
         armor: false,
         doubleJump: false,
+        bigShot: false,
       },
     });
   });
@@ -209,6 +211,24 @@ describe("KeyboardInput", () => {
     expect(input.consumePhaseKeyPresses().powerupShortcuts.doubleJump).toBe(
       true,
     );
+  });
+
+  it("consumes the Big Shot powerup shortcut as an edge-triggered B action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyB");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.bigShot).toBe(true);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.bigShot).toBe(false);
+
+    target.dispatch("keydown", "KeyB");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.bigShot).toBe(false);
+
+    target.dispatch("keyup", "KeyB");
+    target.dispatch("keydown", "KeyB");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.bigShot).toBe(true);
   });
 
   it("prevents default browser scrolling for Space", () => {

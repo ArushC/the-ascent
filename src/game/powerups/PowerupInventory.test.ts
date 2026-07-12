@@ -4,9 +4,11 @@ import {
   beginPowerupGeneration,
   createPowerupInventory,
   didLoseReadyArmorPowerup,
+  didLoseReadyBigShotPowerup,
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   isArmorPowerupReady,
+  isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
@@ -73,7 +75,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Armor when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.6);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -90,7 +92,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Double Jump when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.7);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -106,8 +108,25 @@ describe("PowerupInventory", () => {
     });
   });
 
+  it("becomes ready with Big Shot when the catalog pick lands on it", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const inventory = updatePowerupInventory(
+      beginPowerupGeneration(),
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(inventory).toEqual({
+      status: "ready",
+      powerup: {
+        id: "bigShot",
+        label: "B: toggle big shot",
+      },
+    });
+  });
+
   it("does not generate the same powerup twice in a row", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.3);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration({
         id: "armor",
@@ -225,6 +244,35 @@ describe("PowerupInventory", () => {
     ).toBe(false);
     expect(
       isDoubleJumpPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "shrink",
+          label: "F: toggle size",
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("reports Big Shot as ready only when the ready slot holds Big Shot", () => {
+    expect(
+      isBigShotPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "bigShot",
+          label: "B: toggle big shot",
+        },
+      }),
+    ).toBe(true);
+    expect(isBigShotPowerupReady({ status: "empty" })).toBe(false);
+    expect(
+      isBigShotPowerupReady({
+        status: "generating",
+        remainingMs: 1000,
+        previousPowerup: null,
+      }),
+    ).toBe(false);
+    expect(
+      isBigShotPowerupReady({
         status: "ready",
         powerup: {
           id: "shrink",
@@ -352,5 +400,45 @@ describe("PowerupInventory", () => {
         },
       ),
     ).toBe(true);
+  });
+
+  it("reports when generation from held Big Shot finishes without Big Shot", () => {
+    expect(
+      didLoseReadyBigShotPowerup(
+        {
+          status: "generating",
+          remainingMs: 0,
+          previousPowerup: {
+            id: "bigShot",
+            label: "B: toggle big shot",
+          },
+        },
+        {
+          status: "ready",
+          powerup: {
+            id: "shrink",
+            label: "F: toggle size",
+          },
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it("does not report losing Big Shot while replacement generation continues", () => {
+    const readyBigShot = {
+      status: "ready" as const,
+      powerup: {
+        id: "bigShot",
+        label: "B: toggle big shot",
+      },
+    };
+
+    expect(
+      didLoseReadyBigShotPowerup(readyBigShot, {
+        status: "generating",
+        remainingMs: 1000,
+        previousPowerup: readyBigShot.powerup,
+      }),
+    ).toBe(false);
   });
 });

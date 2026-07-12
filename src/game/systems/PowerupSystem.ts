@@ -1,8 +1,10 @@
 import type { Platform } from "../entities/Platform";
 import type { Player } from "../entities/Player";
+import type { PowerupDefinition } from "../powerups/PowerupCatalog";
 import {
   beginPowerupGeneration,
   didLoseReadyArmorPowerup,
+  didLoseReadyBigShotPowerup,
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   updatePowerupInventory,
@@ -16,6 +18,7 @@ export type PowerupUpdateResult = {
   didLoseReadyShrinkPowerup: boolean;
   didLoseReadySlowMoPowerup: boolean;
   didLoseReadyArmorPowerup: boolean;
+  didLoseReadyBigShotPowerup: boolean;
 };
 
 /**
@@ -30,8 +33,7 @@ export function updatePowerups(
 ): PowerupUpdateResult {
   const collectedPlatform = resolveFirstPowerupCollision(player, platforms);
   const didCollectPowerup = collectedPlatform !== null;
-  const previouslyHeldPowerup =
-    inventory.status === "ready" ? inventory.powerup : null;
+  const previouslyHeldPowerup = getHeldPowerup(inventory);
   const inventoryAfterCollection = didCollectPowerup
     ? beginPowerupGeneration(previouslyHeldPowerup)
     : inventory;
@@ -55,6 +57,10 @@ export function updatePowerups(
     inventory,
     updatedInventory,
   );
+  const lostReadyBigShotPowerup = didLoseReadyBigShotPowerup(
+    inventory,
+    updatedInventory,
+  );
 
   return {
     inventory: updatedInventory,
@@ -62,6 +68,7 @@ export function updatePowerups(
     didLoseReadyShrinkPowerup: lostReadyShrinkPowerup,
     didLoseReadySlowMoPowerup: lostReadySlowMoPowerup,
     didLoseReadyArmorPowerup: lostReadyArmorPowerup,
+    didLoseReadyBigShotPowerup: lostReadyBigShotPowerup,
   };
 }
 
@@ -77,4 +84,17 @@ function resolveFirstPowerupCollision(
   }
 
   return null;
+}
+
+function getHeldPowerup(
+  inventory: PowerupInventory,
+): PowerupDefinition | null {
+  switch (inventory.status) {
+    case "ready":
+      return inventory.powerup;
+    case "generating":
+      return inventory.previousPowerup;
+    case "empty":
+      return null;
+  }
 }

@@ -7,8 +7,14 @@ const SMALL_PLAYER_HEIGHT = PLAYER_HEIGHT / 2;
 const PLAYER_COLOR = "red";
 const ARMOR_STROKE_COLOR = "white";
 const ARMOR_STROKE_WIDTH = 3;
+export const BIG_SHOT_COOLDOWN_MS = 500;
 
 export type PlayerSizeMode = "default" | "small";
+export type ProjectileSizeMode = "default" | "large";
+export type PlayerProjectileState = {
+  sizeMode: ProjectileSizeMode;
+  shootCooldownRemainingMs: number;
+};
 export type PlayerArmorState = {
   equipped: boolean;
   pendingKnockbackVx: number | null;
@@ -22,6 +28,10 @@ export class Player {
   velocityX: number;
   velocityY: number;
   sizeMode: PlayerSizeMode = "default";
+  projectile: PlayerProjectileState = {
+    sizeMode: "default",
+    shootCooldownRemainingMs: 0,
+  };
   airJumpAvailable = true;
   armor: PlayerArmorState = {
     equipped: false,
@@ -70,6 +80,35 @@ export class Player {
   resetArmor(): void {
     this.armor.equipped = false;
     this.armor.pendingKnockbackVx = null;
+  }
+
+  toggleProjectileSize(): void {
+    this.projectile.sizeMode =
+      this.projectile.sizeMode === "default" ? "large" : "default";
+  }
+
+  resetProjectileSize(): void {
+    this.projectile.sizeMode = "default";
+  }
+
+  canShoot(): boolean {
+    return (
+      this.projectile.sizeMode === "default" ||
+      this.projectile.shootCooldownRemainingMs <= 0
+    );
+  }
+
+  recordShot(): void {
+    // Default shots are uncapped, so they clear any leftover big-shot cooldown.
+    this.projectile.shootCooldownRemainingMs =
+      this.projectile.sizeMode === "large" ? BIG_SHOT_COOLDOWN_MS : 0;
+  }
+
+  updateShootCooldown(deltaTime: number): void {
+    this.projectile.shootCooldownRemainingMs = Math.max(
+      0,
+      this.projectile.shootCooldownRemainingMs - deltaTime,
+    );
   }
 
   /** Action powerup helper: one mid-air jump per flight while double-jump is ready. */
