@@ -8,24 +8,32 @@ export type KeyboardListener = (event: KeyboardEvent) => void;
  * One-frame phase shortcuts consumed by Game.
  * true means the key was newly pressed since the previous consume call.
  */
+export type PowerupShortcutKeyPresses = {
+  shrink: boolean;
+  slowMo: boolean;
+  armor: boolean;
+  doubleJump: boolean;
+};
+
 export type PhaseKeyPresses = {
   start: boolean;
   shoot: boolean;
   pauseOrResume: boolean;
   restart: boolean;
-  shrinkPowerupShortcut: boolean;
-  slowMoPowerupShortcut: boolean;
-  armorPowerupShortcut: boolean;
+  powerupShortcuts: PowerupShortcutKeyPresses;
 };
 
-type PhaseActionKey = keyof PhaseKeyPresses;
+type PhaseActionKey =
+  | keyof Omit<PhaseKeyPresses, "powerupShortcuts">
+  | keyof PowerupShortcutKeyPresses;
 
 const PHASE_ACTIONS_BY_CODE: Partial<Record<string, readonly PhaseActionKey[]>> =
   {
     Space: ["start", "shoot"],
-    KeyF: ["shrinkPowerupShortcut"],
-    KeyT: ["slowMoPowerupShortcut"],
-    KeyG: ["armorPowerupShortcut"],
+    KeyF: ["shrink"],
+    KeyT: ["slowMo"],
+    KeyG: ["armor"],
+    KeyW: ["doubleJump"],
     KeyP: ["pauseOrResume"],
     Escape: ["pauseOrResume"],
     KeyR: ["restart"],
@@ -63,15 +71,12 @@ export class KeyboardInput {
       shoot: this.queuedPhaseActionKeys.has("shoot"),
       pauseOrResume: this.queuedPhaseActionKeys.has("pauseOrResume"),
       restart: this.queuedPhaseActionKeys.has("restart"),
-      shrinkPowerupShortcut: this.queuedPhaseActionKeys.has(
-        "shrinkPowerupShortcut",
-      ),
-      slowMoPowerupShortcut: this.queuedPhaseActionKeys.has(
-        "slowMoPowerupShortcut",
-      ),
-      armorPowerupShortcut: this.queuedPhaseActionKeys.has(
-        "armorPowerupShortcut",
-      ),
+      powerupShortcuts: {
+        shrink: this.queuedPhaseActionKeys.has("shrink"),
+        slowMo: this.queuedPhaseActionKeys.has("slowMo"),
+        armor: this.queuedPhaseActionKeys.has("armor"),
+        doubleJump: this.queuedPhaseActionKeys.has("doubleJump"),
+      },
     };
 
     this.queuedPhaseActionKeys.clear();
@@ -121,6 +126,7 @@ export class KeyboardInput {
       case "KeyF":
       case "KeyT":
       case "KeyG":
+      case "KeyW":
       case "KeyR":
         this.recordPhaseActionKey(event.code, pressed);
         break;

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Player } from "./Player";
+import { INITIAL_JUMP_VELOCITY } from "../systems/PhysicsSystem";
 
 describe("Player", () => {
   it("toggles between default and small size with a bottom-center anchor", () => {
@@ -47,6 +48,26 @@ describe("Player", () => {
 
     expect(player.armor.equipped).toBe(false);
     expect(player.armor.pendingKnockbackVx).toBeNull();
+  });
+
+  it("uses and refreshes one air jump charge", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0.8);
+
+    expect(player.airJumpAvailable).toBe(true);
+    expect(player.tryAirJump()).toBe(true);
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(player.airJumpAvailable).toBe(false);
+
+    player.velocityY = 0.4;
+
+    expect(player.tryAirJump()).toBe(false);
+    expect(player.velocityY).toBe(0.4);
+
+    player.refreshAirJump();
+
+    expect(player.airJumpAvailable).toBe(true);
+    expect(player.tryAirJump()).toBe(true);
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
   });
 
   it("draws an armor stroke when armor is equipped", () => {

@@ -22,6 +22,7 @@ export class Player {
   velocityX: number;
   velocityY: number;
   sizeMode: PlayerSizeMode = "default";
+  airJumpAvailable = true;
   armor: PlayerArmorState = {
     equipped: false,
     pendingKnockbackVx: null,
@@ -69,6 +70,19 @@ export class Player {
   resetArmor(): void {
     this.armor.equipped = false;
     this.armor.pendingKnockbackVx = null;
+  }
+
+  /** Action powerup helper: one mid-air jump per flight while double-jump is ready. */
+  tryAirJump(): boolean {
+    if (!this.airJumpAvailable) return false;
+
+    this.velocityY = -INITIAL_JUMP_VELOCITY;
+    this.airJumpAvailable = false;
+    return true;
+  }
+
+  refreshAirJump(): void {
+    this.airJumpAvailable = true;
   }
 
   private setSizeMode(sizeMode: PlayerSizeMode): void {

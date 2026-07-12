@@ -44,6 +44,7 @@ export function resolvePlatformLanding(
   if (landingPlatform === null) return;
 
   player.y = landingPlatform.y - player.height;
+  player.refreshAirJump();
   if (playerOverlapsSpringHitZone(player, landingPlatform)) {
     triggerPlatformSpring(landingPlatform);
     player.velocityY = -SPRING_JUMP_VELOCITY;

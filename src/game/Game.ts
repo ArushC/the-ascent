@@ -10,6 +10,7 @@ import { KeyboardInput } from "./input/KeyboardInput";
 import {
   createPowerupInventory,
   isArmorPowerupReady,
+  isDoubleJumpPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   type PowerupInventory,
@@ -172,7 +173,7 @@ export class Game {
     }
 
     if (
-      keyPresses.shrinkPowerupShortcut &&
+      keyPresses.powerupShortcuts.shrink &&
       this.phase === "playing" &&
       isShrinkPowerupReady(this.powerupInventory)
     ) {
@@ -180,7 +181,7 @@ export class Game {
     }
 
     if (
-      keyPresses.slowMoPowerupShortcut &&
+      keyPresses.powerupShortcuts.slowMo &&
       this.phase === "playing" &&
       isSlowMoPowerupReady(this.powerupInventory)
     ) {
@@ -188,11 +189,19 @@ export class Game {
     }
 
     if (
-      keyPresses.armorPowerupShortcut &&
+      keyPresses.powerupShortcuts.armor &&
       this.phase === "playing" &&
       isArmorPowerupReady(this.powerupInventory)
     ) {
       this.player.toggleArmor();
+    }
+
+    if (
+      keyPresses.powerupShortcuts.doubleJump &&
+      this.phase === "playing" &&
+      isDoubleJumpPowerupReady(this.powerupInventory)
+    ) {
+      this.player.tryAirJump();
     }
 
     if (keyPresses.pauseOrResume && !startedFromReady) {

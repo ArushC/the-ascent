@@ -24,11 +24,13 @@ describe("resolvePlatformLanding", () => {
     const player = createTestPlayer({ y: 80, velocityY: 0.5 });
     const platform = createTestStaticPlatform({ y: 100 });
     const previousY = 50;
+    player.airJumpAvailable = false;
 
     resolvePlatformLanding(player, [platform], previousY);
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(player.airJumpAvailable).toBe(true);
   });
 
   it("does not land when the player is moving upward", () => {
@@ -154,11 +156,13 @@ describe("resolvePlatformLanding", () => {
       hasSpring: true,
     });
     const player = createTestPlayer({ x: 120, y: 80, velocityY: 0.5 });
+    player.airJumpAvailable = false;
 
     resolvePlatformLanding(player, [platform], 50);
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-SPRING_JUMP_VELOCITY);
+    expect(player.airJumpAvailable).toBe(true);
     expect(platform.springActivationMs).toBe(SPRING_ACTIVATION_DURATION_MS);
   });
 

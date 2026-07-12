@@ -7,6 +7,7 @@ import {
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   isArmorPowerupReady,
+  isDoubleJumpPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   updatePowerupInventory,
@@ -55,7 +56,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Slow-mo when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.3);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -72,7 +73,7 @@ describe("PowerupInventory", () => {
   });
 
   it("becomes ready with Armor when the catalog pick lands on it", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.6);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration(),
       POWERUP_GENERATION_DURATION_MS,
@@ -88,8 +89,25 @@ describe("PowerupInventory", () => {
     });
   });
 
-  it("does not generate the same powerup twice in a row", () => {
+  it("becomes ready with Double Jump when the catalog pick lands on it", () => {
     const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const inventory = updatePowerupInventory(
+      beginPowerupGeneration(),
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(inventory).toEqual({
+      status: "ready",
+      powerup: {
+        id: "doubleJump",
+        label: "W: double jump",
+      },
+    });
+  });
+
+  it("does not generate the same powerup twice in a row", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
     const inventory = updatePowerupInventory(
       beginPowerupGeneration({
         id: "armor",
@@ -178,6 +196,35 @@ describe("PowerupInventory", () => {
     expect(isArmorPowerupReady({ status: "empty" })).toBe(false);
     expect(
       isArmorPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "shrink",
+          label: "F: toggle size",
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("reports Double Jump as ready only when the ready slot holds Double Jump", () => {
+    expect(
+      isDoubleJumpPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "doubleJump",
+          label: "W: double jump",
+        },
+      }),
+    ).toBe(true);
+    expect(isDoubleJumpPowerupReady({ status: "empty" })).toBe(false);
+    expect(
+      isDoubleJumpPowerupReady({
+        status: "generating",
+        remainingMs: 1000,
+        previousPowerup: null,
+      }),
+    ).toBe(false);
+    expect(
+      isDoubleJumpPowerupReady({
         status: "ready",
         powerup: {
           id: "shrink",

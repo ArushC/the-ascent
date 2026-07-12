@@ -1,5 +1,6 @@
 import {
   ARMOR_POWERUP_ID,
+  DOUBLE_JUMP_POWERUP_ID,
   pickRandomPowerup,
   SHRINK_POWERUP_ID,
   SLOW_MO_POWERUP_ID,
@@ -70,6 +71,15 @@ export function isSlowMoPowerupReady(inventory: PowerupInventory): boolean {
 export function isArmorPowerupReady(inventory: PowerupInventory): boolean {
   return (
     inventory.status === "ready" && inventory.powerup?.id === ARMOR_POWERUP_ID
+  );
+}
+
+export function isDoubleJumpPowerupReady(
+  inventory: PowerupInventory,
+): boolean {
+  return (
+    inventory.status === "ready" &&
+    inventory.powerup?.id === DOUBLE_JUMP_POWERUP_ID
   );
 }
 

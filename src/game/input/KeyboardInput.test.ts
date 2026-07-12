@@ -95,18 +95,24 @@ describe("KeyboardInput", () => {
       shoot: true,
       pauseOrResume: false,
       restart: false,
-      shrinkPowerupShortcut: false,
-      slowMoPowerupShortcut: false,
-      armorPowerupShortcut: false,
+      powerupShortcuts: {
+        shrink: false,
+        slowMo: false,
+        armor: false,
+        doubleJump: false,
+      },
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: false,
       shoot: false,
       pauseOrResume: false,
       restart: false,
-      shrinkPowerupShortcut: false,
-      slowMoPowerupShortcut: false,
-      armorPowerupShortcut: false,
+      powerupShortcuts: {
+        shrink: false,
+        slowMo: false,
+        armor: false,
+        doubleJump: false,
+      },
     });
   });
 
@@ -157,8 +163,8 @@ describe("KeyboardInput", () => {
 
     target.dispatch("keydown", "KeyF");
 
-    expect(input.consumePhaseKeyPresses().shrinkPowerupShortcut).toBe(true);
-    expect(input.consumePhaseKeyPresses().shrinkPowerupShortcut).toBe(false);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.shrink).toBe(true);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.shrink).toBe(false);
   });
 
   it("consumes the Slow-mo powerup shortcut as an edge-triggered T action", () => {
@@ -166,8 +172,8 @@ describe("KeyboardInput", () => {
 
     target.dispatch("keydown", "KeyT");
 
-    expect(input.consumePhaseKeyPresses().slowMoPowerupShortcut).toBe(true);
-    expect(input.consumePhaseKeyPresses().slowMoPowerupShortcut).toBe(false);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.slowMo).toBe(true);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.slowMo).toBe(false);
   });
 
   it("consumes the Armor powerup shortcut as an edge-triggered G action", () => {
@@ -175,8 +181,34 @@ describe("KeyboardInput", () => {
 
     target.dispatch("keydown", "KeyG");
 
-    expect(input.consumePhaseKeyPresses().armorPowerupShortcut).toBe(true);
-    expect(input.consumePhaseKeyPresses().armorPowerupShortcut).toBe(false);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.armor).toBe(true);
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.armor).toBe(false);
+  });
+
+  it("consumes the Double Jump powerup shortcut as an edge-triggered W action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyW");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.doubleJump).toBe(
+      true,
+    );
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.doubleJump).toBe(
+      false,
+    );
+
+    target.dispatch("keydown", "KeyW");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.doubleJump).toBe(
+      false,
+    );
+
+    target.dispatch("keyup", "KeyW");
+    target.dispatch("keydown", "KeyW");
+
+    expect(input.consumePhaseKeyPresses().powerupShortcuts.doubleJump).toBe(
+      true,
+    );
   });
 
   it("prevents default browser scrolling for Space", () => {
