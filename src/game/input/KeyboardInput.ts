@@ -10,17 +10,19 @@ export type KeyboardListener = (event: KeyboardEvent) => void;
  */
 export type PhaseKeyPresses = {
   start: boolean;
+  shoot: boolean;
   pauseOrResume: boolean;
   restart: boolean;
 };
 
 type PhaseActionKey = keyof PhaseKeyPresses;
 
-const PHASE_ACTION_BY_CODE: Partial<Record<string, PhaseActionKey>> = {
-  Space: "start",
-  KeyP: "pauseOrResume",
-  Escape: "pauseOrResume",
-  KeyR: "restart",
+const PHASE_ACTIONS_BY_CODE: Partial<Record<string, readonly PhaseActionKey[]>> =
+  {
+    Space: ["start", "shoot"],
+    KeyP: ["pauseOrResume"],
+    Escape: ["pauseOrResume"],
+    KeyR: ["restart"],
 };
 
 export interface KeyboardEventTarget {
@@ -52,6 +54,7 @@ export class KeyboardInput {
   consumePhaseKeyPresses(): PhaseKeyPresses {
     const actions = {
       start: this.queuedPhaseActionKeys.has("start"),
+      shoot: this.queuedPhaseActionKeys.has("shoot"),
       pauseOrResume: this.queuedPhaseActionKeys.has("pauseOrResume"),
       restart: this.queuedPhaseActionKeys.has("restart"),
     };
@@ -111,18 +114,22 @@ export class KeyboardInput {
    * before the same shortcut can be queued again.
    */
   private recordPhaseActionKey(code: string, pressed: boolean): void {
-    const action = PHASE_ACTION_BY_CODE[code];
-    if (!action) return;
+    const actions = PHASE_ACTIONS_BY_CODE[code];
+    if (!actions) return;
 
     if (!pressed) {
-      this.heldPhaseActionKeys.delete(action);
+      for (const action of actions) {
+        this.heldPhaseActionKeys.delete(action);
+      }
       return;
     }
 
-    if (!this.heldPhaseActionKeys.has(action)) {
-      this.queuedPhaseActionKeys.add(action);
-    }
+    for (const action of actions) {
+      if (!this.heldPhaseActionKeys.has(action)) {
+        this.queuedPhaseActionKeys.add(action);
+      }
 
-    this.heldPhaseActionKeys.add(action);
+      this.heldPhaseActionKeys.add(action);
+    }
   }
 }

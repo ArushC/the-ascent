@@ -1,10 +1,15 @@
 import { createPlayer, type Player } from "./entities/Player";
 import type { Platform } from "./entities/Platform";
 import type { Monster } from "./entities/Monster";
+import {
+  createProjectile,
+  type Projectile,
+} from "./entities/Projectile";
 import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
 import {
   playerCollidesWithMonster,
+  resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
 } from "./systems/CollisionSystem";
 import { isPlayerBelowScreen, updateCamera } from "./systems/CameraSystem";
@@ -22,6 +27,10 @@ import {
   applyHorizontalWrap,
   updatePlayerPhysics,
 } from "./systems/PhysicsSystem";
+import {
+  removeOffScreenProjectiles,
+  updateProjectiles as moveProjectiles,
+} from "./systems/ProjectileSystem";
 import {
   createScoreState,
   getScore,
@@ -48,6 +57,7 @@ export class Game {
   private player: Player;
   private platforms: Platform[];
   private monsters: Monster[];
+  private projectiles: Projectile[] = [];
   private readonly keyboardInput = new KeyboardInput();
   private screenTopY = 0;
   private scoreState: ScoreState;
@@ -131,6 +141,10 @@ export class Game {
       this.beginRun();
     }
 
+    if (keyPresses.shoot && !startedFromReady && this.phase === "playing") {
+      this.projectiles.push(createProjectile(this.player));
+    }
+
     if (keyPresses.pauseOrResume && !startedFromReady) {
       this.applyPauseOrResumeShortcut();
     }
@@ -161,6 +175,8 @@ export class Game {
 
     const horizontalIntent = this.keyboardInput.getHorizontalIntent();
     const scoreBeforeUpdate = getScore(this.scoreState);
+
+    this.updateProjectiles(deltaTime);
 
     updateMonsters(this.monsters, deltaTime, this.canvas.width);
     updateMovingPlatforms(this.platforms, deltaTime, this.canvas.width);
@@ -197,6 +213,11 @@ export class Game {
       this.canvas.width,
       this.canvas.height,
     );
+    this.projectiles = removeOffScreenProjectiles(this.projectiles, {
+      screenTopY: this.screenTopY,
+      canvasWidth: this.canvas.width,
+      canvasHeight: this.canvas.height,
+    });
 
     if (
       isPlayerBelowScreen(this.player.y, this.screenTopY, this.canvas.height)
@@ -208,6 +229,16 @@ export class Game {
     if (getScore(this.scoreState) !== scoreBeforeUpdate) {
       this.publishCurrentUiState();
     }
+  }
+
+  private updateProjectiles(deltaTime: number): void {
+    moveProjectiles(this.projectiles, deltaTime);
+    const projectileCollisionResult = resolveProjectileMonsterCollisions(
+      this.projectiles,
+      this.monsters,
+    );
+    this.projectiles = projectileCollisionResult.projectiles;
+    this.monsters = projectileCollisionResult.monsters;
   }
 
   private render(): void {
@@ -228,6 +259,10 @@ export class Game {
       monster.draw(ctx);
     }
 
+    for (const projectile of this.projectiles) {
+      projectile.draw(ctx);
+    }
+
     this.player.draw(ctx);
 
     ctx.restore();
@@ -241,6 +276,7 @@ export class Game {
       this.canvas.height,
     );
     this.monsters = createInitialMonsters();
+    this.projectiles = [];
     this.screenTopY = 0;
   }
 

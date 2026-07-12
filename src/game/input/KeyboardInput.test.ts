@@ -92,24 +92,45 @@ describe("KeyboardInput", () => {
 
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: true,
+      shoot: true,
       pauseOrResume: false,
       restart: false,
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: false,
+      shoot: false,
       pauseOrResume: false,
       restart: false,
     });
   });
 
+  it("queues shoot from Space", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "Space");
+
+    expect(input.consumePhaseKeyPresses().shoot).toBe(true);
+  });
+
   it("does not repeat an action while the key stays pressed", () => {
     const { input, target } = createKeyboardInput();
 
-    target.dispatch("keydown", "KeyR");
-    target.dispatch("keydown", "KeyR");
+    target.dispatch("keydown", "Space");
+    target.dispatch("keydown", "Space");
 
-    expect(input.consumePhaseKeyPresses().restart).toBe(true);
-    expect(input.consumePhaseKeyPresses().restart).toBe(false);
+    expect(input.consumePhaseKeyPresses().shoot).toBe(true);
+    expect(input.consumePhaseKeyPresses().shoot).toBe(false);
+  });
+
+  it("queues Space again after keyup", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "Space");
+    input.consumePhaseKeyPresses();
+    target.dispatch("keyup", "Space");
+    target.dispatch("keydown", "Space");
+
+    expect(input.consumePhaseKeyPresses().shoot).toBe(true);
   });
 
   it("consumes pause-or-resume from P or Escape", () => {
