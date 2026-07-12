@@ -12,6 +12,7 @@ import {
 import {
   playerCollidesWithMonster,
   projectileHitsMonster,
+  resolveArmoredMonsterCollision,
   resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
   resolvePowerupCollision,
@@ -282,6 +283,121 @@ describe("playerCollidesWithMonster", () => {
     const monster = createTestHorizontalMonster({ x: 100, y: 100 });
 
     expect(playerCollidesWithMonster(player, monster)).toBe(false);
+  });
+});
+
+describe("resolveArmoredMonsterCollision", () => {
+  it("bounces upward and separates when the player hits from above", () => {
+    const player = createTestPlayer({
+      x: 100,
+      y: 100,
+      width: 40,
+      height: 40,
+      velocityY: 0.2,
+    });
+    const monster = createTestHorizontalMonster({
+      x: 110,
+      y: 130,
+      width: 40,
+      height: 40,
+    });
+
+    expect(resolveArmoredMonsterCollision(player, [monster])).toBe(true);
+
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(player.armor.pendingKnockbackVx).toBeNull();
+    expect(player.y).toBe(monster.y - player.height);
+  });
+
+  it("bounces downward and separates when the player hits from below", () => {
+    const player = createTestPlayer({
+      x: 100,
+      y: 130,
+      width: 40,
+      height: 40,
+      velocityY: -0.2,
+    });
+    const monster = createTestHorizontalMonster({
+      x: 110,
+      y: 100,
+      width: 40,
+      height: 40,
+    });
+
+    expect(resolveArmoredMonsterCollision(player, [monster])).toBe(true);
+
+    expect(player.velocityY).toBe(INITIAL_JUMP_VELOCITY);
+    expect(player.armor.pendingKnockbackVx).toBeNull();
+    expect(player.y).toBe(monster.y + monster.height);
+  });
+
+  it("queues left knockback and separates when the player hits from the left", () => {
+    const player = createTestPlayer({
+      x: 100,
+      y: 100,
+      width: 40,
+      height: 40,
+      velocityY: 0.2,
+    });
+    const monster = createTestHorizontalMonster({
+      x: 130,
+      y: 90,
+      width: 40,
+      height: 80,
+    });
+    const monsterSnapshot = { ...monster };
+
+    expect(resolveArmoredMonsterCollision(player, [monster])).toBe(true);
+
+    expect(player.velocityY).toBe(0.2);
+    expect(player.armor.pendingKnockbackVx).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(player.x).toBe(monster.x - player.width);
+    expect(monster).toMatchObject(monsterSnapshot);
+  });
+
+  it("queues right knockback and separates when the player hits from the right", () => {
+    const player = createTestPlayer({
+      x: 160,
+      y: 100,
+      width: 40,
+      height: 40,
+      velocityY: 0.2,
+    });
+    const monster = createTestHorizontalMonster({
+      x: 130,
+      y: 90,
+      width: 40,
+      height: 80,
+    });
+
+    expect(resolveArmoredMonsterCollision(player, [monster])).toBe(true);
+
+    expect(player.velocityY).toBe(0.2);
+    expect(player.armor.pendingKnockbackVx).toBe(INITIAL_JUMP_VELOCITY);
+    expect(player.x).toBe(monster.x + monster.width);
+  });
+
+  it("prefers a vertical upward bounce when penetration ties", () => {
+    const player = createTestPlayer({ x: 100, y: 100, width: 40, height: 40 });
+    const monster = createTestHorizontalMonster({
+      x: 120,
+      y: 120,
+      width: 40,
+      height: 40,
+    });
+
+    expect(resolveArmoredMonsterCollision(player, [monster])).toBe(true);
+
+    expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(player.armor.pendingKnockbackVx).toBeNull();
+    expect(player.y).toBe(monster.y - player.height);
+  });
+
+  it("returns false when no monster overlaps", () => {
+    const player = createTestPlayer({ x: 0, y: 0 });
+    const monster = createTestHorizontalMonster({ x: 100, y: 100 });
+
+    expect(resolveArmoredMonsterCollision(player, [monster])).toBe(false);
   });
 });
 

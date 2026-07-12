@@ -70,6 +70,56 @@ export function playerCollidesWithMonster(
   return rectanglesOverlap(player, monster);
 }
 
+/**
+ * Bounces an armored player off the first overlapping monster.
+ * Mutates only the player and leaves death handling to the caller.
+ * Returns true when a bounce was applied, or false when no monster overlaps.
+ */
+export function resolveArmoredMonsterCollision(
+  player: Player,
+  monsters: readonly Monster[],
+): boolean {
+  for (const monster of monsters) {
+    if (!playerCollidesWithMonster(player, monster)) continue;
+
+    const playerRight = player.x + player.width;
+    const playerBottom = player.y + player.height;
+    const monsterRight = monster.x + monster.width;
+    const monsterBottom = monster.y + monster.height;
+    const overlapX =
+      Math.min(playerRight, monsterRight) - Math.max(player.x, monster.x);
+    const overlapY =
+      Math.min(playerBottom, monsterBottom) - Math.max(player.y, monster.y);
+    const playerCenterX = player.x + player.width / 2;
+    const monsterCenterX = monster.x + monster.width / 2;
+    const playerCenterY = player.y + player.height / 2;
+    const monsterCenterY = monster.y + monster.height / 2;
+
+    // Pick the bounce axis by whichever overlap is smaller.
+    if (overlapX < overlapY) {
+      if (playerCenterX <= monsterCenterX) {
+        player.armor.pendingKnockbackVx = -INITIAL_JUMP_VELOCITY;
+        player.x = monster.x - player.width;
+      } else {
+        player.armor.pendingKnockbackVx = INITIAL_JUMP_VELOCITY;
+        player.x = monster.x + monster.width;
+      }
+      return true;
+    }
+
+    if (playerCenterY <= monsterCenterY) {
+      player.velocityY = -INITIAL_JUMP_VELOCITY;
+      player.y = monster.y - player.height;
+    } else {
+      player.velocityY = INITIAL_JUMP_VELOCITY;
+      player.y = monster.y + monster.height;
+    }
+    return true;
+  }
+
+  return false;
+}
+
 export function projectileHitsMonster(
   projectile: Projectile,
   monster: Monster,

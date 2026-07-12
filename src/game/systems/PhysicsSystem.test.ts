@@ -8,6 +8,7 @@ import {
   applyHorizontalWrap,
   GRAVITY,
   HORIZONTAL_SPEED,
+  INITIAL_JUMP_VELOCITY,
   updatePlayerPhysics,
 } from "./PhysicsSystem";
 
@@ -59,6 +60,20 @@ describe("updatePlayerPhysics", () => {
     updatePlayerPhysics(player, 16, 0);
 
     expect(player.velocityX).toBe(0);
+  });
+
+  it("uses pending armor knockback for one frame before returning to input", () => {
+    const player = createTestPlayer({ x: 100 });
+    player.armor.pendingKnockbackVx = -INITIAL_JUMP_VELOCITY;
+
+    updatePlayerPhysics(player, 16, 1);
+
+    expect(player.velocityX).toBe(-INITIAL_JUMP_VELOCITY);
+    expect(player.armor.pendingKnockbackVx).toBeNull();
+
+    updatePlayerPhysics(player, 16, 1);
+
+    expect(player.velocityX).toBe(HORIZONTAL_SPEED);
   });
 
   it("scales movement by delta time", () => {

@@ -2,6 +2,7 @@ import type { Platform } from "../entities/Platform";
 import type { Player } from "../entities/Player";
 import {
   beginPowerupGeneration,
+  didLoseReadyArmorPowerup,
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   updatePowerupInventory,
@@ -14,6 +15,7 @@ export type PowerupUpdateResult = {
   didPanelStateChange: boolean;
   didLoseReadyShrinkPowerup: boolean;
   didLoseReadySlowMoPowerup: boolean;
+  didLoseReadyArmorPowerup: boolean;
 };
 
 /**
@@ -49,12 +51,17 @@ export function updatePowerups(
     inventory,
     updatedInventory,
   );
+  const lostReadyArmorPowerup = didLoseReadyArmorPowerup(
+    inventory,
+    updatedInventory,
+  );
 
   return {
     inventory: updatedInventory,
     didPanelStateChange: didCollectPowerup || didGenerationFinish,
     didLoseReadyShrinkPowerup: lostReadyShrinkPowerup,
     didLoseReadySlowMoPowerup: lostReadySlowMoPowerup,
+    didLoseReadyArmorPowerup: lostReadyArmorPowerup,
   };
 }
 

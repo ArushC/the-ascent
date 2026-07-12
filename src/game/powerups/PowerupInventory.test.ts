@@ -3,8 +3,10 @@ import {
   POWERUP_GENERATION_DURATION_MS,
   beginPowerupGeneration,
   createPowerupInventory,
+  didLoseReadyArmorPowerup,
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
+  isArmorPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   updatePowerupInventory,
@@ -69,6 +71,43 @@ describe("PowerupInventory", () => {
     });
   });
 
+  it("becomes ready with Armor when the catalog pick lands on it", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const inventory = updatePowerupInventory(
+      beginPowerupGeneration(),
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(inventory).toEqual({
+      status: "ready",
+      powerup: {
+        id: "armor",
+        label: "G: toggle armor",
+      },
+    });
+  });
+
+  it("does not generate the same powerup twice in a row", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.99);
+    const inventory = updatePowerupInventory(
+      beginPowerupGeneration({
+        id: "armor",
+        label: "G: toggle armor",
+      }),
+      POWERUP_GENERATION_DURATION_MS,
+    );
+    randomSpy.mockRestore();
+
+    expect(inventory).toEqual({
+      status: "ready",
+      powerup: {
+        id: "slowMo",
+        label: "T: toggle slow-mo",
+      },
+    });
+  });
+
   it("leaves non-generating inventory unchanged", () => {
     const inventory = { status: "ready" as const, powerup: null };
 
@@ -117,6 +156,28 @@ describe("PowerupInventory", () => {
     expect(isSlowMoPowerupReady({ status: "empty" })).toBe(false);
     expect(
       isSlowMoPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "shrink",
+          label: "F: toggle size",
+        },
+      }),
+    ).toBe(false);
+  });
+
+  it("reports Armor as ready only when the ready slot holds Armor", () => {
+    expect(
+      isArmorPowerupReady({
+        status: "ready",
+        powerup: {
+          id: "armor",
+          label: "G: toggle armor",
+        },
+      }),
+    ).toBe(true);
+    expect(isArmorPowerupReady({ status: "empty" })).toBe(false);
+    expect(
+      isArmorPowerupReady({
         status: "ready",
         powerup: {
           id: "shrink",
@@ -211,6 +272,28 @@ describe("PowerupInventory", () => {
           previousPowerup: {
             id: "slowMo",
             label: "T: toggle slow-mo",
+          },
+        },
+        {
+          status: "ready",
+          powerup: {
+            id: "shrink",
+            label: "F: toggle size",
+          },
+        },
+      ),
+    ).toBe(true);
+  });
+
+  it("reports when generation from held Armor finishes without Armor", () => {
+    expect(
+      didLoseReadyArmorPowerup(
+        {
+          status: "generating",
+          remainingMs: 0,
+          previousPowerup: {
+            id: "armor",
+            label: "G: toggle armor",
           },
         },
         {

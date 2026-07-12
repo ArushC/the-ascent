@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Player } from "./Player";
 
 describe("Player", () => {
@@ -33,5 +33,38 @@ describe("Player", () => {
     expect(player.height).toBe(40);
     expect(player.x).toBe(100);
     expect(player.y).toBe(200);
+  });
+
+  it("toggles and resets armor state", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+
+    player.toggleArmor();
+    player.armor.pendingKnockbackVx = 0.45;
+
+    expect(player.armor.equipped).toBe(true);
+
+    player.resetArmor();
+
+    expect(player.armor.equipped).toBe(false);
+    expect(player.armor.pendingKnockbackVx).toBeNull();
+  });
+
+  it("draws an armor stroke when armor is equipped", () => {
+    const player = new Player(100, 200, 40, 40, 0, 0);
+    const ctx = {
+      fillStyle: "",
+      strokeStyle: "",
+      lineWidth: 0,
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+    } as unknown as CanvasRenderingContext2D;
+
+    player.toggleArmor();
+    player.draw(ctx);
+
+    expect(ctx.fillRect).toHaveBeenCalledWith(100, 200, 40, 40);
+    expect(ctx.strokeStyle).toBe("white");
+    expect(ctx.lineWidth).toBe(3);
+    expect(ctx.strokeRect).toHaveBeenCalledWith(100, 200, 40, 40);
   });
 });

@@ -13,7 +13,12 @@ export function updatePlayerPhysics(
   deltaTime: number,
   horizontalIntent: HorizontalIntent,
 ): void {
-  player.velocityX = horizontalIntent * HORIZONTAL_SPEED;
+  if (player.armor.pendingKnockbackVx !== null) {
+    player.velocityX = player.armor.pendingKnockbackVx;
+    player.armor.pendingKnockbackVx = null;
+  } else {
+    player.velocityX = horizontalIntent * HORIZONTAL_SPEED;
+  }
   player.velocityY += GRAVITY * deltaTime;
   player.x += player.velocityX * deltaTime;
   player.y += player.velocityY * deltaTime;

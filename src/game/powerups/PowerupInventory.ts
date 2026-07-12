@@ -1,4 +1,5 @@
 import {
+  ARMOR_POWERUP_ID,
   pickRandomPowerup,
   SHRINK_POWERUP_ID,
   SLOW_MO_POWERUP_ID,
@@ -48,7 +49,7 @@ export function updatePowerupInventory(
 
   return {
     status: "ready",
-    powerup: pickRandomPowerup(),
+    powerup: pickRandomPowerup(inventory.previousPowerup?.id ?? null),
   };
 }
 
@@ -63,6 +64,12 @@ export function isSlowMoPowerupReady(inventory: PowerupInventory): boolean {
   return (
     inventory.status === "ready" &&
     inventory.powerup?.id === SLOW_MO_POWERUP_ID
+  );
+}
+
+export function isArmorPowerupReady(inventory: PowerupInventory): boolean {
+  return (
+    inventory.status === "ready" && inventory.powerup?.id === ARMOR_POWERUP_ID
   );
 }
 
@@ -86,6 +93,16 @@ export function didLoseReadySlowMoPowerup(
   return !isSlowMoPowerupReady(nextInventory);
 }
 
+export function didLoseReadyArmorPowerup(
+  previousInventory: PowerupInventory,
+  nextInventory: PowerupInventory,
+): boolean {
+  if (nextInventory.status === "generating") return false;
+  if (!wasArmorPowerupHeld(previousInventory)) return false;
+
+  return !isArmorPowerupReady(nextInventory);
+}
+
 function wasShrinkPowerupHeld(inventory: PowerupInventory): boolean {
   if (isShrinkPowerupReady(inventory)) return true;
 
@@ -101,5 +118,14 @@ function wasSlowMoPowerupHeld(inventory: PowerupInventory): boolean {
   return (
     inventory.status === "generating" &&
     inventory.previousPowerup?.id === SLOW_MO_POWERUP_ID
+  );
+}
+
+function wasArmorPowerupHeld(inventory: PowerupInventory): boolean {
+  if (isArmorPowerupReady(inventory)) return true;
+
+  return (
+    inventory.status === "generating" &&
+    inventory.previousPowerup?.id === ARMOR_POWERUP_ID
   );
 }

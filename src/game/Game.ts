@@ -9,12 +9,14 @@ import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
 import {
   createPowerupInventory,
+  isArmorPowerupReady,
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   type PowerupInventory,
 } from "./powerups/PowerupInventory";
 import {
   playerCollidesWithMonster,
+  resolveArmoredMonsterCollision,
   resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
 } from "./systems/CollisionSystem";
@@ -159,7 +161,13 @@ export class Game {
       this.beginRun();
     }
 
-    if (keyPresses.shoot && !startedFromReady && this.phase === "playing") {
+    // Armor blocks shooting while equipped.
+    if (
+      keyPresses.shoot &&
+      !startedFromReady &&
+      this.phase === "playing" &&
+      !this.player.armor.equipped
+    ) {
       this.projectiles.push(createProjectile(this.player));
     }
 
@@ -177,6 +185,14 @@ export class Game {
       isSlowMoPowerupReady(this.powerupInventory)
     ) {
       this.toggleTimeScale();
+    }
+
+    if (
+      keyPresses.armorPowerupShortcut &&
+      this.phase === "playing" &&
+      isArmorPowerupReady(this.powerupInventory)
+    ) {
+      this.player.toggleArmor();
     }
 
     if (keyPresses.pauseOrResume && !startedFromReady) {
@@ -232,9 +248,14 @@ export class Game {
     if (powerupUpdate.didLoseReadySlowMoPowerup) {
       this.timeScale = NORMAL_TIME_SCALE;
     }
+    if (powerupUpdate.didLoseReadyArmorPowerup) {
+      this.player.resetArmor();
+    }
     resolvePlatformLanding(this.player, this.platforms, previousY);
 
-    if (
+    if (this.player.armor.equipped) {
+      resolveArmoredMonsterCollision(this.player, this.monsters);
+    } else if (
       this.monsters.some((monster) =>
         playerCollidesWithMonster(this.player, monster),
       )

@@ -97,6 +97,7 @@ describe("KeyboardInput", () => {
       restart: false,
       shrinkPowerupShortcut: false,
       slowMoPowerupShortcut: false,
+      armorPowerupShortcut: false,
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: false,
@@ -105,6 +106,7 @@ describe("KeyboardInput", () => {
       restart: false,
       shrinkPowerupShortcut: false,
       slowMoPowerupShortcut: false,
+      armorPowerupShortcut: false,
     });
   });
 
@@ -166,6 +168,15 @@ describe("KeyboardInput", () => {
 
     expect(input.consumePhaseKeyPresses().slowMoPowerupShortcut).toBe(true);
     expect(input.consumePhaseKeyPresses().slowMoPowerupShortcut).toBe(false);
+  });
+
+  it("consumes the Armor powerup shortcut as an edge-triggered G action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyG");
+
+    expect(input.consumePhaseKeyPresses().armorPowerupShortcut).toBe(true);
+    expect(input.consumePhaseKeyPresses().armorPowerupShortcut).toBe(false);
   });
 
   it("prevents default browser scrolling for Space", () => {
