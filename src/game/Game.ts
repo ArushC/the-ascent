@@ -1,12 +1,12 @@
-import { createPlayer, type Player } from "./entities/Player";
-import type { Platform } from "./entities/Platform";
-import type { Monster } from "./entities/Monster";
+import { createPlayer, type Player } from "./entities/player/Player";
+import type { Platform } from "./entities/platform/Platform";
+import type { Monster } from "./entities/monster/Monster";
 import {
   createProjectile,
   type Projectile,
-} from "./entities/Projectile";
-import { updatePlatformSpringAnimations } from "./entities/Spring";
-import { KeyboardInput } from "./input/KeyboardInput";
+} from "./entities/projectile/Projectile";
+import { updatePlatformSpringAnimations } from "./entities/spring/Spring";
+import { KeyboardInput } from "./input/keyboardInput/KeyboardInput";
 import {
   createPowerupInventory,
   getPowerupGenerationProgress,
@@ -17,39 +17,39 @@ import {
   isShrinkPowerupReady,
   isSlowMoPowerupReady,
   type PowerupInventory,
-} from "./powerups/PowerupInventory";
+} from "./powerups/powerupInventory/PowerupInventory";
 import {
   playerCollidesWithMonster,
   resolveArmoredMonsterCollision,
   resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
-} from "./systems/CollisionSystem";
-import { isPlayerBelowScreen, updateCamera } from "./systems/CameraSystem";
+} from "./systems/collisionSystem/CollisionSystem";
+import { isPlayerBelowScreen, updateCamera } from "./systems/cameraSystem/CameraSystem";
 import {
   createInitialPlatforms,
   updatePlatformsForCamera,
-} from "./systems/PlatformSpawner";
-import { updateMovingPlatforms } from "./systems/PlatformMovementSystem";
-import { updateMonsters } from "./systems/MonsterMovementSystem";
+} from "./systems/platformSpawner/PlatformSpawner";
+import { updateMovingPlatforms } from "./systems/platformMovementSystem/PlatformMovementSystem";
+import { updateMonsters } from "./systems/monsterMovementSystem/MonsterMovementSystem";
 import {
   createInitialMonsters,
   updateMonstersForCamera,
-} from "./systems/MonsterSpawner";
+} from "./systems/monsterSpawner/MonsterSpawner";
 import {
   applyHorizontalWrap,
   updatePlayerPhysics,
-} from "./systems/PhysicsSystem";
+} from "./systems/physicsSystem/PhysicsSystem";
 import {
   removeOffScreenProjectiles,
   updateProjectiles as moveProjectiles,
-} from "./systems/ProjectileSystem";
-import { updatePowerups } from "./systems/PowerupSystem";
+} from "./systems/projectileSystem/ProjectileSystem";
+import { updatePowerups } from "./systems/powerupSystem/PowerupSystem";
 import {
   createScoreState,
   getScore,
   updateScore,
   type ScoreState,
-} from "./systems/ScoreSystem";
+} from "./systems/scoreSystem/ScoreSystem";
 
 const MAX_DELTA_MS = 50;
 const NORMAL_TIME_SCALE = 1;
@@ -66,6 +66,13 @@ export type GameUiState = {
   phase: GamePhase;
   score: number;
   powerupPanel: PowerupPanelState;
+};
+
+export type GameControls = {
+  beginRun: () => void;
+  pause: () => void;
+  resume: () => void;
+  restart: () => void;
 };
 
 export class Game {

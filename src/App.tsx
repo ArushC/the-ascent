@@ -1,5 +1,5 @@
 import "./App.css";
-import { GameCanvas } from "./game/ui/GameCanvas";
+import { GameCanvas } from "./game/ui/gameCanvas/GameCanvas";
 
 export const CANVAS_WIDTH = 400;
 const CANVAS_HEIGHT = 600;

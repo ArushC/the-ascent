@@ -1,12 +1,12 @@
-import { DiagonalMovingPlatform } from "../entities/movingPlatform/DiagonalMovingPlatform";
-import { HorizontalMovingPlatform } from "../entities/movingPlatform/HorizontalMovingPlatform";
-import { VerticalMovingPlatform } from "../entities/movingPlatform/VerticalMovingPlatform";
-import { CircularMonster } from "../entities/monster/CircularMonster";
-import { HorizontalMonster } from "../entities/monster/HorizontalMonster";
-import { TriangularPathMonster } from "../entities/monster/TriangularPathMonster";
-import { Player } from "../entities/Player";
-import { Projectile } from "../entities/Projectile";
-import { StaticPlatform } from "../entities/StaticPlatform";
+import { DiagonalMovingPlatform } from "../entities/movingPlatform/diagonalMovingPlatform/DiagonalMovingPlatform";
+import { HorizontalMovingPlatform } from "../entities/movingPlatform/horizontalMovingPlatform/HorizontalMovingPlatform";
+import { VerticalMovingPlatform } from "../entities/movingPlatform/verticalMovingPlatform/VerticalMovingPlatform";
+import { CircularMonster } from "../entities/monster/circularMonster/CircularMonster";
+import { HorizontalMonster } from "../entities/monster/horizontalMonster/HorizontalMonster";
+import { TriangularPathMonster } from "../entities/monster/triangularPathMonster/TriangularPathMonster";
+import { Player } from "../entities/player/Player";
+import { Projectile } from "../entities/projectile/Projectile";
+import { StaticPlatform } from "../entities/staticPlatform/StaticPlatform";
 
 export const TEST_PLAYER_DEFAULTS = {
   x: 100,

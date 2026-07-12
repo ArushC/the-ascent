@@ -7,7 +7,8 @@ alwaysApply: false
 # Doodle Jump Game
 
 - This project uses React, TypeScript, Canvas, and Vitest.
-- Game code lives under `src/game/`, organized by entities, systems, input, rendering, and testing helpers.
+- Game code lives under `src/game/`, organized by game module shards and testing helpers.
+- Each directory under `src/game/` may contain at most one module: one implementation file, optional CSS, optional co-located test, and nested subdirectories for other modules. Multiple sibling implementation files in one folder must be split into module directories.
 - Keep game logic testable by putting pure behavior in systems or small entities.
 - Co-locate unit tests with the source area they cover.
 - Prefer tests for pure logic over tests for canvas drawing details.
