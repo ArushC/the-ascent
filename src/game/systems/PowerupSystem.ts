@@ -2,6 +2,7 @@ import type { Platform } from "../entities/Platform";
 import type { Player } from "../entities/Player";
 import {
   beginPowerupGeneration,
+  didLoseReadyShrinkPowerup,
   updatePowerupInventory,
   type PowerupInventory,
 } from "../powerups/PowerupInventory";
@@ -10,6 +11,7 @@ import { resolvePowerupCollision } from "./CollisionSystem";
 export type PowerupUpdateResult = {
   inventory: PowerupInventory;
   didPanelStateChange: boolean;
+  didLoseReadyShrinkPowerup: boolean;
 };
 
 /**
@@ -24,26 +26,28 @@ export function updatePowerups(
 ): PowerupUpdateResult {
   const collectedPlatform = resolveFirstPowerupCollision(player, platforms);
   const didCollectPowerup = collectedPlatform !== null;
+  const previouslyHeldPowerup =
+    inventory.status === "ready" ? inventory.powerup : null;
   const inventoryAfterCollection = didCollectPowerup
-    ? beginPowerupGeneration()
+    ? beginPowerupGeneration(previouslyHeldPowerup)
     : inventory;
 
-  if (inventoryAfterCollection.status !== "generating") {
-    return {
-      inventory: inventoryAfterCollection,
-      didPanelStateChange: didCollectPowerup,
-    };
-  }
-
-  const updatedInventory = updatePowerupInventory(
-    inventoryAfterCollection,
-    deltaTime,
+  const updatedInventory =
+    inventoryAfterCollection.status === "generating"
+      ? updatePowerupInventory(inventoryAfterCollection, deltaTime)
+      : inventoryAfterCollection;
+  const didGenerationFinish =
+    inventoryAfterCollection.status === "generating" &&
+    updatedInventory.status === "ready";
+  const lostReadyShrinkPowerup = didLoseReadyShrinkPowerup(
+    inventory,
+    updatedInventory,
   );
-  const didGenerationFinish = updatedInventory.status === "ready";
 
   return {
     inventory: updatedInventory,
     didPanelStateChange: didCollectPowerup || didGenerationFinish,
+    didLoseReadyShrinkPowerup: lostReadyShrinkPowerup,
   };
 }
 

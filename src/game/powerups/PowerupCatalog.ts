@@ -3,7 +3,14 @@ export type PowerupDefinition = {
   label: string;
 };
 
-const POWERUP_CATALOG: readonly PowerupDefinition[] = [];
+export const SHRINK_POWERUP_ID = "shrink";
+
+const POWERUP_CATALOG: readonly PowerupDefinition[] = [
+  {
+    id: SHRINK_POWERUP_ID,
+    label: "F: toggle size",
+  },
+];
 
 export function pickRandomPowerup(): PowerupDefinition | null {
   if (POWERUP_CATALOG.length === 0) return null;

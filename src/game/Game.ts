@@ -9,6 +9,7 @@ import { updatePlatformSpringAnimations } from "./entities/Spring";
 import { KeyboardInput } from "./input/KeyboardInput";
 import {
   createPowerupInventory,
+  isShrinkPowerupReady,
   type PowerupInventory,
 } from "./powerups/PowerupInventory";
 import {
@@ -157,6 +158,14 @@ export class Game {
       this.projectiles.push(createProjectile(this.player));
     }
 
+    if (
+      keyPresses.shrinkPowerupShortcut &&
+      this.phase === "playing" &&
+      isShrinkPowerupReady(this.powerupInventory)
+    ) {
+      this.player.toggleSize();
+    }
+
     if (keyPresses.pauseOrResume && !startedFromReady) {
       this.applyPauseOrResumeShortcut();
     }
@@ -203,6 +212,9 @@ export class Game {
       deltaTime,
     );
     this.powerupInventory = powerupUpdate.inventory;
+    if (powerupUpdate.didLoseReadyShrinkPowerup) {
+      this.player.resetSize();
+    }
     resolvePlatformLanding(this.player, this.platforms, previousY);
 
     if (

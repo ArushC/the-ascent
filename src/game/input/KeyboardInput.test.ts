@@ -95,12 +95,14 @@ describe("KeyboardInput", () => {
       shoot: true,
       pauseOrResume: false,
       restart: false,
+      shrinkPowerupShortcut: false,
     });
     expect(input.consumePhaseKeyPresses()).toEqual({
       start: false,
       shoot: false,
       pauseOrResume: false,
       restart: false,
+      shrinkPowerupShortcut: false,
     });
   });
 
@@ -144,6 +146,15 @@ describe("KeyboardInput", () => {
     target.dispatch("keydown", "Escape");
 
     expect(input.consumePhaseKeyPresses().pauseOrResume).toBe(true);
+  });
+
+  it("consumes the Shrink powerup shortcut as an edge-triggered F action", () => {
+    const { input, target } = createKeyboardInput();
+
+    target.dispatch("keydown", "KeyF");
+
+    expect(input.consumePhaseKeyPresses().shrinkPowerupShortcut).toBe(true);
+    expect(input.consumePhaseKeyPresses().shrinkPowerupShortcut).toBe(false);
   });
 
   it("prevents default browser scrolling for Space", () => {

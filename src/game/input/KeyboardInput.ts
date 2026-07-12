@@ -13,6 +13,7 @@ export type PhaseKeyPresses = {
   shoot: boolean;
   pauseOrResume: boolean;
   restart: boolean;
+  shrinkPowerupShortcut: boolean;
 };
 
 type PhaseActionKey = keyof PhaseKeyPresses;
@@ -20,6 +21,7 @@ type PhaseActionKey = keyof PhaseKeyPresses;
 const PHASE_ACTIONS_BY_CODE: Partial<Record<string, readonly PhaseActionKey[]>> =
   {
     Space: ["start", "shoot"],
+    KeyF: ["shrinkPowerupShortcut"],
     KeyP: ["pauseOrResume"],
     Escape: ["pauseOrResume"],
     KeyR: ["restart"],
@@ -57,6 +59,9 @@ export class KeyboardInput {
       shoot: this.queuedPhaseActionKeys.has("shoot"),
       pauseOrResume: this.queuedPhaseActionKeys.has("pauseOrResume"),
       restart: this.queuedPhaseActionKeys.has("restart"),
+      shrinkPowerupShortcut: this.queuedPhaseActionKeys.has(
+        "shrinkPowerupShortcut",
+      ),
     };
 
     this.queuedPhaseActionKeys.clear();
@@ -103,6 +108,7 @@ export class KeyboardInput {
         break;
       case "KeyP":
       case "Escape":
+      case "KeyF":
       case "KeyR":
         this.recordPhaseActionKey(event.code, pressed);
         break;

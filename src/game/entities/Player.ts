@@ -1,8 +1,12 @@
 import { INITIAL_JUMP_VELOCITY } from "../systems/PhysicsSystem";
 
 export const PLAYER_WIDTH = 40;
-const PLAYER_HEIGHT = 40;
+export const PLAYER_HEIGHT = 40;
+const SMALL_PLAYER_WIDTH = PLAYER_WIDTH / 2;
+const SMALL_PLAYER_HEIGHT = PLAYER_HEIGHT / 2;
 const PLAYER_COLOR = "red";
+
+export type PlayerSizeMode = "default" | "small";
 
 export class Player {
   x: number;
@@ -11,6 +15,7 @@ export class Player {
   height: number;
   velocityX: number;
   velocityY: number;
+  sizeMode: PlayerSizeMode = "default";
 
   constructor(
     x: number,
@@ -31,6 +36,29 @@ export class Player {
   draw(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = PLAYER_COLOR;
     ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+
+  toggleSize(): void {
+    this.setSizeMode(this.sizeMode === "default" ? "small" : "default");
+  }
+
+  resetSize(): void {
+    this.setSizeMode("default");
+  }
+
+  private setSizeMode(sizeMode: PlayerSizeMode): void {
+    if (this.sizeMode === sizeMode) return;
+
+    const centerX = this.x + this.width / 2;
+    const bottomY = this.y + this.height;
+    const width = sizeMode === "small" ? SMALL_PLAYER_WIDTH : PLAYER_WIDTH;
+    const height = sizeMode === "small" ? SMALL_PLAYER_HEIGHT : PLAYER_HEIGHT;
+
+    this.sizeMode = sizeMode;
+    this.width = width;
+    this.height = height;
+    this.x = centerX - width / 2;
+    this.y = bottomY - height;
   }
 }
 
