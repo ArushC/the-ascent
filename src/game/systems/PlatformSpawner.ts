@@ -26,7 +26,7 @@ const PLATFORM_SPAWN_WEIGHT_TOTAL =
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
-export const MIN_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.08;
+export const MIN_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.2;
 export const MAX_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.65;
 export const SPRING_SPAWN_PROBABILITY = 0.1;
 // Number of visible screen heights to keep spawned above the camera.
