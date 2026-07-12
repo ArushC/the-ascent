@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANVAS_WIDTH } from "../../../App";
+import { CANVAS_WIDTH } from "../../ui/gameCanvas/GameCanvas";
 import {
   createTestPlayer,
   TEST_PLAYER_DEFAULTS,

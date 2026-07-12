@@ -17,6 +17,10 @@ import {
   createTestStaticPlatform,
 } from "../../testing/entityFactories";
 import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+} from "../../ui/gameCanvas/GameCanvas";
+import {
   BOTTOM_PLATFORM_OFFSET,
   computeMaxJumpHeight,
   createInitialPlatforms,
@@ -39,13 +43,10 @@ import {
   updatePlatformsForCamera,
 } from "./PlatformSpawner";
 
-const TEST_CANVAS_WIDTH = 400;
-const TEST_CANVAS_HEIGHT = 600;
 const EXPECTED_BOTTOM_PLATFORM_X =
-  (TEST_CANVAS_WIDTH - PLAYER_WIDTH) / 2 +
+  (CANVAS_WIDTH - PLAYER_WIDTH) / 2 +
   (PLAYER_WIDTH - DEFAULT_PLATFORM_WIDTH) / 2;
-const EXPECTED_BOTTOM_PLATFORM_Y =
-  TEST_CANVAS_HEIGHT - BOTTOM_PLATFORM_OFFSET;
+const EXPECTED_BOTTOM_PLATFORM_Y = CANVAS_HEIGHT - BOTTOM_PLATFORM_OFFSET;
 const PLATFORM_KIND_ROLL_OFFSET = 0.01;
 const BASE_DIFFICULTY = getDifficultyParams(0);
 const HARD_DIFFICULTY = getDifficultyParams(SCORE_RAMP_END);
@@ -60,8 +61,8 @@ describe("createInitialPlatforms", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
     const platforms = createInitialPlatforms(
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
@@ -73,7 +74,7 @@ describe("createInitialPlatforms", () => {
     expect(platforms[0].hasSpring).toBe(false);
     expect(platforms[0].hasPowerup).toBe(false);
     expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
-      -TEST_CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
+      -CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
     );
     expect(platforms.length).toBeGreaterThan(5);
   });
@@ -82,8 +83,8 @@ describe("createInitialPlatforms", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const platforms = createInitialPlatforms(
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
@@ -97,15 +98,15 @@ describe("createInitialPlatforms", () => {
     const randomSpy = vi.spyOn(Math, "random");
     randomSpy.mockReturnValue(0);
     const firstLayout = createInitialPlatforms(
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
     randomSpy.mockReturnValue(1);
     const secondLayout = createInitialPlatforms(
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
@@ -117,8 +118,8 @@ describe("createInitialPlatforms", () => {
     const { minGap, maxGap } = getGapBounds(BASE_DIFFICULTY);
 
     const platforms = createInitialPlatforms(
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
@@ -183,15 +184,15 @@ describe("getRandomPlatformX", () => {
   it("keeps the platform inside the canvas when no horizontal travel is needed", () => {
     vi.spyOn(Math, "random").mockReturnValue(1);
 
-    expect(getRandomPlatformX(TEST_CANVAS_WIDTH)).toBe(
-      TEST_CANVAS_WIDTH - DEFAULT_PLATFORM_WIDTH,
+    expect(getRandomPlatformX(CANVAS_WIDTH)).toBe(
+      CANVAS_WIDTH - DEFAULT_PLATFORM_WIDTH,
     );
   });
 
   it("leaves room for horizontal travel on both sides of the platform", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
-    expect(getRandomPlatformX(TEST_CANVAS_WIDTH, 100)).toBe(50);
+    expect(getRandomPlatformX(CANVAS_WIDTH, 100)).toBe(50);
   });
 });
 
@@ -213,7 +214,7 @@ describe("spawnNextPlatform", () => {
   it("spawns above the current topmost platform", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.y).toBeLessThan(100);
   });
@@ -229,14 +230,14 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("horizontalMoving");
     if (isHorizontalMovingPlatform(platform)) {
       expect(platform.velocityX).not.toBe(0);
       expect(platform.maxX - platform.minX).toBeCloseTo(
         getMovingPlatformTravelDistance(
-          TEST_CANVAS_WIDTH,
+          CANVAS_WIDTH,
           DEFAULT_PLATFORM_WIDTH,
           BASE_GAP_BOUNDS,
         ),
@@ -257,14 +258,14 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("verticalMoving");
     if (isVerticalMovingPlatform(platform)) {
       expect(platform.velocityY).not.toBe(0);
       expect(platform.maxY - platform.minY).toBeCloseTo(
         getMovingPlatformTravelDistance(
-          TEST_CANVAS_WIDTH,
+          CANVAS_WIDTH,
           DEFAULT_PLATFORM_WIDTH,
           BASE_GAP_BOUNDS,
         ),
@@ -288,7 +289,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("diagonalMoving");
     if (isDiagonalMovingPlatform(platform)) {
@@ -296,14 +297,14 @@ describe("spawnNextPlatform", () => {
       expect(platform.velocityY).not.toBe(0);
       expect(platform.maxX - platform.minX).toBeCloseTo(
         getMovingPlatformTravelDistance(
-          TEST_CANVAS_WIDTH,
+          CANVAS_WIDTH,
           DEFAULT_PLATFORM_WIDTH,
           BASE_GAP_BOUNDS,
         ),
       );
       expect(platform.maxY - platform.minY).toBeCloseTo(
         getMovingPlatformTravelDistance(
-          TEST_CANVAS_WIDTH,
+          CANVAS_WIDTH,
           DEFAULT_PLATFORM_WIDTH,
           BASE_GAP_BOUNDS,
         ),
@@ -318,7 +319,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("static");
   });
@@ -331,7 +332,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY)
       .mockReturnValueOnce(0);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.hasSpring).toBe(true);
     expect(platform.hasPowerup).toBe(false);
@@ -344,7 +345,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY - 0.01)
       .mockReturnValueOnce(0.5);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.hasSpring).toBe(false);
     expect(platform.hasPowerup).toBe(true);
@@ -363,7 +364,7 @@ describe("spawnNextPlatform", () => {
       maxPlatformWidth: 10,
     };
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, params);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, params);
 
     expect(platform.hasSpring).toBe(true);
     expect(platform.width).toBe(SPRING_WIDTH);
@@ -378,7 +379,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(0.5);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, HARD_DIFFICULTY);
+    const platform = spawnNextPlatform(100, CANVAS_WIDTH, HARD_DIFFICULTY);
 
     expect(platform.kind).toBe("static");
     expect(platform.width).toBe(70);
@@ -433,13 +434,13 @@ describe("spawnPlatformsAboveCamera", () => {
     const platforms = spawnPlatformsAboveCamera(
       [bottomPlatform],
       0,
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
     expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
-      -TEST_CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
+      -CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
     );
   });
 
@@ -454,7 +455,7 @@ describe("spawnPlatformsAboveCamera", () => {
     const platforms = spawnPlatformsAboveCamera(
       [sprungPlatform],
       0,
-      TEST_CANVAS_WIDTH,
+      CANVAS_WIDTH,
       10,
       BASE_DIFFICULTY,
     );
@@ -476,7 +477,7 @@ describe("spawnPlatformsAboveCamera", () => {
     const platforms = spawnPlatformsAboveCamera(
       [movingPlatform],
       0,
-      TEST_CANVAS_WIDTH,
+      CANVAS_WIDTH,
       100,
       BASE_DIFFICULTY,
     );
@@ -488,16 +489,16 @@ describe("spawnPlatformsAboveCamera", () => {
 describe("removePlatformsBelowCamera", () => {
   it("removes platforms below the camera bottom and keeps visible platforms", () => {
     const visibleTop = createTestStaticPlatform({ y: -50 });
-    const visibleBottom = createTestStaticPlatform({ y: TEST_CANVAS_HEIGHT });
+    const visibleBottom = createTestStaticPlatform({ y: CANVAS_HEIGHT });
     const belowScreen = createTestStaticPlatform({
-      y: TEST_CANVAS_HEIGHT + 1,
+      y: CANVAS_HEIGHT + 1,
     });
 
     expect(
       removePlatformsBelowCamera(
         [visibleTop, visibleBottom, belowScreen],
         0,
-        TEST_CANVAS_HEIGHT,
+        CANVAS_HEIGHT,
       ),
     ).toEqual([visibleTop, visibleBottom]);
   });
@@ -508,12 +509,12 @@ describe("updatePlatformsForCamera", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const expectedMaxPlatformCount =
       Math.ceil(
-        (TEST_CANVAS_HEIGHT * (SPAWN_LOOKAHEAD_SCREENS + 1)) /
+        (CANVAS_HEIGHT * (SPAWN_LOOKAHEAD_SCREENS + 1)) /
           getGapBounds(BASE_DIFFICULTY).minGap,
       ) + 1;
     let platforms = createInitialPlatforms(
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
     let maxPlatformCount = platforms.length;
@@ -522,8 +523,8 @@ describe("updatePlatformsForCamera", () => {
       platforms = updatePlatformsForCamera(
         platforms,
         screenTopY,
-        TEST_CANVAS_WIDTH,
-        TEST_CANVAS_HEIGHT,
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
         BASE_DIFFICULTY,
       );
       maxPlatformCount = Math.max(maxPlatformCount, platforms.length);

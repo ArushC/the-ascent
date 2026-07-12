@@ -18,6 +18,9 @@ type GameCanvasProps = {
   height: number;
 };
 
+export const CANVAS_WIDTH = 400;
+export const CANVAS_HEIGHT = 600;
+
 export function GameCanvas({ width, height }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [uiControls, setUiControls] = useState<GameControls | null>(null);

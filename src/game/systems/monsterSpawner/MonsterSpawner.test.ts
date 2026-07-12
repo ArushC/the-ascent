@@ -23,9 +23,11 @@ import {
 } from "./MonsterSpawner";
 import { SPAWN_LOOKAHEAD_SCREENS } from "../platformSpawner/PlatformSpawner";
 import { createTestHorizontalMonster } from "../../testing/entityFactories";
+import {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+} from "../../ui/gameCanvas/GameCanvas";
 
-const TEST_CANVAS_WIDTH = 400;
-const TEST_CANVAS_HEIGHT = 600;
 const MONSTER_KIND_ROLL_OFFSET = 0.01;
 const BASE_DIFFICULTY = getDifficultyParams(0);
 const HARD_DIFFICULTY = getDifficultyParams(SCORE_RAMP_END);
@@ -68,7 +70,7 @@ describe("spawnNextMonster", () => {
   it("spawns above the current topmost monster", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
-    const monster = spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
+    const monster = spawnNextMonster(100, CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(monster.y).toBeLessThan(100);
   });
@@ -77,19 +79,19 @@ describe("spawnNextMonster", () => {
     const randomSpy = vi.spyOn(Math, "random");
 
     randomSpy.mockReturnValue(0);
-    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
+    expect(spawnNextMonster(100, CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
       "horizontal",
     );
 
     randomSpy.mockReturnValue(HORIZONTAL_MONSTER_SPAWN_WEIGHT + 0.01);
-    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
+    expect(spawnNextMonster(100, CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
       "circular",
     );
 
     randomSpy.mockReturnValue(
       HORIZONTAL_MONSTER_SPAWN_WEIGHT + CIRCULAR_MONSTER_SPAWN_WEIGHT + 0.01,
     );
-    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
+    expect(spawnNextMonster(100, CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
       "triangular",
     );
   });
@@ -105,7 +107,7 @@ describe("spawnNextMonster", () => {
 
     const monster = spawnNextMonster(
       100,
-      TEST_CANVAS_WIDTH,
+      CANVAS_WIDTH,
       HARD_DIFFICULTY,
     );
 
@@ -146,14 +148,14 @@ describe("spawnMonstersAboveCamera", () => {
     const monsters = spawnMonstersAboveCamera(
       [],
       0,
-      TEST_CANVAS_WIDTH,
-      TEST_CANVAS_HEIGHT,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
       BASE_DIFFICULTY,
     );
 
     expect(monsters.length).toBeGreaterThan(0);
     expect(Math.min(...monsters.map((monster) => monster.y))).toBeLessThanOrEqual(
-      -TEST_CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
+      -CANVAS_HEIGHT * SPAWN_LOOKAHEAD_SCREENS,
     );
   });
 
@@ -164,8 +166,8 @@ describe("spawnMonstersAboveCamera", () => {
       spawnMonstersAboveCamera(
         [],
         0,
-        TEST_CANVAS_WIDTH,
-        TEST_CANVAS_HEIGHT,
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
         BASE_DIFFICULTY,
       ),
     ).toEqual([]);
@@ -175,16 +177,16 @@ describe("spawnMonstersAboveCamera", () => {
 describe("removeMonstersBelowCamera", () => {
   it("removes monsters below the camera bottom and keeps visible monsters", () => {
     const visibleTop = createTestHorizontalMonster({ y: -50 });
-    const visibleBottom = createTestHorizontalMonster({ y: TEST_CANVAS_HEIGHT });
+    const visibleBottom = createTestHorizontalMonster({ y: CANVAS_HEIGHT });
     const belowScreen = createTestHorizontalMonster({
-      y: TEST_CANVAS_HEIGHT + 1,
+      y: CANVAS_HEIGHT + 1,
     });
 
     expect(
       removeMonstersBelowCamera(
         [visibleTop, visibleBottom, belowScreen],
         0,
-        TEST_CANVAS_HEIGHT,
+        CANVAS_HEIGHT,
       ),
     ).toEqual([visibleTop, visibleBottom]);
   });
@@ -194,15 +196,15 @@ describe("updateMonstersForCamera", () => {
   it("cleans up old monsters while climbing", () => {
     vi.spyOn(Math, "random").mockReturnValue(1);
     const belowScreen = createTestHorizontalMonster({
-      y: TEST_CANVAS_HEIGHT + 1,
+      y: CANVAS_HEIGHT + 1,
     });
 
     expect(
       updateMonstersForCamera(
         [belowScreen],
         0,
-        TEST_CANVAS_WIDTH,
-        TEST_CANVAS_HEIGHT,
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
         BASE_DIFFICULTY,
       ),
     ).toEqual([]);

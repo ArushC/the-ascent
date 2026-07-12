@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CANVAS_HEIGHT } from "../../ui/gameCanvas/GameCanvas";
 import {
   CAMERA_FOLLOW_THRESHOLD_RATIO,
   isPlayerBelowScreen,
@@ -6,7 +7,6 @@ import {
   worldToScreenY,
 } from "./CameraSystem";
 
-const CANVAS_HEIGHT = 600;
 const FOLLOW_THRESHOLD_Y = CANVAS_HEIGHT * CAMERA_FOLLOW_THRESHOLD_RATIO;
 
 describe("updateCamera", () => {
