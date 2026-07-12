@@ -19,6 +19,7 @@
 .game-leaderboard h2 {
   margin: 0 0 var(--game-space-sm);
   font-size: var(--game-score-size);
+  color: var(--game-text);
 }
 
 .game-leaderboard-row {
