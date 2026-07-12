@@ -19,9 +19,14 @@ class TestKeyboardTarget {
     this.listeners[type].delete(listener);
   }
 
-  dispatch(type: KeyboardEventType, code: string): KeyboardEvent {
+  dispatch(
+    type: KeyboardEventType,
+    code: string,
+    target?: EventTarget,
+  ): KeyboardEvent {
     const event = {
       code,
+      target,
       preventDefault: vi.fn(),
     } as unknown as KeyboardEvent;
 
@@ -178,6 +183,31 @@ describe("KeyboardInput", () => {
     target.dispatch("keydown", "KeyH");
 
     expect(input.consumePhaseKeyPresses().help).toBe(true);
+  });
+
+  it("ignores game shortcuts while an input is focused", () => {
+    const { input, target } = createKeyboardInput();
+    const textInput = { tagName: "INPUT" } as unknown as EventTarget;
+
+    target.dispatch("keydown", "KeyH", textInput);
+    const spaceEvent = target.dispatch("keydown", "Space", textInput);
+    target.dispatch("keydown", "KeyP", textInput);
+
+    expect(input.consumePhaseKeyPresses()).toEqual({
+      start: false,
+      shoot: false,
+      pauseOrResume: false,
+      help: false,
+      powerupShortcuts: {
+        shrink: false,
+        slowMo: false,
+        armor: false,
+        doubleJump: false,
+        bigShot: false,
+        rocket: false,
+      },
+    });
+    expect(spaceEvent.preventDefault).not.toHaveBeenCalled();
   });
 
   it("consumes the Shrink powerup shortcut as an edge-triggered F action", () => {

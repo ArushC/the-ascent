@@ -43,6 +43,21 @@ const PHASE_ACTIONS_BY_CODE: Partial<Record<string, readonly PhaseActionKey[]>> 
     KeyR: ["rocket"],
 };
 
+type EditableKeyboardEventTarget = EventTarget & {
+  tagName?: string;
+  isContentEditable?: boolean;
+};
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!target) return false;
+
+  const editableTarget = target as EditableKeyboardEventTarget;
+  if (editableTarget.isContentEditable) return true;
+
+  const tagName = editableTarget.tagName?.toUpperCase();
+  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT";
+}
+
 export interface KeyboardEventTarget {
   addEventListener(type: KeyboardEventType, listener: KeyboardListener): void;
   removeEventListener(type: KeyboardEventType, listener: KeyboardListener): void;
@@ -108,6 +123,9 @@ export class KeyboardInput {
   };
 
   private updateKeyState(event: KeyboardEvent, pressed: boolean): void {
+    // Let focused text controls handle typing without triggering game shortcuts.
+    if (isEditableTarget(event.target)) return;
+
     switch (event.code) {
       case "ArrowLeft":
         event.preventDefault();

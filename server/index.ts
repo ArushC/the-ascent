@@ -8,9 +8,12 @@ import { recordScore } from "./leaderboard/routes/postScoreSubmission.ts";
 import { serveStatic } from "./static.ts";
 
 const DEFAULT_PORT = 3001;
-const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
+const MAX_PORT_ATTEMPTS = 10;
+const START_PORT = Number(process.env.PORT ?? DEFAULT_PORT);
 const DATABASE_FILE = process.env.LEADERBOARD_DB ?? DEFAULT_DATABASE_FILE;
 const db = createLeaderboardDb(DATABASE_FILE);
+let currentPort = START_PORT;
+let portAttempts = 0;
 
 const server = createServer((req, res) => {
   handleRequest(req, res, db).catch((error: unknown) => {
@@ -24,7 +27,16 @@ const server = createServer((req, res) => {
 
 server.on("error", (error: NodeJS.ErrnoException) => {
   if (error.code === "EADDRINUSE") {
-    console.error(`Port ${PORT} is already in use. Set PORT to run elsewhere.`);
+    if (portAttempts < MAX_PORT_ATTEMPTS) {
+      console.warn(`Port ${currentPort} is already in use. Trying ${currentPort + 1}.`);
+      currentPort += 1;
+      listen();
+      return;
+    }
+
+    console.error(
+      `Ports ${START_PORT}-${currentPort} are already in use. Set PORT to run elsewhere.`,
+    );
   } else {
     console.error(error);
   }
@@ -33,13 +45,20 @@ server.on("error", (error: NodeJS.ErrnoException) => {
   process.exit(1);
 });
 
+server.on("listening", () => {
+  console.log(`The Ascent listening on http://0.0.0.0:${currentPort}`);
+});
+
 if (process.env.NODE_ENV === "production" && !DATABASE_FILE.startsWith("/data/")) {
   console.warn(`Production LEADERBOARD_DB is not under /data: ${DATABASE_FILE}`);
 }
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`The Ascent listening on http://0.0.0.0:${PORT}`);
-});
+listen();
+
+function listen(): void {
+  portAttempts += 1;
+  server.listen(currentPort, "0.0.0.0");
+}
 
 async function handleRequest(
   req: IncomingMessage,
