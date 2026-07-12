@@ -9,7 +9,6 @@ import { updatePlatformSpringAnimations } from "./entities/spring/Spring";
 import { KeyboardInput } from "./input/keyboardInput/KeyboardInput";
 import {
   createPowerupInventory,
-  getPowerupGenerationProgress,
   isArmorPowerupReady,
   isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
@@ -18,6 +17,10 @@ import {
   isSlowMoPowerupReady,
   type PowerupInventory,
 } from "./powerups/powerupInventory/PowerupInventory";
+import {
+  getPowerupPanelState,
+  type PowerupPanelState,
+} from "./powerups/powerupPanelState/powerupPanelState";
 import {
   playerCollidesWithMonster,
   resolveArmoredMonsterCollision,
@@ -57,11 +60,6 @@ const NORMAL_TIME_SCALE = 1;
 const SLOW_MO_TIME_SCALE = 0.4 * NORMAL_TIME_SCALE;
 
 export type GamePhase = "ready" | "playing" | "paused" | "over";
-
-export type PowerupPanelState =
-  | { mode: "empty" }
-  | { mode: "generating"; progress: number }
-  | { mode: "ready"; label: string };
 
 export type GameUiState = {
   phase: GamePhase;
@@ -457,28 +455,8 @@ export class Game {
     this.publishUiState({
       phase: this.phase,
       score: getScore(this.scoreState),
-      powerupPanel: this.getPowerupPanelSnapshot(),
+      powerupPanel: getPowerupPanelState(this.powerupInventory),
       helpOpen: this.helpOpen,
     });
-  }
-
-  private getPowerupPanelSnapshot(): PowerupPanelState {
-    switch (this.powerupInventory.status) {
-      case "empty":
-        return { mode: "empty" };
-      case "generating": {
-        return {
-          mode: "generating",
-          progress: getPowerupGenerationProgress(
-            this.powerupInventory.remainingMs,
-          ),
-        };
-      }
-      case "ready":
-        return {
-          mode: "ready",
-          label: this.powerupInventory.powerup?.label ?? "No powerups found",
-        };
-    }
   }
 }

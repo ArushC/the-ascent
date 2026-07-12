@@ -1,8 +1,8 @@
-import type { GameUiState } from "../../Game";
+import type { PowerupPanelState } from "../../powerups/powerupPanelState/powerupPanelState";
 import "./PowerupPanel.css";
 
 type PowerupPanelProps = {
-  panel: GameUiState["powerupPanel"];
+  panel: PowerupPanelState;
   isPaused: boolean;
 };
 
