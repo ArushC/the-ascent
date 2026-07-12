@@ -7,7 +7,6 @@ import {
   isVerticalMovingPlatform,
 } from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
-import { computeSpringJumpHeight } from "../entities/Spring";
 import {
   createTestVerticalMovingPlatform,
   createTestStaticPlatform,
@@ -20,7 +19,6 @@ import {
   getGapBounds,
   getMovingPlatformTravelDistance,
   getRandomPlatformX,
-  getSpringGapBounds,
   getTopmostPlatformY,
   HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT,
   pickPlatformKind,
@@ -123,13 +121,6 @@ describe("platform gap bounds", () => {
     const { maxGap } = getGapBounds();
 
     expect(maxGap).toBeLessThan(computeMaxJumpHeight());
-  });
-
-  it("scales spring gaps from the spring jump height", () => {
-    const { minGap, maxGap } = getSpringGapBounds();
-
-    expect(minGap).toBeGreaterThan(getGapBounds().minGap);
-    expect(maxGap).toBeLessThan(computeSpringJumpHeight());
   });
 });
 
@@ -338,13 +329,13 @@ describe("spawnPlatformsAboveCamera", () => {
     );
   });
 
-  it("uses spring-aware gaps above a sprung topmost platform", () => {
+  it("uses normal gaps above a sprung topmost platform", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const sprungPlatform = createTestStaticPlatform({
       y: 100,
       hasSpring: true,
     });
-    const { minGap } = getSpringGapBounds();
+    const { minGap } = getGapBounds();
 
     const platforms = spawnPlatformsAboveCamera(
       [sprungPlatform],
@@ -399,6 +390,11 @@ describe("removePlatformsBelowCamera", () => {
 describe("updatePlatformsForCamera", () => {
   it("cleans up old platforms and keeps platform count bounded while climbing", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
+    const expectedMaxPlatformCount =
+      Math.ceil(
+        (TEST_CANVAS_HEIGHT * (SPAWN_LOOKAHEAD_SCREENS + 1)) /
+          getGapBounds().minGap,
+      ) + 1;
     let platforms = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
@@ -415,7 +411,7 @@ describe("updatePlatformsForCamera", () => {
       maxPlatformCount = Math.max(maxPlatformCount, platforms.length);
     }
 
-    expect(maxPlatformCount).toBeLessThanOrEqual(30);
+    expect(maxPlatformCount).toBeLessThanOrEqual(expectedMaxPlatformCount);
   });
 });
 

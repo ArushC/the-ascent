@@ -8,7 +8,6 @@ import {
   type Platform,
 } from "../entities/Platform";
 import { PLAYER_WIDTH } from "../entities/Player";
-import { computeSpringJumpHeight } from "../entities/Spring";
 import { createStaticPlatform } from "../entities/StaticPlatform";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "./PhysicsSystem";
 
@@ -26,8 +25,6 @@ const PLATFORM_SPAWN_WEIGHT_TOTAL =
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
-export const MIN_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.2;
-export const MAX_SPRING_PLATFORM_SPAWN_GAP_RATIO = 0.65;
 export const SPRING_SPAWN_PROBABILITY = 0.1;
 // Number of visible screen heights to keep spawned above the camera.
 export const SPAWN_LOOKAHEAD_SCREENS = 4;
@@ -43,15 +40,6 @@ export function getGapBounds(): { minGap: number; maxGap: number } {
   return {
     minGap: maxJumpHeight * MIN_PLATFORM_SPAWN_GAP_RATIO,
     maxGap: maxJumpHeight * MAX_PLATFORM_SPAWN_GAP_RATIO,
-  };
-}
-
-export function getSpringGapBounds(): { minGap: number; maxGap: number } {
-  const springJumpHeight = computeSpringJumpHeight();
-
-  return {
-    minGap: springJumpHeight * MIN_SPRING_PLATFORM_SPAWN_GAP_RATIO,
-    maxGap: springJumpHeight * MAX_SPRING_PLATFORM_SPAWN_GAP_RATIO,
   };
 }
 
@@ -124,12 +112,7 @@ export function spawnPlatformsAboveCamera(
 ): Platform[] {
   const platformsAhead = [...currentPlatforms];
   const lookaheadTopY = screenTopY - canvasHeight * SPAWN_LOOKAHEAD_SCREENS;
-  // Keep the topmost platform entity so the next gap can react to springs.
-  let topmostPlatform = getTopmostPlatform(platformsAhead);
-  let topmostY =
-    topmostPlatform === null
-      ? Number.POSITIVE_INFINITY
-      : getPlatformTopY(topmostPlatform);
+  let topmostY = getTopmostPlatformY(platformsAhead);
 
   if (!Number.isFinite(topmostY)) {
     // Recover from an empty platform state by seeding from the camera bottom.
@@ -139,13 +122,8 @@ export function spawnPlatformsAboveCamera(
   // World Y decreases upward, so keep spawning until topmostY reaches the
   // upper edge of the lookahead region.
   while (topmostY > lookaheadTopY) {
-    const gapBounds =
-      topmostPlatform?.hasSpring === true
-        ? getSpringGapBounds()
-        : getGapBounds();
-    const platform = spawnNextPlatform(topmostY, canvasWidth, gapBounds);
+    const platform = spawnNextPlatform(topmostY, canvasWidth);
     platformsAhead.push(platform);
-    topmostPlatform = platform;
     topmostY = getPlatformTopY(platform);
   }
 
