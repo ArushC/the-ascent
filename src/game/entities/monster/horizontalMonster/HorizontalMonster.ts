@@ -111,14 +111,16 @@ export function createHorizontalMonster(
   y: number,
   velocityX = generateRandomMonsterVelocity(),
   travelDistance = generateRandomHorizontalMonsterTravelDistance(),
+  width = HORIZONTAL_MONSTER_WIDTH,
+  height = HORIZONTAL_MONSTER_HEIGHT,
 ): HorizontalMonster {
   const halfTravelDistance = travelDistance / 2;
 
   return new HorizontalMonster(
     x,
     y,
-    HORIZONTAL_MONSTER_WIDTH,
-    HORIZONTAL_MONSTER_HEIGHT,
+    width,
+    height,
     velocityX,
     x - halfTravelDistance,
     x + halfTravelDistance,

@@ -47,11 +47,12 @@ export function createStaticPlatform(
   y: number,
   hasSpring = false,
   hasPowerup = false,
+  width = DEFAULT_PLATFORM_WIDTH,
 ): StaticPlatform {
   return new StaticPlatform(
     x,
     y,
-    DEFAULT_PLATFORM_WIDTH,
+    width,
     DEFAULT_PLATFORM_HEIGHT,
     hasSpring,
     hasPowerup,

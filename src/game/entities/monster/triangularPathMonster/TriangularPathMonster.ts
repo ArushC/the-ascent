@@ -111,6 +111,7 @@ export function createTriangularMonster(
   pathSize = generateRandomTriangularMonsterPathSize(),
   pathT = Math.random(),
   speed = generateRandomMonsterSpeed() * generateRandomMonsterDirection(),
+  size = TRIANGULAR_MONSTER_SIZE,
 ): TriangularPathMonster {
   const height = (Math.sqrt(3) / 2) * pathSize;
   const vertices: readonly [Point, Point, Point] = [
@@ -121,8 +122,8 @@ export function createTriangularMonster(
 
   return new TriangularPathMonster(
     vertices,
-    TRIANGULAR_MONSTER_SIZE,
-    TRIANGULAR_MONSTER_SIZE,
+    size,
+    size,
     pathT,
     speed,
   );

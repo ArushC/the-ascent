@@ -72,13 +72,14 @@ export function createHorizontalMovingPlatform(
   travelDistance = generateRandomMovingPlatformTravelDistance(),
   hasSpring = false,
   hasPowerup = false,
+  width = DEFAULT_PLATFORM_WIDTH,
 ): HorizontalMovingPlatform {
   const halfTravelDistance = travelDistance / 2;
 
   return new HorizontalMovingPlatform(
     x,
     y,
-    DEFAULT_PLATFORM_WIDTH,
+    width,
     DEFAULT_PLATFORM_HEIGHT,
     velocityX,
     x - halfTravelDistance,

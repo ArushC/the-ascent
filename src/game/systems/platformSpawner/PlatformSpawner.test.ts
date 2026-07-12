@@ -7,6 +7,11 @@ import {
   isVerticalMovingPlatform,
 } from "../../entities/platform/Platform";
 import { PLAYER_WIDTH } from "../../entities/player/Player";
+import { SPRING_WIDTH } from "../../entities/spring/Spring";
+import {
+  getDifficultyParams,
+  SCORE_RAMP_END,
+} from "../difficultySystem/DifficultySystem";
 import {
   createTestVerticalMovingPlatform,
   createTestStaticPlatform,
@@ -42,6 +47,9 @@ const EXPECTED_BOTTOM_PLATFORM_X =
 const EXPECTED_BOTTOM_PLATFORM_Y =
   TEST_CANVAS_HEIGHT - BOTTOM_PLATFORM_OFFSET;
 const PLATFORM_KIND_ROLL_OFFSET = 0.01;
+const BASE_DIFFICULTY = getDifficultyParams(0);
+const HARD_DIFFICULTY = getDifficultyParams(SCORE_RAMP_END);
+const BASE_GAP_BOUNDS = getGapBounds(BASE_DIFFICULTY);
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -54,6 +62,7 @@ describe("createInitialPlatforms", () => {
     const platforms = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     expect(platforms[0]).toMatchObject({
@@ -75,6 +84,7 @@ describe("createInitialPlatforms", () => {
     const platforms = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     expect(platforms[0].hasSpring).toBe(false);
@@ -89,12 +99,14 @@ describe("createInitialPlatforms", () => {
     const firstLayout = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     randomSpy.mockReturnValue(1);
     const secondLayout = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     expect(snapshotLayout(secondLayout)).not.toEqual(snapshotLayout(firstLayout));
@@ -102,11 +114,12 @@ describe("createInitialPlatforms", () => {
 
   it("keeps generated vertical gaps within the physics-derived bounds", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.25);
-    const { minGap, maxGap } = getGapBounds();
+    const { minGap, maxGap } = getGapBounds(BASE_DIFFICULTY);
 
     const platforms = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     for (let index = 1; index < platforms.length; index += 1) {
@@ -122,7 +135,7 @@ describe("createInitialPlatforms", () => {
 
 describe("platform gap bounds", () => {
   it("keeps max gap below the maximum jump height", () => {
-    const { maxGap } = getGapBounds();
+    const { maxGap } = getGapBounds(BASE_DIFFICULTY);
 
     expect(maxGap).toBeLessThan(computeMaxJumpHeight());
   });
@@ -139,15 +152,19 @@ describe("platform spawn weights", () => {
   });
 
   it("picks platform kinds from the weighted ranges", () => {
-    expect(pickPlatformKind(0)).toBe("static");
+    expect(pickPlatformKind(0, BASE_DIFFICULTY)).toBe("static");
     expect(
-      pickPlatformKind(STATIC_PLATFORM_SPAWN_WEIGHT + PLATFORM_KIND_ROLL_OFFSET),
+      pickPlatformKind(
+        STATIC_PLATFORM_SPAWN_WEIGHT + PLATFORM_KIND_ROLL_OFFSET,
+        BASE_DIFFICULTY,
+      ),
     ).toBe("horizontalMoving");
     expect(
       pickPlatformKind(
         STATIC_PLATFORM_SPAWN_WEIGHT +
           HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
           PLATFORM_KIND_ROLL_OFFSET,
+        BASE_DIFFICULTY,
       ),
     ).toBe("verticalMoving");
     expect(
@@ -156,6 +173,7 @@ describe("platform spawn weights", () => {
           HORIZONTAL_MOVING_PLATFORM_SPAWN_WEIGHT +
           VERTICAL_MOVING_PLATFORM_SPAWN_WEIGHT +
           PLATFORM_KIND_ROLL_OFFSET,
+        BASE_DIFFICULTY,
       ),
     ).toBe("diagonalMoving");
   });
@@ -195,7 +213,7 @@ describe("spawnNextPlatform", () => {
   it("spawns above the current topmost platform", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.y).toBeLessThan(100);
   });
@@ -211,13 +229,17 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("horizontalMoving");
     if (isHorizontalMovingPlatform(platform)) {
       expect(platform.velocityX).not.toBe(0);
       expect(platform.maxX - platform.minX).toBeCloseTo(
-        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+        getMovingPlatformTravelDistance(
+          TEST_CANVAS_WIDTH,
+          DEFAULT_PLATFORM_WIDTH,
+          BASE_GAP_BOUNDS,
+        ),
       );
     }
   });
@@ -235,13 +257,17 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("verticalMoving");
     if (isVerticalMovingPlatform(platform)) {
       expect(platform.velocityY).not.toBe(0);
       expect(platform.maxY - platform.minY).toBeCloseTo(
-        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+        getMovingPlatformTravelDistance(
+          TEST_CANVAS_WIDTH,
+          DEFAULT_PLATFORM_WIDTH,
+          BASE_GAP_BOUNDS,
+        ),
       );
     }
   });
@@ -262,17 +288,25 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("diagonalMoving");
     if (isDiagonalMovingPlatform(platform)) {
       expect(platform.velocityX).not.toBe(0);
       expect(platform.velocityY).not.toBe(0);
       expect(platform.maxX - platform.minX).toBeCloseTo(
-        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+        getMovingPlatformTravelDistance(
+          TEST_CANVAS_WIDTH,
+          DEFAULT_PLATFORM_WIDTH,
+          BASE_GAP_BOUNDS,
+        ),
       );
       expect(platform.maxY - platform.minY).toBeCloseTo(
-        getMovingPlatformTravelDistance(TEST_CANVAS_WIDTH),
+        getMovingPlatformTravelDistance(
+          TEST_CANVAS_WIDTH,
+          DEFAULT_PLATFORM_WIDTH,
+          BASE_GAP_BOUNDS,
+        ),
       );
     }
   });
@@ -284,7 +318,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(1);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.kind).toBe("static");
   });
@@ -297,7 +331,7 @@ describe("spawnNextPlatform", () => {
       .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY)
       .mockReturnValueOnce(0);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.hasSpring).toBe(true);
     expect(platform.hasPowerup).toBe(false);
@@ -307,13 +341,50 @@ describe("spawnNextPlatform", () => {
     vi.spyOn(Math, "random")
       .mockReturnValueOnce(0.5)
       .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(0.5)
-      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY - 0.01);
+      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY - 0.01)
+      .mockReturnValueOnce(0.5);
 
-    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH);
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(platform.hasSpring).toBe(false);
     expect(platform.hasPowerup).toBe(true);
+  });
+
+  it("clamps spring platform width to the spring width", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(POWERUP_SPAWN_PROBABILITY)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0.5);
+    const params = {
+      ...getDifficultyParams(0),
+      minPlatformWidth: 10,
+      maxPlatformWidth: 10,
+    };
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, params);
+
+    expect(platform.hasSpring).toBe(true);
+    expect(platform.width).toBe(SPRING_WIDTH);
+  });
+
+  it("uses hard-score gap and width params at spawn", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0.5);
+
+    const platform = spawnNextPlatform(100, TEST_CANVAS_WIDTH, HARD_DIFFICULTY);
+
+    expect(platform.kind).toBe("static");
+    expect(platform.width).toBe(70);
+    expect(platform.y).toBeCloseTo(
+      100 - getGapBounds(HARD_DIFFICULTY).minGap,
+    );
   });
 });
 
@@ -364,6 +435,7 @@ describe("spawnPlatformsAboveCamera", () => {
       0,
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     expect(Math.min(...platforms.map(getPlatformTopY))).toBeLessThanOrEqual(
@@ -377,13 +449,14 @@ describe("spawnPlatformsAboveCamera", () => {
       y: 100,
       hasSpring: true,
     });
-    const { minGap } = getGapBounds();
+    const { minGap } = getGapBounds(BASE_DIFFICULTY);
 
     const platforms = spawnPlatformsAboveCamera(
       [sprungPlatform],
       0,
       TEST_CANVAS_WIDTH,
       10,
+      BASE_DIFFICULTY,
     );
 
     expect(platforms[1].y).toBeCloseTo(sprungPlatform.y - minGap);
@@ -391,7 +464,7 @@ describe("spawnPlatformsAboveCamera", () => {
 
   it("continues spawning from a moving platform's effective top", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
-    const { minGap, maxGap } = getGapBounds();
+    const { minGap, maxGap } = getGapBounds(BASE_DIFFICULTY);
     const currentTop = 60;
     const movingPlatform = createTestVerticalMovingPlatform({
       y: 100,
@@ -405,6 +478,7 @@ describe("spawnPlatformsAboveCamera", () => {
       0,
       TEST_CANVAS_WIDTH,
       100,
+      BASE_DIFFICULTY,
     );
 
     expect(platforms[1].y).toBeCloseTo(currentTop - (minGap + maxGap) / 2);
@@ -435,11 +509,12 @@ describe("updatePlatformsForCamera", () => {
     const expectedMaxPlatformCount =
       Math.ceil(
         (TEST_CANVAS_HEIGHT * (SPAWN_LOOKAHEAD_SCREENS + 1)) /
-          getGapBounds().minGap,
+          getGapBounds(BASE_DIFFICULTY).minGap,
       ) + 1;
     let platforms = createInitialPlatforms(
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
     let maxPlatformCount = platforms.length;
 
@@ -449,6 +524,7 @@ describe("updatePlatformsForCamera", () => {
         screenTopY,
         TEST_CANVAS_WIDTH,
         TEST_CANVAS_HEIGHT,
+        BASE_DIFFICULTY,
       );
       maxPlatformCount = Math.max(maxPlatformCount, platforms.length);
     }

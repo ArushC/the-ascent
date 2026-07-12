@@ -1,57 +1,61 @@
-const MIN_MONSTER_SPEED = 0.07;
-const MAX_MONSTER_SPEED = 0.11;
-const MIN_HORIZONTAL_MONSTER_TRAVEL_DISTANCE = 24;
-const MAX_HORIZONTAL_MONSTER_TRAVEL_DISTANCE = 48;
-const MIN_CIRCULAR_MONSTER_ORBIT_RADIUS = 24;
-const MAX_CIRCULAR_MONSTER_ORBIT_RADIUS = 48;
-const MIN_TRIANGULAR_MONSTER_PATH_SIZE = 48;
-const MAX_TRIANGULAR_MONSTER_PATH_SIZE = 72;
+export const MIN_MONSTER_SPEED = 0.07;
+export const MAX_MONSTER_SPEED = 0.11;
+export const MIN_HORIZONTAL_MONSTER_TRAVEL_DISTANCE = 24;
+export const MAX_HORIZONTAL_MONSTER_TRAVEL_DISTANCE = 48;
+export const MIN_CIRCULAR_MONSTER_ORBIT_RADIUS = 24;
+export const MAX_CIRCULAR_MONSTER_ORBIT_RADIUS = 48;
+export const MIN_TRIANGULAR_MONSTER_PATH_SIZE = 48;
+export const MAX_TRIANGULAR_MONSTER_PATH_SIZE = 72;
 
-export function generateRandomMonsterSpeed(): number {
-  return (
-    MIN_MONSTER_SPEED +
-    Math.random() * (MAX_MONSTER_SPEED - MIN_MONSTER_SPEED)
-  );
+export function generateRandomMonsterSpeed(
+  min = MIN_MONSTER_SPEED,
+  max = MAX_MONSTER_SPEED,
+): number {
+  return min + Math.random() * (max - min);
 }
 
 export function generateRandomMonsterDirection(): number {
   return Math.random() < 0.5 ? -1 : 1;
 }
 
-export function generateRandomMonsterVelocity(): number {
-  return generateRandomMonsterSpeed() * generateRandomMonsterDirection();
-}
-
-export function generateRandomHorizontalMonsterTravelDistance(): number {
+export function generateRandomMonsterVelocity(
+  minSpeed = MIN_MONSTER_SPEED,
+  maxSpeed = MAX_MONSTER_SPEED,
+): number {
   return (
-    MIN_HORIZONTAL_MONSTER_TRAVEL_DISTANCE +
-    Math.random() *
-      (MAX_HORIZONTAL_MONSTER_TRAVEL_DISTANCE -
-        MIN_HORIZONTAL_MONSTER_TRAVEL_DISTANCE)
+    generateRandomMonsterSpeed(minSpeed, maxSpeed) *
+    generateRandomMonsterDirection()
   );
 }
 
-export function generateRandomCircularMonsterOrbitRadius(): number {
-  return (
-    MIN_CIRCULAR_MONSTER_ORBIT_RADIUS +
-    Math.random() *
-      (MAX_CIRCULAR_MONSTER_ORBIT_RADIUS -
-        MIN_CIRCULAR_MONSTER_ORBIT_RADIUS)
-  );
+export function generateRandomHorizontalMonsterTravelDistance(
+  min = MIN_HORIZONTAL_MONSTER_TRAVEL_DISTANCE,
+  max = MAX_HORIZONTAL_MONSTER_TRAVEL_DISTANCE,
+): number {
+  return min + Math.random() * (max - min);
+}
+
+export function generateRandomCircularMonsterOrbitRadius(
+  min = MIN_CIRCULAR_MONSTER_ORBIT_RADIUS,
+  max = MAX_CIRCULAR_MONSTER_ORBIT_RADIUS,
+): number {
+  return min + Math.random() * (max - min);
 }
 
 export function generateRandomCircularMonsterAngularVelocity(
   radius: number,
+  minSpeed = MIN_MONSTER_SPEED,
+  maxSpeed = MAX_MONSTER_SPEED,
 ): number {
   return (
-    (generateRandomMonsterSpeed() / radius) * generateRandomMonsterDirection()
+    (generateRandomMonsterSpeed(minSpeed, maxSpeed) / radius) *
+    generateRandomMonsterDirection()
   );
 }
 
-export function generateRandomTriangularMonsterPathSize(): number {
-  return (
-    MIN_TRIANGULAR_MONSTER_PATH_SIZE +
-    Math.random() *
-      (MAX_TRIANGULAR_MONSTER_PATH_SIZE - MIN_TRIANGULAR_MONSTER_PATH_SIZE)
-  );
+export function generateRandomTriangularMonsterPathSize(
+  min = MIN_TRIANGULAR_MONSTER_PATH_SIZE,
+  max = MAX_TRIANGULAR_MONSTER_PATH_SIZE,
+): number {
+  return min + Math.random() * (max - min);
 }

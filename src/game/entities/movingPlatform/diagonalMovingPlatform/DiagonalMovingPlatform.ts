@@ -88,13 +88,14 @@ export function createDiagonalMovingPlatform(
   travelDistance = generateRandomMovingPlatformTravelDistance(),
   hasSpring = false,
   hasPowerup = false,
+  width = DEFAULT_PLATFORM_WIDTH,
 ): DiagonalMovingPlatform {
   const halfTravelDistance = travelDistance / 2;
 
   return new DiagonalMovingPlatform(
     x,
     y,
-    DEFAULT_PLATFORM_WIDTH,
+    width,
     DEFAULT_PLATFORM_HEIGHT,
     velocityX,
     velocityY,

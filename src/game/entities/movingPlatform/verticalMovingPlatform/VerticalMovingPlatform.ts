@@ -73,13 +73,14 @@ export function createVerticalMovingPlatform(
   travelDistance = generateRandomMovingPlatformTravelDistance(),
   hasSpring = false,
   hasPowerup = false,
+  width = DEFAULT_PLATFORM_WIDTH,
 ): VerticalMovingPlatform {
   const halfTravelDistance = travelDistance / 2;
 
   return new VerticalMovingPlatform(
     x,
     y,
-    DEFAULT_PLATFORM_WIDTH,
+    width,
     DEFAULT_PLATFORM_HEIGHT,
     velocityY,
     y - halfTravelDistance,

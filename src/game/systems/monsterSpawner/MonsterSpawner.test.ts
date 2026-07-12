@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  HORIZONTAL_MONSTER_HEIGHT,
+  HORIZONTAL_MONSTER_WIDTH,
+  isHorizontalMonster,
+} from "../../entities/monster/Monster";
+import {
+  getDifficultyParams,
+  SCORE_RAMP_END,
+} from "../difficultySystem/DifficultySystem";
+import {
   CIRCULAR_MONSTER_SPAWN_WEIGHT,
   createInitialMonsters,
   HORIZONTAL_MONSTER_SPAWN_WEIGHT,
@@ -18,6 +27,8 @@ import { createTestHorizontalMonster } from "../../testing/entityFactories";
 const TEST_CANVAS_WIDTH = 400;
 const TEST_CANVAS_HEIGHT = 600;
 const MONSTER_KIND_ROLL_OFFSET = 0.01;
+const BASE_DIFFICULTY = getDifficultyParams(0);
+const HARD_DIFFICULTY = getDifficultyParams(SCORE_RAMP_END);
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -57,7 +68,7 @@ describe("spawnNextMonster", () => {
   it("spawns above the current topmost monster", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.5);
 
-    const monster = spawnNextMonster(100, TEST_CANVAS_WIDTH);
+    const monster = spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY);
 
     expect(monster.y).toBeLessThan(100);
   });
@@ -66,15 +77,45 @@ describe("spawnNextMonster", () => {
     const randomSpy = vi.spyOn(Math, "random");
 
     randomSpy.mockReturnValue(0);
-    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH).kind).toBe("horizontal");
+    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
+      "horizontal",
+    );
 
     randomSpy.mockReturnValue(HORIZONTAL_MONSTER_SPAWN_WEIGHT + 0.01);
-    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH).kind).toBe("circular");
+    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
+      "circular",
+    );
 
     randomSpy.mockReturnValue(
       HORIZONTAL_MONSTER_SPAWN_WEIGHT + CIRCULAR_MONSTER_SPAWN_WEIGHT + 0.01,
     );
-    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH).kind).toBe("triangular");
+    expect(spawnNextMonster(100, TEST_CANVAS_WIDTH, BASE_DIFFICULTY).kind).toBe(
+      "triangular",
+    );
+  });
+
+  it("applies high-score size and movement ranges at spawn", () => {
+    vi.spyOn(Math, "random")
+      .mockReturnValueOnce(0.5)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(1)
+      .mockReturnValueOnce(0.5);
+
+    const monster = spawnNextMonster(
+      100,
+      TEST_CANVAS_WIDTH,
+      HARD_DIFFICULTY,
+    );
+
+    expect(monster.kind).toBe("horizontal");
+    expect(isHorizontalMonster(monster)).toBe(true);
+    if (isHorizontalMonster(monster)) {
+      expect(monster.width).toBe(HORIZONTAL_MONSTER_WIDTH * 1.25);
+      expect(monster.height).toBe(HORIZONTAL_MONSTER_HEIGHT * 1.25);
+      expect(monster.maxX - monster.minX).toBe(72);
+    }
   });
 });
 
@@ -83,10 +124,18 @@ describe("rollMonsterSpawn", () => {
     const randomSpy = vi.spyOn(Math, "random");
 
     randomSpy.mockReturnValue(MONSTER_SPAWN_PROBABILITY - 0.01);
-    expect(rollMonsterSpawn()).toBe(true);
+    expect(rollMonsterSpawn(BASE_DIFFICULTY)).toBe(true);
 
     randomSpy.mockReturnValue(MONSTER_SPAWN_PROBABILITY);
-    expect(rollMonsterSpawn()).toBe(false);
+    expect(rollMonsterSpawn(BASE_DIFFICULTY)).toBe(false);
+  });
+
+  it("uses hard-score spawn probability when params are passed", () => {
+    const randomSpy = vi.spyOn(Math, "random");
+
+    randomSpy.mockReturnValue(0.27);
+    expect(rollMonsterSpawn(BASE_DIFFICULTY)).toBe(false);
+    expect(rollMonsterSpawn(HARD_DIFFICULTY)).toBe(true);
   });
 });
 
@@ -99,6 +148,7 @@ describe("spawnMonstersAboveCamera", () => {
       0,
       TEST_CANVAS_WIDTH,
       TEST_CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
     );
 
     expect(monsters.length).toBeGreaterThan(0);
@@ -111,7 +161,13 @@ describe("spawnMonstersAboveCamera", () => {
     vi.spyOn(Math, "random").mockReturnValue(1);
 
     expect(
-      spawnMonstersAboveCamera([], 0, TEST_CANVAS_WIDTH, TEST_CANVAS_HEIGHT),
+      spawnMonstersAboveCamera(
+        [],
+        0,
+        TEST_CANVAS_WIDTH,
+        TEST_CANVAS_HEIGHT,
+        BASE_DIFFICULTY,
+      ),
     ).toEqual([]);
   });
 });
@@ -147,6 +203,7 @@ describe("updateMonstersForCamera", () => {
         0,
         TEST_CANVAS_WIDTH,
         TEST_CANVAS_HEIGHT,
+        BASE_DIFFICULTY,
       ),
     ).toEqual([]);
   });

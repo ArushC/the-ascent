@@ -90,12 +90,13 @@ export function createCircularMonster(
   radius = generateRandomCircularMonsterOrbitRadius(),
   angle = Math.random() * 2 * Math.PI,
   angularVelocity = generateRandomCircularMonsterAngularVelocity(radius),
+  size = CIRCULAR_MONSTER_SIZE,
 ): CircularMonster {
   return new CircularMonster(
     centerX,
     centerY,
-    CIRCULAR_MONSTER_SIZE,
-    CIRCULAR_MONSTER_SIZE,
+    size,
+    size,
     radius,
     angle,
     angularVelocity,

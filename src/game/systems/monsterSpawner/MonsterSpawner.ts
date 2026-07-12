@@ -1,5 +1,7 @@
 import {
   CIRCULAR_MONSTER_SIZE,
+  HORIZONTAL_MONSTER_HEIGHT,
+  HORIZONTAL_MONSTER_WIDTH,
   TRIANGULAR_MONSTER_SIZE,
   type Monster,
 } from "../../entities/monster/Monster";
@@ -9,8 +11,11 @@ import {
   generateRandomHorizontalMonsterTravelDistance,
   generateRandomCircularMonsterOrbitRadius,
   generateRandomTriangularMonsterPathSize,
+  generateRandomCircularMonsterAngularVelocity,
+  generateRandomMonsterVelocity,
 } from "../../entities/monster/random/random";
 import { createTriangularMonster } from "../../entities/monster/triangularPathMonster/TriangularPathMonster";
+import type { DifficultyParams } from "../difficultySystem/DifficultySystem";
 import {
   getGapBounds,
   getRandomPlatformX,
@@ -33,12 +38,13 @@ export function createInitialMonsters(): Monster[] {
 export function spawnNextMonster(
   topmostY: number,
   canvasWidth: number,
-  gapBounds = getGapBounds(),
+  params: DifficultyParams,
+  gapBounds = getGapBounds(params),
 ): Monster {
   const { minGap, maxGap } = gapBounds;
   const y = topmostY - randomBetween(minGap, maxGap);
 
-  return spawnMonsterAtY(y, canvasWidth);
+  return spawnMonsterAtY(y, canvasWidth, params);
 }
 
 export function spawnMonstersAboveCamera(
@@ -46,10 +52,11 @@ export function spawnMonstersAboveCamera(
   screenTopY: number,
   canvasWidth: number,
   canvasHeight: number,
+  params: DifficultyParams,
 ): Monster[] {
   const monstersAhead = [...currentMonsters];
   const lookaheadTopY = screenTopY - canvasHeight * SPAWN_LOOKAHEAD_SCREENS;
-  const { minGap, maxGap } = getGapBounds();
+  const { minGap, maxGap } = getGapBounds(params);
   let topmostY = getTopmostMonsterY(monstersAhead);
 
   if (!Number.isFinite(topmostY)) {
@@ -59,8 +66,8 @@ export function spawnMonstersAboveCamera(
   while (topmostY > lookaheadTopY) {
     topmostY -= randomBetween(minGap, maxGap);
 
-    if (rollMonsterSpawn()) {
-      monstersAhead.push(spawnMonsterAtY(topmostY, canvasWidth));
+    if (rollMonsterSpawn(params)) {
+      monstersAhead.push(spawnMonsterAtY(topmostY, canvasWidth, params));
     }
   }
 
@@ -82,12 +89,14 @@ export function updateMonstersForCamera(
   screenTopY: number,
   canvasWidth: number,
   canvasHeight: number,
+  params: DifficultyParams,
 ): Monster[] {
   return spawnMonstersAboveCamera(
     removeMonstersBelowCamera(monsters, screenTopY, canvasHeight),
     screenTopY,
     canvasWidth,
     canvasHeight,
+    params,
   );
 }
 
@@ -103,43 +112,90 @@ export function pickMonsterKind(roll: number): Monster["kind"] {
   return "triangular";
 }
 
-export function rollMonsterSpawn(): boolean {
-  return Math.random() < MONSTER_SPAWN_PROBABILITY;
+export function rollMonsterSpawn(
+  params: DifficultyParams,
+): boolean {
+  return Math.random() < params.monsterSpawnProbability;
 }
 
-function spawnMonsterAtY(y: number, canvasWidth: number): Monster {
+function spawnMonsterAtY(
+  y: number,
+  canvasWidth: number,
+  params: DifficultyParams,
+): Monster {
   switch (pickMonsterKind(Math.random() * MONSTER_SPAWN_WEIGHT_TOTAL)) {
     case "horizontal": {
-      const travelDistance = generateRandomHorizontalMonsterTravelDistance();
-      const x = getRandomPlatformX(canvasWidth, travelDistance);
+      const width = HORIZONTAL_MONSTER_WIDTH * params.monsterSizeScale;
+      const height = HORIZONTAL_MONSTER_HEIGHT * params.monsterSizeScale;
+      const travelDistance = generateRandomHorizontalMonsterTravelDistance(
+        params.minHorizontalMonsterTravel,
+        params.maxHorizontalMonsterTravel,
+      );
+      const velocityX = generateRandomMonsterVelocity(
+        params.minMonsterSpeed,
+        params.maxMonsterSpeed,
+      );
+      const x = getRandomPlatformX(canvasWidth, travelDistance, width);
 
-      return createHorizontalMonster(x, y, undefined, travelDistance);
+      return createHorizontalMonster(
+        x,
+        y,
+        velocityX,
+        travelDistance,
+        width,
+        height,
+      );
     }
     case "circular": {
+      const size = CIRCULAR_MONSTER_SIZE * params.monsterSizeScale;
       const radius = getClampedOrbitRadius(
-        generateRandomCircularMonsterOrbitRadius(),
+        generateRandomCircularMonsterOrbitRadius(
+          params.minCircularMonsterOrbitRadius,
+          params.maxCircularMonsterOrbitRadius,
+        ),
         canvasWidth,
+        size,
       );
-      const centerX = getRandomCenterX(
-        canvasWidth,
+      const angularVelocity = generateRandomCircularMonsterAngularVelocity(
         radius,
-        CIRCULAR_MONSTER_SIZE,
+        params.minMonsterSpeed,
+        params.maxMonsterSpeed,
       );
+      const centerX = getRandomCenterX(canvasWidth, radius, size);
 
-      return createCircularMonster(centerX, y, radius);
+      return createCircularMonster(
+        centerX,
+        y,
+        radius,
+        undefined,
+        angularVelocity,
+        size,
+      );
     }
     case "triangular": {
+      const size = TRIANGULAR_MONSTER_SIZE * params.monsterSizeScale;
       const pathSize = getClampedTriangularPathSize(
-        generateRandomTriangularMonsterPathSize(),
+        generateRandomTriangularMonsterPathSize(
+          params.minTriangularMonsterPathSize,
+          params.maxTriangularMonsterPathSize,
+        ),
         canvasWidth,
+        size,
       );
-      const centerX = getRandomCenterX(
-        canvasWidth,
-        pathSize / 2,
-        TRIANGULAR_MONSTER_SIZE,
+      const speed = generateRandomMonsterVelocity(
+        params.minMonsterSpeed,
+        params.maxMonsterSpeed,
       );
+      const centerX = getRandomCenterX(canvasWidth, pathSize / 2, size);
 
-      return createTriangularMonster(centerX, y, pathSize);
+      return createTriangularMonster(
+        centerX,
+        y,
+        pathSize,
+        undefined,
+        speed,
+        size,
+      );
     }
   }
 }
@@ -150,8 +206,12 @@ function getTopmostMonsterY(monsters: readonly Monster[]): number {
   return Math.min(...monsters.map((monster) => monster.y));
 }
 
-function getClampedOrbitRadius(radius: number, canvasWidth: number): number {
-  const maxRadius = Math.max(0, (canvasWidth - CIRCULAR_MONSTER_SIZE) / 2);
+function getClampedOrbitRadius(
+  radius: number,
+  canvasWidth: number,
+  monsterSize: number,
+): number {
+  const maxRadius = Math.max(0, (canvasWidth - monsterSize) / 2);
 
   return Math.min(radius, maxRadius);
 }
@@ -159,8 +219,9 @@ function getClampedOrbitRadius(radius: number, canvasWidth: number): number {
 function getClampedTriangularPathSize(
   pathSize: number,
   canvasWidth: number,
+  monsterSize: number,
 ): number {
-  return Math.min(pathSize, Math.max(0, canvasWidth - TRIANGULAR_MONSTER_SIZE));
+  return Math.min(pathSize, Math.max(0, canvasWidth - monsterSize));
 }
 
 function getRandomCenterX(

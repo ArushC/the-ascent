@@ -25,6 +25,7 @@ import {
   resolvePlatformLanding,
 } from "./systems/collisionSystem/CollisionSystem";
 import { isPlayerBelowScreen, updateCamera } from "./systems/cameraSystem/CameraSystem";
+import { getDifficultyParams } from "./systems/difficultySystem/DifficultySystem";
 import {
   createInitialPlatforms,
   updatePlatformsForCamera,
@@ -103,7 +104,11 @@ export class Game {
     this.publishUiState = publishUiState;
     this.player = createPlayer(canvas);
     this.scoreState = createScoreState(this.player.y);
-    this.platforms = createInitialPlatforms(canvas.width, canvas.height);
+    this.platforms = createInitialPlatforms(
+      canvas.width,
+      canvas.height,
+      getDifficultyParams(0),
+    );
     this.monsters = createInitialMonsters();
   }
 
@@ -311,17 +316,20 @@ export class Game {
       this.canvas.height,
     );
     this.scoreState = updateScore(this.scoreState, this.player.y);
+    const difficultyParams = getDifficultyParams(getScore(this.scoreState));
     this.monsters = updateMonstersForCamera(
       this.monsters,
       this.screenTopY,
       this.canvas.width,
       this.canvas.height,
+      difficultyParams,
     );
     this.platforms = updatePlatformsForCamera(
       this.platforms,
       this.screenTopY,
       this.canvas.width,
       this.canvas.height,
+      difficultyParams,
     );
     this.projectiles = removeOffScreenProjectiles(this.projectiles, {
       screenTopY: this.screenTopY,
@@ -394,6 +402,7 @@ export class Game {
     this.platforms = createInitialPlatforms(
       this.canvas.width,
       this.canvas.height,
+      getDifficultyParams(0),
     );
     this.monsters = createInitialMonsters();
     this.projectiles = [];

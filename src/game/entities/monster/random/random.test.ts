@@ -54,6 +54,22 @@ describe("monster random helpers", () => {
     expect(generateRandomTriangularMonsterPathSize()).toBe(72);
   });
 
+  it("uses optional override ranges", () => {
+    const randomSpy = vi.spyOn(Math, "random");
+
+    randomSpy.mockReturnValue(0);
+    expect(generateRandomMonsterSpeed(1, 2)).toBe(1);
+    expect(generateRandomHorizontalMonsterTravelDistance(10, 20)).toBe(10);
+    expect(generateRandomCircularMonsterOrbitRadius(30, 40)).toBe(30);
+    expect(generateRandomTriangularMonsterPathSize(50, 60)).toBe(50);
+
+    randomSpy.mockReturnValue(1);
+    expect(generateRandomMonsterSpeed(1, 2)).toBe(2);
+    expect(generateRandomHorizontalMonsterTravelDistance(10, 20)).toBe(20);
+    expect(generateRandomCircularMonsterOrbitRadius(30, 40)).toBe(40);
+    expect(generateRandomTriangularMonsterPathSize(50, 60)).toBe(60);
+  });
+
   it("derives angular velocity from linear speed and radius", () => {
     vi.spyOn(Math, "random").mockReturnValueOnce(0.5).mockReturnValueOnce(1);
 
