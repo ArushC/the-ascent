@@ -1,21 +1,20 @@
 {
-  "FEATURE": "Backend leaderboard with anonymous player identity, personal bests, global top 10, shared validation, and game-over UI integration.",
+  "FEATURE": "Private leaderboard with anonymous player identity, personal bests, shared score validation, and game-over UI integration.",
   "REQUIREMENTS": [
-    "Submit playerId, playerName, and score on game over.",
-    "Persist every run and each player's personal best.",
-    "Expose GET /api/leaderboard?limit=10 and GET /api/players/:playerId/best.",
-    "Generate anonymous UUID identity once and store it with playerName in localStorage.",
-    "Validate player names on the frontend and backend with shared rules.",
+    "Submit playerId and score on game over.",
+    "Persist each player's top 100 runs and personal best.",
+    "Expose GET /api/leaderboard?playerId=<uuid> and GET /api/players/:playerId/best.",
+    "Generate anonymous UUID identity once and store it in localStorage.",
     "Accept only non-negative integer scores up to Number.MAX_SAFE_INTEGER.",
     "Keep score submission non-blocking and show graceful fallback text for fetch failures.",
     "Use existing game menu CSS variables and patterns."
   ],
   "ARCHITECTURE": {
     "networkIo": "React GameCanvas effects only; Game.ts and systems remain synchronous.",
-    "identity": "Client-generated UUID stored as the-ascent:player-id and display name stored as the-ascent:player-name.",
+    "identity": "Client-generated UUID stored as the-ascent:player-id.",
     "validation": "shared/leaderboard/schemas.ts for server routes; shared/leaderboard/validation.ts for client UX helpers.",
     "server": "Node http server with node:sqlite to avoid adding dependencies.",
-    "database": "players table stores personal bests; score_runs table stores individual runs ranked by score desc and created_at asc.",
-    "frontend": "GameCanvas orchestrates submit/fetch; GameMenu remains presentational; PlayerNamePrompt owns name entry."
+    "database": "players table stores personal bests; score_runs table stores private individual runs ranked by score desc and created_at asc.",
+    "frontend": "GameCanvas orchestrates submit/fetch; GameMenu remains presentational."
   }
 }

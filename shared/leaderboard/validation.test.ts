@@ -1,18 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_SCORE, validatePlayerName, validateScore } from "./validation.ts";
-
-describe("validatePlayerName", () => {
-  it("accepts trimmed letters, numbers, spaces, underscores, and hyphens", () => {
-    expect(validatePlayerName(" Ada_99-1 ").ok).toBe(true);
-    expect(validatePlayerName("hello world").ok).toBe(true);
-  });
-
-  it("rejects empty, long, and unsupported names", () => {
-    expect(validatePlayerName("  ").ok).toBe(false);
-    expect(validatePlayerName("a".repeat(25)).ok).toBe(false);
-    expect(validatePlayerName("<script>").ok).toBe(false);
-  });
-});
+import { MAX_SCORE, validateScore } from "./validation.ts";
 
 describe("validateScore", () => {
   it("accepts non-negative scores up to the gameplay cap", () => {

@@ -1,20 +1,6 @@
 import type { LeaderboardEntry } from "../../../api/leaderboard";
-import type { PersonalBestState } from "../state/leaderboardState";
 
 export const LEADERBOARD_PAGE_SIZE = 10;
-
-export function renderPersonalBestText(personalBest: PersonalBestState): string {
-  switch (personalBest.status) {
-    case "loading":
-      return "Your best: Loading...";
-    case "loaded":
-      return `Your best: ${personalBest.score ?? 0}`;
-    case "error":
-      return "Your best unavailable";
-    case "idle":
-      return "Your best: --";
-  }
-}
 
 export function getLeaderboardPageCount(totalEntries: number): number {
   return Math.max(1, Math.ceil(totalEntries / LEADERBOARD_PAGE_SIZE));

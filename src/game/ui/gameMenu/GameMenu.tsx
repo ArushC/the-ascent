@@ -1,11 +1,7 @@
 import type { GamePhase } from "../../Game";
 import type { GameControls } from "../../Game";
 import { Leaderboard } from "../leaderboard/Leaderboard";
-import { renderPersonalBestText } from "../../leaderboard/menu/leaderboardMenu";
-import type {
-  LeaderboardState,
-  PersonalBestState,
-} from "../../leaderboard/state/leaderboardState";
+import type { LeaderboardState } from "../../leaderboard/state/leaderboardState";
 import "../leaderboard/leaderboard-ui.css";
 
 export type GameMenuPhase = Exclude<GamePhase, "playing">;
@@ -14,7 +10,6 @@ type GameMenuProps = {
   phase: GameMenuPhase;
   score: number;
   controls: GameControls;
-  personalBest: PersonalBestState;
   leaderboard: LeaderboardState;
 };
 
@@ -46,7 +41,6 @@ export function GameMenu({
   phase,
   score,
   controls,
-  personalBest,
   leaderboard,
 }: GameMenuProps) {
   const title = MENU_TITLES[phase];
@@ -59,7 +53,6 @@ export function GameMenu({
         {phase === "over" ? (
           <>
             <p>Final score: {score}</p>
-            <p>{renderPersonalBestText(personalBest)}</p>
             <Leaderboard leaderboard={leaderboard} />
           </>
         ) : null}

@@ -8,10 +8,11 @@ import type {
   ScoreSubmissionResult,
 } from "../../shared/leaderboard/types.ts";
 import {
+  DELETE_EXCESS_PLAYER_SCORE_RUNS_SQL,
   INSERT_SCORE_RUN_SQL,
   SELECT_BEST_SCORE_SQL,
   SELECT_PLAYER_BEST_SQL,
-  SELECT_TOP_SCORE_RUNS_SQL,
+  SELECT_TOP_SCORE_RUNS_FOR_PLAYER_SQL,
   UPSERT_PLAYER_BEST_SQL,
 } from "./queries.ts";
 import { DEFAULT_DATABASE_FILE, initializeSchema } from "./schema.ts";
@@ -21,14 +22,12 @@ type BestScoreRow = {
 };
 
 type TopScoreRunRow = {
-  player_name: string;
   score: number;
   created_at: string;
 };
 
 type PlayerBestRow = {
   player_id: string;
-  player_name: string;
   best_score: number;
   best_score_at: string | null;
 };
@@ -37,7 +36,7 @@ export type LeaderboardDb = {
   /** Releases the SQLite connection, mainly used by tests. */
   close(): void;
   recordScoreRun(submission: ScoreSubmission): ScoreSubmissionResult;
-  getTopScoreRuns(limit: number): LeaderboardEntry[];
+  getTopScoreRunsForPlayer(playerId: string, limit: number): LeaderboardEntry[];
   getTopPlayerScore(playerId: string): PlayerBest | null;
 };
 
@@ -68,7 +67,6 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
 
         db.prepare(UPSERT_PLAYER_BEST_SQL).run(
           submission.playerId,
-          submission.playerName,
           submission.score,
           now,
           now,
@@ -76,7 +74,12 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
 
         const runResult = db
           .prepare(INSERT_SCORE_RUN_SQL)
-          .run(submission.playerId, submission.playerName, submission.score, now);
+          .run(submission.playerId, submission.score, now);
+
+        db.prepare(DELETE_EXCESS_PLAYER_SCORE_RUNS_SQL).run(
+          submission.playerId,
+          submission.playerId,
+        );
 
         db.exec("COMMIT");
 
@@ -93,14 +96,13 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
       }
     },
 
-    getTopScoreRuns(limit: number): LeaderboardEntry[] {
+    getTopScoreRunsForPlayer(playerId: string, limit: number): LeaderboardEntry[] {
       const rows = db
-        .prepare(SELECT_TOP_SCORE_RUNS_SQL)
-        .all(limit) as TopScoreRunRow[];
+        .prepare(SELECT_TOP_SCORE_RUNS_FOR_PLAYER_SQL)
+        .all(playerId, limit) as TopScoreRunRow[];
 
       return rows.map((row, index) => ({
         rank: index + 1,
-        playerName: String(row.player_name),
         score: Number(row.score),
         createdAt: String(row.created_at),
       }));
@@ -117,7 +119,6 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
 
       return {
         playerId: String(row.player_id),
-        playerName: String(row.player_name),
         bestScore: Number(row.best_score),
         achievedAt: row.best_score_at,
       };

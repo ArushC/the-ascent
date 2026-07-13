@@ -4,12 +4,7 @@ import type { GameControls } from "../../Game";
 import { GameHud } from "../gameHud/GameHud";
 import { HelpMenu } from "../helpMenu/HelpMenu";
 import { GameMenu, type GameMenuPhase } from "../gameMenu/GameMenu";
-import { PlayerNamePrompt } from "../playerNamePrompt/PlayerNamePrompt";
-import {
-  getOrCreatePlayerId,
-  getPlayerName,
-  setPlayerName,
-} from "../../leaderboard/playerIdentity/playerIdentity";
+import { getOrCreatePlayerId } from "../../leaderboard/playerIdentity/playerIdentity";
 import { useGameOverLeaderboard } from "../../leaderboard/useGameOverLeaderboard/useGameOverLeaderboard";
 import "./game-ui.css";
 
@@ -25,19 +20,15 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [uiControls, setUiControls] = useState<GameControls | null>(null);
   const [playerId] = useState(() => getOrCreatePlayerId());
-  const [playerName, setPlayerNameState] = useState<string | null>(() =>
-    getPlayerName(),
-  );
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
     score: 0,
     powerupPanel: { mode: "empty" },
     helpOpen: false,
   });
-  const { personalBest, leaderboard } = useGameOverLeaderboard({
+  const { leaderboard } = useGameOverLeaderboard({
     phase: ui.phase,
     playerId,
-    playerName,
     score: ui.score,
   });
 
@@ -69,11 +60,6 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const menuPhase: GameMenuPhase | null =
     ui.phase === "playing" ? null : ui.phase;
 
-  function handlePlayerNameSubmit(nextPlayerName: string): void {
-    setPlayerName(nextPlayerName);
-    setPlayerNameState(nextPlayerName);
-  }
-
   return (
     <div className="game-shell" style={{ width, height }}>
       <canvas ref={canvasRef} width={width} height={height} />
@@ -90,15 +76,11 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
           phase={menuPhase}
           score={ui.score}
           controls={uiControls}
-          personalBest={personalBest}
           leaderboard={leaderboard}
         />
       ) : null}
       {ui.helpOpen && uiControls ? (
         <HelpMenu onClose={() => uiControls.closeHelp()} />
-      ) : null}
-      {ui.phase === "over" && !playerName ? (
-        <PlayerNamePrompt onSubmit={handlePlayerNameSubmit} />
       ) : null}
     </div>
   );

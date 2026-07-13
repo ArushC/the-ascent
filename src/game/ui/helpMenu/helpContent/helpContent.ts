@@ -8,8 +8,9 @@ export const HELP_SECTIONS: HelpSection[] = [
     title: "How to play",
     lines: [
       "Keep bouncing up. Don't fall.",
-      "Grab stars for powerups. New powerups replace old ones.",
-      "Press the displayed key to activate.",
+      "Grab stars for powerups.",
+      "New powerups replace old ones.",
+      "Press the displayed key to use your powerup.",
     ],
   },
   {

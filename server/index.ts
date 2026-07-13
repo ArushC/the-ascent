@@ -2,9 +2,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { createLeaderboardDb, type LeaderboardDb } from "./leaderboard/db.ts";
 import { HTTP_STATUS, type JsonResponse } from "./http.ts";
 import { DEFAULT_DATABASE_FILE } from "./leaderboard/schema.ts";
-import { getLeaderboardEntries } from "./leaderboard/routes/getLeaderboardEntries.ts";
-import { getTopPlayerScore } from "./leaderboard/routes/getPlayerBest.ts";
-import { recordScore } from "./leaderboard/routes/postScoreSubmission.ts";
+import { getTopPlayerScore } from "./leaderboard/routes/getPlayerBest/getPlayerBest.ts";
+import { getUserLeaderboardEntries } from "./leaderboard/routes/getUserLeaderboardEntries/getUserLeaderboardEntries.ts";
+import { recordScore } from "./leaderboard/routes/postScoreSubmission/postScoreSubmission.ts";
 import { serveStatic } from "./static.ts";
 
 const DEFAULT_PORT = 3001;
@@ -86,7 +86,10 @@ async function handleRequest(
   }
 
   if (req.method === "GET" && pathname === "/leaderboard") {
-    sendJson(res, getLeaderboardEntries(database));
+    sendJson(
+      res,
+      getUserLeaderboardEntries(database, url.searchParams.get("playerId")),
+    );
     return;
   }
 

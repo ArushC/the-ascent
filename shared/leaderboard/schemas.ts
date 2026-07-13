@@ -1,18 +1,6 @@
 import { z } from "zod";
 
-export const PLAYER_NAME_MAX_LENGTH = 24;
-export const PLAYER_NAME_PATTERN = /^[a-zA-Z0-9 _-]+$/;
 export const MAX_SCORE = 9_999_999;
-
-export const PlayerNameSchema = z
-  .string()
-  .trim()
-  .min(1, "Enter a player name.")
-  .max(PLAYER_NAME_MAX_LENGTH, `Use ${PLAYER_NAME_MAX_LENGTH} characters or fewer.`)
-  .regex(
-    PLAYER_NAME_PATTERN,
-    "Use only letters, numbers, spaces, underscores, or hyphens.",
-  );
 
 export const ScoreSchema = z
   .number()
@@ -24,7 +12,6 @@ export const PlayerIdSchema = z.uuid("expected UUID");
 
 export const ScoreSubmissionSchema = z.object({
   playerId: PlayerIdSchema,
-  playerName: PlayerNameSchema,
   score: ScoreSchema,
 });
 

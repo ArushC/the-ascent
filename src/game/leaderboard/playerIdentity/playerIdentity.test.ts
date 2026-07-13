@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  getOrCreatePlayerId,
-  getPlayerName,
-  setPlayerName,
-} from "./playerIdentity";
+import { getOrCreatePlayerId, PLAYER_ID_KEY } from "./playerIdentity";
 
 beforeEach(() => {
   const storage = new Map<string, string>();
@@ -29,7 +25,7 @@ describe("player identity", () => {
     expect(getOrCreatePlayerId()).toBe(
       "00000000-0000-4000-8000-000000000001",
     );
-    expect(localStorage.getItem("the-ascent:player-id")).toBe(
+    expect(localStorage.getItem(PLAYER_ID_KEY)).toBe(
       "00000000-0000-4000-8000-000000000001",
     );
   });
@@ -37,31 +33,9 @@ describe("player identity", () => {
   it("returns an existing player id without creating another one", () => {
     const randomUUIDSpy = vi.fn();
     vi.stubGlobal("crypto", { randomUUID: randomUUIDSpy });
-    localStorage.setItem("the-ascent:player-id", "existing-player-id");
+    localStorage.setItem(PLAYER_ID_KEY, "existing-player-id");
 
     expect(getOrCreatePlayerId()).toBe("existing-player-id");
     expect(randomUUIDSpy).not.toHaveBeenCalled();
-  });
-
-  it("returns null when the player name is missing or invalid", () => {
-    expect(getPlayerName()).toBeNull();
-
-    localStorage.setItem("the-ascent:player-name", " ");
-
-    expect(getPlayerName()).toBeNull();
-  });
-
-  it("returns a normalized player name when stored name is valid", () => {
-    localStorage.setItem("the-ascent:player-name", "  Ada Lovelace  ");
-
-    expect(getPlayerName()).toBe("Ada Lovelace");
-  });
-
-  it("writes a normalized player name", () => {
-    setPlayerName("  Grace Hopper  ");
-
-    expect(localStorage.getItem("the-ascent:player-name")).toBe(
-      "Grace Hopper",
-    );
   });
 });

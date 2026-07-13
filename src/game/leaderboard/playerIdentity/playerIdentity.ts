@@ -1,10 +1,4 @@
-import {
-  normalizePlayerName,
-  validatePlayerName,
-} from "../../../../shared/leaderboard/validation.ts";
-
-const PLAYER_ID_KEY = "the-ascent:player-id";
-const PLAYER_NAME_KEY = "the-ascent:player-name";
+export const PLAYER_ID_KEY = "the-ascent:player-id";
 
 // Anonymous local identity avoids auth while still preserving personal bests.
 export function getOrCreatePlayerId(): string {
@@ -17,18 +11,4 @@ export function getOrCreatePlayerId(): string {
   const playerId = crypto.randomUUID();
   localStorage.setItem(PLAYER_ID_KEY, playerId);
   return playerId;
-}
-
-export function getPlayerName(): string | null {
-  const playerName = localStorage.getItem(PLAYER_NAME_KEY);
-
-  if (!playerName || !validatePlayerName(playerName).ok) {
-    return null;
-  }
-
-  return normalizePlayerName(playerName);
-}
-
-export function setPlayerName(playerName: string): void {
-  localStorage.setItem(PLAYER_NAME_KEY, normalizePlayerName(playerName));
 }

@@ -1,14 +1,12 @@
 export const UPSERT_PLAYER_BEST_SQL = `
   INSERT INTO players (
     player_id,
-    player_name,
     best_score,
     best_score_at,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?)
   ON CONFLICT(player_id) DO UPDATE SET
-    player_name = excluded.player_name,
     best_score = CASE
       WHEN excluded.best_score > players.best_score
       THEN excluded.best_score
@@ -23,19 +21,32 @@ export const UPSERT_PLAYER_BEST_SQL = `
 `;
 
 export const INSERT_SCORE_RUN_SQL = `
-  INSERT INTO score_runs (player_id, player_name, score, created_at)
-  VALUES (?, ?, ?, ?)
+  INSERT INTO score_runs (player_id, score, created_at)
+  VALUES (?, ?, ?)
 `;
 
-export const SELECT_TOP_SCORE_RUNS_SQL = `
-  SELECT player_name, score, created_at
+export const SELECT_TOP_SCORE_RUNS_FOR_PLAYER_SQL = `
+  SELECT score, created_at
   FROM score_runs
+  WHERE player_id = ?
   ORDER BY score DESC, created_at ASC
   LIMIT ?
 `;
 
+export const DELETE_EXCESS_PLAYER_SCORE_RUNS_SQL = `
+  DELETE FROM score_runs
+  WHERE player_id = ?
+    AND id NOT IN (
+      SELECT id
+      FROM score_runs
+      WHERE player_id = ?
+      ORDER BY score DESC, created_at ASC
+      LIMIT 100
+    )
+`;
+
 export const SELECT_PLAYER_BEST_SQL = `
-  SELECT player_id, player_name, best_score, best_score_at
+  SELECT player_id, best_score, best_score_at
   FROM players
   WHERE player_id = ?
 `;

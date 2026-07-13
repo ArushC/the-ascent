@@ -3,6 +3,7 @@ import {
   getLeaderboardPage,
   getLeaderboardPageCount,
 } from "../../leaderboard/menu/leaderboardMenu";
+import { formatScoreTimestamp } from "../../leaderboard/formatScoreTimestamp/formatScoreTimestamp";
 import type { LeaderboardState } from "../../leaderboard/state/leaderboardState";
 
 type LeaderboardProps = {
@@ -30,15 +31,30 @@ export function Leaderboard({ leaderboard }: LeaderboardProps) {
 
   return (
     <div className="game-leaderboard" aria-label="Leaderboard">
-      <h2>Top Scores</h2>
+      <h2>Your Top Scores:</h2>
       {visibleEntries.length > 0 ? (
-        visibleEntries.map((entry) => (
-          <div className="game-leaderboard-row" key={`${entry.rank}-${entry.createdAt}`}>
-            <span>{entry.rank}.</span>
-            <span>{entry.playerName}</span>
-            <strong>{entry.score}</strong>
-          </div>
-        ))
+        <div className="game-leaderboard-body">
+          <table className="game-leaderboard-table">
+            <thead>
+              <tr>
+                <th scope="col">Rank</th>
+                <th scope="col">Score</th>
+                <th scope="col">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleEntries.map((entry) => (
+                <tr key={`${entry.rank}-${entry.createdAt}`}>
+                  <td>{entry.rank}</td>
+                  <td>
+                    <strong>{entry.score}</strong>
+                  </td>
+                  <td>{formatScoreTimestamp(entry.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <p>No scores yet</p>
       )}

@@ -1,7 +1,6 @@
 /** Score run submitted by the browser after a game-over event. */
 export type ScoreSubmission = {
   playerId: string;
-  playerName: string;
   score: number;
 };
 
@@ -14,10 +13,9 @@ export type ScoreSubmissionResult = {
   createdAt: string;
 };
 
-/** One score run shown in the global leaderboard. */
+/** One score run shown in the private leaderboard. */
 export type LeaderboardEntry = {
   rank: number;
-  playerName: string;
   score: number;
   createdAt: string;
 };
@@ -25,7 +23,6 @@ export type LeaderboardEntry = {
 /** Stored personal best for one anonymous player id. */
 export type PlayerBest = {
   playerId: string;
-  playerName: string;
   bestScore: number;
   achievedAt: string | null;
 };

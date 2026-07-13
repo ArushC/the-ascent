@@ -28,8 +28,10 @@ export async function submitScore(
   return (await response.json()) as ScoreSubmissionResult;
 }
 
-export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  const response = await fetch("/api/leaderboard");
+export async function fetchLeaderboard(playerId: string): Promise<LeaderboardEntry[]> {
+  const response = await fetch(
+    `/api/leaderboard?playerId=${encodeURIComponent(playerId)}`,
+  );
 
   if (!response.ok) {
     throw new Error("Leaderboard fetch failed.");

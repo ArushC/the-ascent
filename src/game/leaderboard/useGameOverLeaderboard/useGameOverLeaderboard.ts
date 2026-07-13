@@ -10,14 +10,12 @@ import type { LeaderboardState, PersonalBestState } from "../state/leaderboardSt
 type UseGameOverLeaderboardArgs = {
   phase: GamePhase;
   playerId: string;
-  playerName: string | null;
   score: number;
 };
 
 export function useGameOverLeaderboard({
   phase,
   playerId,
-  playerName,
   score,
 }: UseGameOverLeaderboardArgs) {
   const [personalBest, setPersonalBest] = useState<PersonalBestState>({
@@ -30,15 +28,15 @@ export function useGameOverLeaderboard({
   });
 
   useEffect(() => {
-    if (phase !== "over" || !playerName) return;
+    if (phase !== "over") return;
 
     setPersonalBest({ status: "loading", score: null });
     setLeaderboard({ status: "loading", entries: [] });
 
-    submitScore({ playerId, playerName, score })
+    submitScore({ playerId, score })
       .then((result) => {
         setPersonalBest({ status: "loaded", score: result.personalBest });
-        refreshLeaderboard(setLeaderboard);
+        refreshLeaderboard(playerId, setLeaderboard);
       })
       .catch((error: unknown) => {
         console.warn(error);
@@ -59,16 +57,17 @@ export function useGameOverLeaderboard({
         );
       });
 
-    refreshLeaderboard(setLeaderboard);
-  }, [phase, playerId, playerName, score]);
+    refreshLeaderboard(playerId, setLeaderboard);
+  }, [phase, playerId, score]);
 
   return { personalBest, leaderboard };
 }
 
 function refreshLeaderboard(
+  playerId: string,
   setLeaderboard: (leaderboard: LeaderboardState) => void,
 ): void {
-  fetchLeaderboard()
+  fetchLeaderboard(playerId)
     .then((entries) => {
       setLeaderboard({ status: "loaded", entries });
     })
