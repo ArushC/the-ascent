@@ -532,6 +532,25 @@ describe("updatePlatformsForCamera", () => {
 
     expect(maxPlatformCount).toBeLessThanOrEqual(expectedMaxPlatformCount);
   });
+
+  it("culls without spawning when spawning is disabled", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const visiblePlatform = createTestStaticPlatform({ y: 0 });
+    const belowScreen = createTestStaticPlatform({
+      y: CANVAS_HEIGHT + 1,
+    });
+
+    expect(
+      updatePlatformsForCamera(
+        [visiblePlatform, belowScreen],
+        0,
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        BASE_DIFFICULTY,
+        false,
+      ),
+    ).toEqual([visiblePlatform]);
+  });
 });
 
 function snapshotLayout(platforms: ReturnType<typeof createInitialPlatforms>) {

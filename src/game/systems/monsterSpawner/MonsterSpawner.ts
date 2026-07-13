@@ -90,9 +90,18 @@ export function updateMonstersForCamera(
   canvasWidth: number,
   canvasHeight: number,
   params: DifficultyParams,
+  spawnEnabled = true,
 ): Monster[] {
+  const visibleMonsters = removeMonstersBelowCamera(
+    monsters,
+    screenTopY,
+    canvasHeight,
+  );
+
+  if (!spawnEnabled) return visibleMonsters;
+
   return spawnMonstersAboveCamera(
-    removeMonstersBelowCamera(monsters, screenTopY, canvasHeight),
+    visibleMonsters,
     screenTopY,
     canvasWidth,
     canvasHeight,

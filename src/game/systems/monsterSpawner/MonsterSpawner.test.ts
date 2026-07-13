@@ -209,4 +209,23 @@ describe("updateMonstersForCamera", () => {
       ),
     ).toEqual([]);
   });
+
+  it("culls without spawning when spawning is disabled", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    const visibleMonster = createTestHorizontalMonster({ y: 0 });
+    const belowScreen = createTestHorizontalMonster({
+      y: CANVAS_HEIGHT + 1,
+    });
+
+    expect(
+      updateMonstersForCamera(
+        [visibleMonster, belowScreen],
+        0,
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        BASE_DIFFICULTY,
+        false,
+      ),
+    ).toEqual([visibleMonster]);
+  });
 });

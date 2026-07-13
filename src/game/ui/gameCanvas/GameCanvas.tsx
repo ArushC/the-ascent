@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Game, type GameUiState } from "../../Game";
 import type { GameControls } from "../../Game";
+import { AscensionBanner } from "../ascensionBanner/AscensionBanner";
 import { GameHud } from "../gameHud/GameHud";
 import { HelpMenu } from "../helpMenu/HelpMenu";
 import { GameMenu, type GameMenuPhase } from "../gameMenu/GameMenu";
@@ -20,11 +21,17 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [uiControls, setUiControls] = useState<GameControls | null>(null);
   const [playerId] = useState(() => getOrCreatePlayerId());
+  const [ascensionBannerDismissed, setAscensionBannerDismissed] =
+    useState(false);
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
     score: 0,
     powerupPanel: { mode: "empty" },
     helpOpen: false,
+    ascension: {
+      voidActive: false,
+      messageReady: false,
+    },
   });
   const { leaderboard } = useGameOverLeaderboard({
     phase: ui.phase,
@@ -57,6 +64,12 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!ui.ascension.voidActive) {
+      setAscensionBannerDismissed(false);
+    }
+  }, [ui.ascension.voidActive]);
+
   const menuPhase: GameMenuPhase | null =
     ui.phase === "playing" ? null : ui.phase;
 
@@ -81,6 +94,9 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
       ) : null}
       {ui.helpOpen && uiControls ? (
         <HelpMenu onClose={() => uiControls.closeHelp()} />
+      ) : null}
+      {ui.ascension.messageReady && !ascensionBannerDismissed ? (
+        <AscensionBanner onDismiss={() => setAscensionBannerDismissed(true)} />
       ) : null}
     </div>
   );

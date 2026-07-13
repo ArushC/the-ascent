@@ -28,6 +28,17 @@ import {
   resolveProjectileMonsterCollisions,
   resolvePlatformLanding,
 } from "./systems/collisionSystem/CollisionSystem";
+import {
+  ASCENDED_CLEAR_COLOR,
+  createAscensionUiState,
+  createAscensionState,
+  hasAscensionUiChanged,
+  isBlankSpawnActive,
+  removeEntitiesAboveCamera,
+  updateAscensionForFrame,
+  type AscensionState,
+  type AscensionUiState,
+} from "./systems/ascensionSystem/AscensionSystem";
 import { isPlayerBelowScreen, updateCamera } from "./systems/cameraSystem/CameraSystem";
 import { getDifficultyParams } from "./systems/difficultySystem/DifficultySystem";
 import {
@@ -67,6 +78,7 @@ export type GameUiState = {
   score: number;
   powerupPanel: PowerupPanelState;
   helpOpen: boolean;
+  ascension: AscensionUiState;
 };
 
 export type GameControls = {
@@ -94,6 +106,7 @@ export class Game {
   private timeScale = NORMAL_TIME_SCALE;
   private screenTopY = 0;
   private scoreState: ScoreState;
+  private ascensionState: AscensionState = createAscensionState();
   private phase: GamePhase = "ready";
   private helpOpen = false;
 
@@ -300,6 +313,7 @@ export class Game {
     const simDt = deltaTime * this.timeScale;
     const horizontalIntent = this.keyboardInput.getHorizontalIntent();
     const scoreBeforeUpdate = getScore(this.scoreState);
+    const ascensionBeforeUpdate = this.getAscensionUiState();
 
     this.player.updateShootCooldown(simDt);
     this.updateProjectiles(simDt);
@@ -351,13 +365,16 @@ export class Game {
       this.canvas.height,
     );
     this.scoreState = updateScore(this.scoreState, this.player.y);
+    this.updateAscension();
     const difficultyParams = getDifficultyParams(getScore(this.scoreState));
+    const spawnEnabled = !isBlankSpawnActive(this.ascensionState);
     this.monsters = updateMonstersForCamera(
       this.monsters,
       this.screenTopY,
       this.canvas.width,
       this.canvas.height,
       difficultyParams,
+      spawnEnabled,
     );
     this.platforms = updatePlatformsForCamera(
       this.platforms,
@@ -365,6 +382,7 @@ export class Game {
       this.canvas.width,
       this.canvas.height,
       difficultyParams,
+      spawnEnabled,
     );
     this.projectiles = removeOffScreenProjectiles(this.projectiles, {
       screenTopY: this.screenTopY,
@@ -381,10 +399,34 @@ export class Game {
 
     if (
       getScore(this.scoreState) !== scoreBeforeUpdate ||
-      powerupUpdate.didPanelStateChange
+      powerupUpdate.didPanelStateChange ||
+      hasAscensionUiChanged(ascensionBeforeUpdate, this.getAscensionUiState())
     ) {
       this.publishCurrentUiState();
     }
+  }
+
+  private updateAscension(): void {
+    const update = updateAscensionForFrame(
+      this.ascensionState,
+      isRocketPowerupReady(this.powerupInventory),
+      this.scoreState.peakY,
+      this.canvas.height,
+    );
+
+    this.ascensionState = update.state;
+
+    if (update.didBegin) {
+      this.clearEntitiesAboveCamera();
+    }
+  }
+
+  private clearEntitiesAboveCamera(): void {
+    this.platforms = removeEntitiesAboveCamera(
+      this.platforms,
+      this.screenTopY,
+    );
+    this.monsters = removeEntitiesAboveCamera(this.monsters, this.screenTopY);
   }
 
   private updateProjectiles(deltaTime: number): void {
@@ -407,7 +449,9 @@ export class Game {
   private render(): void {
     const { ctx, canvas } = this;
 
-    ctx.fillStyle = "black";
+    ctx.fillStyle = this.getAscensionUiState().messageReady
+      ? ASCENDED_CLEAR_COLOR
+      : "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Save the unshifted canvas state before applying the camera offset.
@@ -442,6 +486,7 @@ export class Game {
     this.monsters = createInitialMonsters();
     this.projectiles = [];
     this.powerupInventory = createPowerupInventory();
+    this.ascensionState = createAscensionState();
     this.timeScale = NORMAL_TIME_SCALE;
     this.screenTopY = 0;
   }
@@ -464,6 +509,11 @@ export class Game {
       score: getScore(this.scoreState),
       powerupPanel: getPowerupPanelState(this.powerupInventory, bigShotArmed),
       helpOpen: this.helpOpen,
+      ascension: this.getAscensionUiState(),
     });
+  }
+
+  private getAscensionUiState(): GameUiState["ascension"] {
+    return createAscensionUiState(this.ascensionState);
   }
 }

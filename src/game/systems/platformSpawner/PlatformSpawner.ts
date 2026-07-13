@@ -214,9 +214,18 @@ export function updatePlatformsForCamera(
   canvasWidth: number,
   canvasHeight: number,
   params: DifficultyParams,
+  spawnEnabled = true,
 ): Platform[] {
+  const visiblePlatforms = removePlatformsBelowCamera(
+    platforms,
+    screenTopY,
+    canvasHeight,
+  );
+
+  if (!spawnEnabled) return visiblePlatforms;
+
   return spawnPlatformsAboveCamera(
-    removePlatformsBelowCamera(platforms, screenTopY, canvasHeight),
+    visiblePlatforms,
     screenTopY,
     canvasWidth,
     canvasHeight,

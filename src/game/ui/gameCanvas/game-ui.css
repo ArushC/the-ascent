@@ -3,6 +3,7 @@
   --game-surface: #1a1a1a;
   --game-canvas: black;
   --game-text: white;
+  --game-ascension-banner-bg: rgba(26, 56, 90, 0.88);
   --game-border-width: 2px;
   --game-border: var(--game-border-width) solid var(--game-text);
   --game-border-muted-width: 1px;
