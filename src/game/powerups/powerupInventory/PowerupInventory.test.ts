@@ -9,6 +9,7 @@ import {
   didLoseReadyShrinkPowerup,
   didLoseReadySlowMoPowerup,
   isArmorPowerupReady,
+  isBigShotArmed,
   isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
   isRocketPowerupReady,
@@ -298,6 +299,32 @@ describe("PowerupInventory", () => {
           label: "F: toggle size",
         },
       }),
+    ).toBe(false);
+  });
+
+  it("reports Big Shot as armed only when Big Shot is ready and large shots are active", () => {
+    const readyBigShot = {
+      status: "ready" as const,
+      powerup: {
+        id: "bigShot",
+        label: "B: toggle big shot",
+      },
+    };
+
+    expect(isBigShotArmed(readyBigShot, "large")).toBe(true);
+    expect(isBigShotArmed(readyBigShot, "default")).toBe(false);
+    expect(isBigShotArmed({ status: "empty" }, "large")).toBe(false);
+    expect(
+      isBigShotArmed(
+        {
+          status: "ready",
+          powerup: {
+            id: "shrink",
+            label: "F: toggle size",
+          },
+        },
+        "large",
+      ),
     ).toBe(false);
   });
 

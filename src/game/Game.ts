@@ -10,6 +10,7 @@ import { KeyboardInput } from "./input/keyboardInput/KeyboardInput";
 import {
   createPowerupInventory,
   isArmorPowerupReady,
+  isBigShotArmed,
   isBigShotPowerupReady,
   isDoubleJumpPowerupReady,
   isRocketPowerupReady,
@@ -256,6 +257,7 @@ export class Game {
       isBigShotPowerupReady(this.powerupInventory)
     ) {
       this.player.toggleProjectileSize();
+      this.publishCurrentUiState();
     }
 
     if (
@@ -452,10 +454,15 @@ export class Game {
   }
 
   private publishCurrentUiState(): void {
+    const bigShotArmed = isBigShotArmed(
+      this.powerupInventory,
+      this.player.projectile.sizeMode,
+    );
+
     this.publishUiState({
       phase: this.phase,
       score: getScore(this.scoreState),
-      powerupPanel: getPowerupPanelState(this.powerupInventory),
+      powerupPanel: getPowerupPanelState(this.powerupInventory, bigShotArmed),
       helpOpen: this.helpOpen,
     });
   }

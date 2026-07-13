@@ -8,6 +8,7 @@ import {
   SLOW_MO_POWERUP_ID,
   type PowerupDefinition,
 } from "../powerupCatalog/PowerupCatalog";
+import type { ProjectileSizeMode } from "../../entities/player/Player";
 
 export const POWERUP_GENERATION_DURATION_MS = 2000;
 
@@ -97,6 +98,13 @@ export function isBigShotPowerupReady(inventory: PowerupInventory): boolean {
     inventory.status === "ready" &&
     inventory.powerup?.id === BIG_SHOT_POWERUP_ID
   );
+}
+
+export function isBigShotArmed(
+  inventory: PowerupInventory,
+  projectileSizeMode: ProjectileSizeMode,
+): boolean {
+  return isBigShotPowerupReady(inventory) && projectileSizeMode === "large";
 }
 
 export function isRocketPowerupReady(inventory: PowerupInventory): boolean {

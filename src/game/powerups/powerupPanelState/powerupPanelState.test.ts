@@ -44,7 +44,7 @@ describe("getPowerupPanelState", () => {
           label: "F: toggle size",
         },
       }),
-    ).toEqual({ mode: "ready", label: "F: toggle size" });
+    ).toEqual({ mode: "ready", label: "F: toggle size", armed: false });
   });
 
   it("maps a ready missing powerup to the fallback label", () => {
@@ -53,6 +53,42 @@ describe("getPowerupPanelState", () => {
         status: "ready",
         powerup: null,
       }),
-    ).toEqual({ mode: "ready", label: "No powerups found" });
+    ).toEqual({
+      mode: "ready",
+      label: "No powerups found",
+      armed: false,
+    });
+  });
+
+  it("includes the armed flag only in the ready panel state", () => {
+    expect(getPowerupPanelState({ status: "empty" }, true)).toEqual({
+      mode: "empty",
+    });
+    expect(
+      getPowerupPanelState(
+        {
+          status: "generating",
+          remainingMs: POWERUP_GENERATION_DURATION_MS,
+          previousPowerup: null,
+        },
+        true,
+      ),
+    ).toEqual({ mode: "generating", progress: 0 });
+    expect(
+      getPowerupPanelState(
+        {
+          status: "ready",
+          powerup: {
+            id: "bigShot",
+            label: "B: toggle big shot",
+          },
+        },
+        true,
+      ),
+    ).toEqual({
+      mode: "ready",
+      label: "B: toggle big shot",
+      armed: true,
+    });
   });
 });

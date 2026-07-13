@@ -28,7 +28,7 @@ describe("PowerupPanel", () => {
   it("shows the ready powerup hint", () => {
     const markup = renderToStaticMarkup(
       <PowerupPanel
-        panel={{ mode: "ready", label: "F: toggle size" }}
+        panel={{ mode: "ready", label: "F: toggle size", armed: false }}
         isPaused={false}
       />,
     );
@@ -36,10 +36,29 @@ describe("PowerupPanel", () => {
     expect(markup).toContain("F: toggle size");
   });
 
+  it("shows the armed Big Shot treatment", () => {
+    const markup = renderToStaticMarkup(
+      <PowerupPanel
+        panel={{ mode: "ready", label: "B: toggle big shot", armed: true }}
+        isPaused={false}
+      />,
+    );
+
+    expect(markup).toContain("is-armed");
+    expect(markup).toContain("game-powerup-shot-glyph");
+    expect(markup).toContain("BIG SHOT ARMED");
+    expect(markup).toContain("B: toggle off");
+    expect(markup).not.toContain("B: toggle big shot");
+  });
+
   it("shows the ready fallback label", () => {
     const markup = renderToStaticMarkup(
       <PowerupPanel
-        panel={{ mode: "ready", label: "No powerups found" }}
+        panel={{
+          mode: "ready",
+          label: "No powerups found",
+          armed: false,
+        }}
         isPaused={false}
       />,
     );

@@ -19,6 +19,24 @@
   opacity: var(--game-paused-opacity);
 }
 
+.game-powerup-panel.is-armed {
+  --game-powerup-armed-color: #ffd84a;
+  --game-powerup-armed-glyph-size: 1.1rem;
+  --game-powerup-armed-glyph-border-width: 0.15rem;
+  --game-powerup-armed-glyph-glow: 0 0 0.4rem currentColor;
+  --game-powerup-armed-panel-glow: 0 0 0.5rem currentColor;
+  --game-powerup-armed-pulse-duration: 900ms;
+  --game-powerup-armed-hint-scale: 0.72;
+  --game-powerup-armed-hint-opacity: 0.86;
+  --game-powerup-armed-copy-gap: 0.1rem;
+  --game-powerup-armed-copy-line-height: 1;
+
+  border-color: var(--game-powerup-armed-color);
+  color: var(--game-powerup-armed-color);
+  animation: game-powerup-armed-pulse
+    var(--game-powerup-armed-pulse-duration) ease-in-out infinite;
+}
+
 .game-powerup-generating {
   display: flex;
   align-items: center;
@@ -41,4 +59,47 @@
 .game-powerup-progress-fill {
   height: 100%;
   background: var(--game-text);
+}
+
+.game-powerup-armed {
+  display: flex;
+  align-items: center;
+  gap: var(--game-space-sm);
+}
+
+.game-powerup-armed-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--game-powerup-armed-copy-gap);
+  line-height: var(--game-powerup-armed-copy-line-height);
+  text-align: left;
+}
+
+.game-powerup-shot-glyph {
+  width: var(--game-powerup-armed-glyph-size);
+  height: var(--game-powerup-armed-glyph-size);
+  border: var(--game-powerup-armed-glyph-border-width) solid currentColor;
+  border-radius: 50%;
+  box-shadow: var(--game-powerup-armed-glyph-glow);
+}
+
+.game-powerup-armed-label {
+  white-space: nowrap;
+}
+
+.game-powerup-armed-hint {
+  font-size: calc(1em * var(--game-powerup-armed-hint-scale));
+  opacity: var(--game-powerup-armed-hint-opacity);
+  white-space: nowrap;
+}
+
+@keyframes game-powerup-armed-pulse {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+
+  50% {
+    box-shadow: var(--game-powerup-armed-panel-glow);
+  }
 }

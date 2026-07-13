@@ -6,10 +6,11 @@ import {
 export type PowerupPanelState =
   | { mode: "empty" }
   | { mode: "generating"; progress: number }
-  | { mode: "ready"; label: string };
+  | { mode: "ready"; label: string; armed: boolean };
 
 export function getPowerupPanelState(
   inventory: PowerupInventory,
+  armed = false,
 ): PowerupPanelState {
   switch (inventory.status) {
     case "empty":
@@ -23,6 +24,7 @@ export function getPowerupPanelState(
       return {
         mode: "ready",
         label: inventory.powerup?.label ?? "No powerups found",
+        armed,
       };
   }
 }
