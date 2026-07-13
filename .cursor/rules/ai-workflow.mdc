@@ -11,5 +11,4 @@ alwaysApply: true
 - Treat architecture approval as a human gate. Do not move from `ai:arch` to `ai:impl` until the user approves the plan.
 - Keep implementation diffs small and scoped to the approved feature.
 - Explain assumptions after changes.
-- Log meaningful AI-assisted work in `docs/AI_NOTES.md`.
-- Do not duplicate prompt text in rules. Rules point to `prompts/` and `docs/AI_WORKFLOW.md`.
+- Do not duplicate prompt text in rules. Rules point to `prompts/`.

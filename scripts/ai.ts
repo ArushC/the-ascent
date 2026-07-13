@@ -196,7 +196,6 @@ function printFeatureChecklist(paramsPath: string): void {
   console.log("5. Run implementation checks: npm run test:run");
   console.log("6. Run: npm run ai:review -- --copy");
   console.log(`7. Run: npm run ai:test -- --params ${paramsPath} --copy`);
-  console.log("8. Add a dated note to docs/AI_NOTES.md.\n");
   console.log(`To regenerate the architecture prompt:\nnpm run ai:arch -- --params ${paramsPath} --copy\n`);
   console.log("Architecture prompt:\n");
 }
