@@ -3,7 +3,7 @@ import { HTTP_STATUS, type JsonResponse } from "../../../http.ts";
 import {
   formatZodIssues,
   ScoreSubmissionSchema,
-} from "../../../../shared/leaderboard/schemas.ts";
+} from "../../../../shared/leaderboard/zodSchemas.ts";
 import type { ScoreSubmissionResult } from "../../../../shared/leaderboard/types.ts";
 
 /** POST /scores: validates and records one game-over score run. */

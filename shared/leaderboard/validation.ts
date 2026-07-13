@@ -1,6 +1,6 @@
-import { ScoreSchema } from "./schemas.ts";
+import { ScoreSchema } from "./zodSchemas.ts";
 
-export { MAX_SCORE } from "./schemas.ts";
+export { MAX_SCORE } from "./zodSchemas.ts";
 
 export type ValidationResult =
   | { ok: true }

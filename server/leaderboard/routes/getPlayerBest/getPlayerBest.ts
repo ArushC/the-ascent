@@ -1,6 +1,6 @@
 import type { LeaderboardDb } from "../../db.ts";
 import { HTTP_STATUS, type JsonResponse } from "../../../http.ts";
-import { PlayerIdSchema } from "../../../../shared/leaderboard/schemas.ts";
+import { PlayerIdSchema } from "../../../../shared/leaderboard/zodSchemas.ts";
 import type { PlayerBest } from "../../../../shared/leaderboard/types.ts";
 
 /** GET /players/:playerId/best: returns one player's stored personal best. */

@@ -1,6 +1,5 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import type {
   LeaderboardEntry,
   PlayerBest,
@@ -15,7 +14,8 @@ import {
   SELECT_TOP_SCORE_RUNS_FOR_PLAYER_SQL,
   UPSERT_PLAYER_BEST_SQL,
 } from "./queries.ts";
-import { DEFAULT_DATABASE_FILE, initializeSchema } from "./schema.ts";
+import { DEFAULT_DATABASE_FILE, initializeSchema } from "./databaseSchema.ts";
+import { openSqliteDatabase, type SqliteDatabase } from "./sqlite.ts";
 
 type BestScoreRow = {
   best_score: number;
@@ -45,7 +45,7 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
     mkdirSync(dirname(filename), { recursive: true });
   }
 
-  const db = new DatabaseSync(filename);
+  const db = openSqliteDatabase(filename);
   db.exec("PRAGMA foreign_keys = ON");
   initializeSchema(db);
 
@@ -126,7 +126,7 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
   } satisfies LeaderboardDb;
 }
 
-function getBestScore(db: DatabaseSync, playerId: string): number | null {
+function getBestScore(db: SqliteDatabase, playerId: string): number | null {
   const row = db
     .prepare(SELECT_BEST_SCORE_SQL)
     .get(playerId) as BestScoreRow | undefined;

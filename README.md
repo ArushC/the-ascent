@@ -6,7 +6,7 @@ The Ascent is a vertical arcade platformer built with React, TypeScript, and Vit
 
 - React, TypeScript, and Vite for the browser game
 - Node `http` for the API and production static serving
-- Node `node:sqlite` for the leaderboard database
+- `better-sqlite3` for the leaderboard database
 
 ## Development
 

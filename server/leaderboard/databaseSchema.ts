@@ -1,4 +1,4 @@
-import type { DatabaseSync } from "node:sqlite";
+import type { SqliteDatabase } from "./sqlite.ts";
 
 export const DEFAULT_DATABASE_FILE = "data/leaderboard.sqlite";
 const LEGACY_DISPLAY_COLUMN = ["player", "name"].join("_");
@@ -27,7 +27,7 @@ const CREATE_LEADERBOARD_INDEX_SQL = `
     ON score_runs(player_id, score DESC, created_at ASC);
 `;
 
-export function initializeSchema(db: DatabaseSync): void {
+export function initializeSchema(db: SqliteDatabase): void {
   db.exec(CREATE_PLAYERS_TABLE_SQL);
   db.exec(CREATE_SCORE_RUNS_TABLE_SQL);
   migrateLegacyNameColumns(db);
@@ -35,7 +35,7 @@ export function initializeSchema(db: DatabaseSync): void {
   db.exec(CREATE_LEADERBOARD_INDEX_SQL);
 }
 
-function migrateLegacyNameColumns(db: DatabaseSync): void {
+function migrateLegacyNameColumns(db: SqliteDatabase): void {
   const playersHasName = tableHasColumn(db, "players", LEGACY_DISPLAY_COLUMN);
   const scoreRunsHasName = tableHasColumn(
     db,
@@ -98,7 +98,7 @@ function migrateLegacyNameColumns(db: DatabaseSync): void {
 }
 
 function tableHasColumn(
-  db: DatabaseSync,
+  db: SqliteDatabase,
   tableName: string,
   columnName: string,
 ): boolean {

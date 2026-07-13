@@ -1,9 +1,9 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import { createLeaderboardDb } from "./db.ts";
+import { openSqliteDatabase, type SqliteDatabase } from "./sqlite.ts";
 
 const ADA_PLAYER_ID = "11111111-1111-4111-8111-111111111111";
 const BOB_PLAYER_ID = "22222222-2222-4222-8222-222222222222";
@@ -90,7 +90,7 @@ describe("leaderboard database", () => {
     const filename = join(dir, "legacy.sqlite");
 
     try {
-      const legacyDb = new DatabaseSync(filename);
+      const legacyDb = openSqliteDatabase(filename);
       legacyDb.exec(`
         CREATE TABLE players (
           player_id TEXT PRIMARY KEY,
@@ -140,7 +140,7 @@ describe("leaderboard database", () => {
       legacyDb.close();
 
       const db = createLeaderboardDb(filename);
-      const rawDb = new DatabaseSync(filename);
+      const rawDb = openSqliteDatabase(filename);
 
       try {
         expect(db.getTopPlayerScore(ADA_PLAYER_ID)).toEqual({
@@ -167,7 +167,7 @@ describe("leaderboard database", () => {
   });
 });
 
-function tableColumnNames(db: DatabaseSync, tableName: string): string[] {
+function tableColumnNames(db: SqliteDatabase, tableName: string): string[] {
   const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{
     name: string;
   }>;

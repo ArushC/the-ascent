@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createLeaderboardDb, type LeaderboardDb } from "../../db.ts";
 import { HTTP_STATUS } from "../../../http.ts";
-import { MAX_SCORE } from "../../../../shared/leaderboard/schemas.ts";
+import { MAX_SCORE } from "../../../../shared/leaderboard/zodSchemas.ts";
 import type { ScoreSubmission } from "../../../../shared/leaderboard/types.ts";
 import { recordScore } from "./postScoreSubmission.ts";
 

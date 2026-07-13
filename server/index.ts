@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createLeaderboardDb, type LeaderboardDb } from "./leaderboard/db.ts";
 import { HTTP_STATUS, type JsonResponse } from "./http.ts";
-import { DEFAULT_DATABASE_FILE } from "./leaderboard/schema.ts";
+import { DEFAULT_DATABASE_FILE } from "./leaderboard/databaseSchema.ts";
 import { getTopPlayerScore } from "./leaderboard/routes/getPlayerBest/getPlayerBest.ts";
 import { getUserLeaderboardEntries } from "./leaderboard/routes/getUserLeaderboardEntries/getUserLeaderboardEntries.ts";
 import { recordScore } from "./leaderboard/routes/postScoreSubmission/postScoreSubmission.ts";

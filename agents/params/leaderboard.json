@@ -12,8 +12,8 @@
   "ARCHITECTURE": {
     "networkIo": "React GameCanvas effects only; Game.ts and systems remain synchronous.",
     "identity": "Client-generated UUID stored as the-ascent:player-id.",
-    "validation": "shared/leaderboard/schemas.ts for server routes; shared/leaderboard/validation.ts for client UX helpers.",
-    "server": "Node http server with node:sqlite to avoid adding dependencies.",
+    "validation": "shared/leaderboard/zodSchemas.ts for server routes; shared/leaderboard/validation.ts for client UX helpers.",
+    "server": "Node http server with better-sqlite3 for the leaderboard database.",
     "database": "players table stores personal bests; score_runs table stores private individual runs ranked by score desc and created_at asc.",
     "frontend": "GameCanvas orchestrates submit/fetch; GameMenu remains presentational."
   }
