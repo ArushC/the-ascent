@@ -37,6 +37,10 @@ const POWERUP_CATALOG: readonly PowerupDefinition[] = [
   },
 ];
 
+export const ALL_POWERUP_IDS: readonly string[] = POWERUP_CATALOG.map(
+  (powerup) => powerup.id,
+);
+
 export function pickRandomPowerup(
   excludedPowerupId: string | null = null,
 ): PowerupDefinition | null {

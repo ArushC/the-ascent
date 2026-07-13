@@ -16,8 +16,8 @@ export function resolvePlatformLanding(
   player: Player,
   platforms: readonly Platform[],
   previousY: number,
-): void {
-  if (player.velocityY <= 0) return;
+): boolean {
+  if (player.velocityY <= 0) return false;
 
   const previousBottom = previousY + player.height;
   const currentBottom = player.y + player.height;
@@ -41,17 +41,18 @@ export function resolvePlatformLanding(
     }
   }
 
-  if (landingPlatform === null) return;
+  if (landingPlatform === null) return false;
 
   player.y = landingPlatform.y - player.height;
   player.refreshAirJump();
   if (playerOverlapsSpringHitZone(player, landingPlatform)) {
     triggerPlatformSpring(landingPlatform);
     player.velocityY = -SPRING_JUMP_VELOCITY;
-    return;
+    return true;
   }
 
   player.velocityY = -INITIAL_JUMP_VELOCITY;
+  return false;
 }
 
 export function resolvePowerupCollision(

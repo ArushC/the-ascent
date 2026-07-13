@@ -19,6 +19,19 @@ import {
   type PowerupInventory,
 } from "./powerups/powerupInventory/PowerupInventory";
 import {
+  ARMOR_POWERUP_ID,
+  BIG_SHOT_POWERUP_ID,
+  DOUBLE_JUMP_POWERUP_ID,
+  ROCKET_POWERUP_ID,
+  SHRINK_POWERUP_ID,
+  SLOW_MO_POWERUP_ID,
+} from "./powerups/powerupCatalog/PowerupCatalog";
+import {
+  createPowerupUsageHistory,
+  recordPowerupUse,
+  type PowerupUsageHistory,
+} from "./powerups/powerupUsageHistory/PowerupUsageHistory";
+import {
   getPowerupPanelState,
   type PowerupPanelState,
 } from "./powerups/powerupPanelState/powerupPanelState";
@@ -39,6 +52,7 @@ import {
   type AscensionState,
   type AscensionUiState,
 } from "./systems/ascensionSystem/AscensionSystem";
+import { hasMetAscensionWinConditions } from "./systems/ascensionSystem/ascensionWinConditions/AscensionWinConditions";
 import { isPlayerBelowScreen, updateCamera } from "./systems/cameraSystem/CameraSystem";
 import { getDifficultyParams } from "./systems/difficultySystem/DifficultySystem";
 import {
@@ -102,11 +116,14 @@ export class Game {
   private monsters: Monster[];
   private projectiles: Projectile[] = [];
   private powerupInventory: PowerupInventory = createPowerupInventory();
+  private powerupUsageHistory: PowerupUsageHistory =
+    createPowerupUsageHistory();
   private readonly keyboardInput = new KeyboardInput();
   private timeScale = NORMAL_TIME_SCALE;
   private screenTopY = 0;
   private scoreState: ScoreState;
   private ascensionState: AscensionState = createAscensionState();
+  private hasBouncedOnSpring = false;
   private phase: GamePhase = "ready";
   private helpOpen = false;
 
@@ -230,6 +247,9 @@ export class Game {
     ) {
       this.projectiles.push(createProjectile(this.player));
       this.player.recordShot();
+      if (this.player.projectile.sizeMode === "large") {
+        recordPowerupUse(this.powerupUsageHistory, BIG_SHOT_POWERUP_ID);
+      }
     }
 
     if (
@@ -238,6 +258,7 @@ export class Game {
       isShrinkPowerupReady(this.powerupInventory)
     ) {
       this.player.toggleSize();
+      recordPowerupUse(this.powerupUsageHistory, SHRINK_POWERUP_ID);
     }
 
     if (
@@ -246,6 +267,7 @@ export class Game {
       isSlowMoPowerupReady(this.powerupInventory)
     ) {
       this.toggleTimeScale();
+      recordPowerupUse(this.powerupUsageHistory, SLOW_MO_POWERUP_ID);
     }
 
     if (
@@ -254,6 +276,7 @@ export class Game {
       isArmorPowerupReady(this.powerupInventory)
     ) {
       this.player.toggleArmor();
+      recordPowerupUse(this.powerupUsageHistory, ARMOR_POWERUP_ID);
     }
 
     if (
@@ -261,7 +284,9 @@ export class Game {
       this.phase === "playing" &&
       isDoubleJumpPowerupReady(this.powerupInventory)
     ) {
-      this.player.tryAirJump();
+      if (this.player.tryAirJump()) {
+        recordPowerupUse(this.powerupUsageHistory, DOUBLE_JUMP_POWERUP_ID);
+      }
     }
 
     if (
@@ -279,6 +304,7 @@ export class Game {
       isRocketPowerupReady(this.powerupInventory)
     ) {
       this.player.toggleRocket();
+      recordPowerupUse(this.powerupUsageHistory, ROCKET_POWERUP_ID);
     }
 
     if (keyPresses.pauseOrResume && !startedFromReady) {
@@ -346,7 +372,9 @@ export class Game {
     if (powerupUpdate.didLoseReadyRocketPowerup) {
       this.player.resetRocket();
     }
-    resolvePlatformLanding(this.player, this.platforms, previousY);
+    if (resolvePlatformLanding(this.player, this.platforms, previousY)) {
+      this.hasBouncedOnSpring = true;
+    }
 
     if (this.player.armor.equipped) {
       resolveArmoredMonsterCollision(this.player, this.monsters);
@@ -409,7 +437,12 @@ export class Game {
   private updateAscension(): void {
     const update = updateAscensionForFrame(
       this.ascensionState,
-      isRocketPowerupReady(this.powerupInventory),
+      hasMetAscensionWinConditions({
+        powerupUsageHistory: this.powerupUsageHistory,
+        powerupInventory: this.powerupInventory,
+        score: getScore(this.scoreState),
+        hasBouncedOnSpring: this.hasBouncedOnSpring,
+      }),
       this.scoreState.peakY,
       this.canvas.height,
     );
@@ -486,7 +519,9 @@ export class Game {
     this.monsters = createInitialMonsters();
     this.projectiles = [];
     this.powerupInventory = createPowerupInventory();
+    this.powerupUsageHistory = createPowerupUsageHistory();
     this.ascensionState = createAscensionState();
+    this.hasBouncedOnSpring = false;
     this.timeScale = NORMAL_TIME_SCALE;
     this.screenTopY = 0;
   }

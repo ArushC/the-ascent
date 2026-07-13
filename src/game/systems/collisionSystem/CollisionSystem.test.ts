@@ -26,11 +26,16 @@ describe("resolvePlatformLanding", () => {
     const previousY = 50;
     player.airJumpAvailable = false;
 
-    resolvePlatformLanding(player, [platform], previousY);
+    const usedSpringBounce = resolvePlatformLanding(
+      player,
+      [platform],
+      previousY,
+    );
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
     expect(player.airJumpAvailable).toBe(true);
+    expect(usedSpringBounce).toBe(false);
   });
 
   it("does not land when the player is moving upward", () => {
@@ -38,10 +43,15 @@ describe("resolvePlatformLanding", () => {
     const originalY = player.y;
     const originalVelocityY = player.velocityY;
 
-    resolvePlatformLanding(player, [createTestStaticPlatform()], 50);
+    const usedSpringBounce = resolvePlatformLanding(
+      player,
+      [createTestStaticPlatform()],
+      50,
+    );
 
     expect(player.y).toBe(originalY);
     expect(player.velocityY).toBe(originalVelocityY);
+    expect(usedSpringBounce).toBe(false);
   });
 
   it("does not land when the player is not moving vertically", () => {
@@ -158,12 +168,13 @@ describe("resolvePlatformLanding", () => {
     const player = createTestPlayer({ x: 120, y: 80, velocityY: 0.5 });
     player.airJumpAvailable = false;
 
-    resolvePlatformLanding(player, [platform], 50);
+    const usedSpringBounce = resolvePlatformLanding(player, [platform], 50);
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-SPRING_JUMP_VELOCITY);
     expect(player.airJumpAvailable).toBe(true);
     expect(platform.springActivationMs).toBe(SPRING_ACTIVATION_DURATION_MS);
+    expect(usedSpringBounce).toBe(true);
   });
 
   it("uses normal bounce when the player lands on a spring platform but misses the spring", () => {
@@ -179,11 +190,12 @@ describe("resolvePlatformLanding", () => {
       velocityY: 0.5,
     });
 
-    resolvePlatformLanding(player, [platform], 50);
+    const usedSpringBounce = resolvePlatformLanding(player, [platform], 50);
 
     expect(player.y).toBe(platform.y - player.height);
     expect(player.velocityY).toBe(-INITIAL_JUMP_VELOCITY);
     expect(platform.springActivationMs).toBe(0);
+    expect(usedSpringBounce).toBe(false);
   });
 
   it("lands when a vertical moving platform sweeps upward during the frame", () => {
