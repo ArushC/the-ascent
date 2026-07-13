@@ -33,7 +33,9 @@ describe("AscensionBanner", () => {
       <AscensionBanner onDismiss={() => undefined} />,
     );
 
-    expect(markup).toContain("Congratulations! You have ascended.");
+    expect(markup).toContain(
+      "Congratulations. Having experienced everything that this climb has to offer, you have ascended.",
+    );
     expect(markup).toContain('role="status"');
   });
 

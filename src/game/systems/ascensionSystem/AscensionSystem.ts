@@ -17,7 +17,7 @@ export type AscensionUpdateResult = {
 };
 
 export const ASCENSION_MESSAGE_CLIMB_SCREENS = 2;
-export const ASCENDED_CLEAR_COLOR = "#9fd7ff";
+export const ASCENDED_CLEAR_COLOR = "#0c1018";
 
 export function createAscensionState(): AscensionState {
   return { status: "inactive" };
