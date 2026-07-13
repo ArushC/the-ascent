@@ -28,4 +28,4 @@ npm run build
 npm start
 ```
 
-Open http://localhost:3001
+Open http://localhost:3001 to preview the game.
