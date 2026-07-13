@@ -10,17 +10,22 @@ The Ascent is a vertical arcade platformer built with React, TypeScript, and Vit
 
 ## Development
 
+Two processes: Vite for the game, Node for the API.
+
 ```bash
-npm run dev
-npm run dev:server
-npm run dev:all
+npm run dev          # game at http://localhost:5173
+npm run dev:server   # API at http://localhost:3001
+npm run dev:all      # both
 npm test
-npm run build
 ```
 
-## Production-Shaped Local Run
+## Production-shaped local run
+
+One process serves the built game and the API.
 
 ```bash
 npm run build
 npm start
 ```
+
+Open http://localhost:3001
