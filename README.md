@@ -29,3 +29,21 @@ npm start
 ```
 
 Open http://localhost:3001 to preview the game.
+
+## CI/CD
+
+GitHub Actions runs CI on every pull request and every push to `main`. The CI workflow installs dependencies with `npm ci`, then runs linting, tests, and a production build:
+
+```bash
+npm ci
+npm run lint
+npm run test:run
+npm run build
+```
+
+When code is pushed to `main`, the CD workflow builds the existing Dockerfile and pushes the image to GitHub Container Registry with `latest` and commit SHA tags.
+
+```bash
+docker pull ghcr.io/arushc/the-ascent:latest
+docker run --rm -p 3001:3001 ghcr.io/arushc/the-ascent:latest
+```
