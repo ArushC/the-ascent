@@ -447,6 +447,7 @@ describe("resolveProjectileMonsterCollisions", () => {
       {
         projectiles: [],
         monsters: [],
+        killCount: 1,
       },
     );
   });
@@ -459,6 +460,7 @@ describe("resolveProjectileMonsterCollisions", () => {
       {
         projectiles: [projectile],
         monsters: [monster],
+        killCount: 0,
       },
     );
   });
@@ -477,6 +479,7 @@ describe("resolveProjectileMonsterCollisions", () => {
     ).toEqual({
       projectiles: [missedProjectile],
       monsters: [missedMonster],
+      killCount: 1,
     });
   });
 
@@ -493,6 +496,7 @@ describe("resolveProjectileMonsterCollisions", () => {
     ).toEqual({
       projectiles: [secondProjectile],
       monsters: [],
+      killCount: 1,
     });
   });
 });

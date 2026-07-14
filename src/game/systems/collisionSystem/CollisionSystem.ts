@@ -132,7 +132,7 @@ export function projectileHitsMonster(
 export function resolveProjectileMonsterCollisions(
   projectiles: readonly Projectile[],
   monsters: readonly Monster[],
-): { projectiles: Projectile[]; monsters: Monster[] } {
+): { projectiles: Projectile[]; monsters: Monster[]; killCount: number } {
   const hitProjectiles = new Set<Projectile>();
   const hitMonsters = new Set<Monster>();
 
@@ -153,6 +153,7 @@ export function resolveProjectileMonsterCollisions(
       (projectile) => !hitProjectiles.has(projectile),
     ),
     monsters: monsters.filter((monster) => !hitMonsters.has(monster)),
+    killCount: hitMonsters.size,
   };
 }
 

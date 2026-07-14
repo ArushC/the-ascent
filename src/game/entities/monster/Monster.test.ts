@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  MONSTER_KILL_POINTS,
+  getMonsterKillPoints,
   isCircularMonster,
   isHorizontalMonster,
   isTriangularPathMonster,
@@ -24,5 +26,11 @@ describe("monster type guards", () => {
   it("identifies triangular path monsters", () => {
     expect(isTriangularPathMonster(createTestTriangularMonster())).toBe(true);
     expect(isTriangularPathMonster(createTestHorizontalMonster())).toBe(false);
+  });
+});
+
+describe("getMonsterKillPoints", () => {
+  it("returns 10 points per monster kill", () => {
+    expect(getMonsterKillPoints(2)).toBe(2 * MONSTER_KILL_POINTS);
   });
 });

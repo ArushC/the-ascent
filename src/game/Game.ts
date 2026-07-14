@@ -1,6 +1,9 @@
 import { createPlayer, type Player } from "./entities/player/Player";
 import type { Platform } from "./entities/platform/Platform";
-import type { Monster } from "./entities/monster/Monster";
+import {
+  getMonsterKillPoints,
+  type Monster,
+} from "./entities/monster/Monster";
 import {
   createProjectile,
   type Projectile,
@@ -75,6 +78,7 @@ import {
 } from "./systems/projectileSystem/ProjectileSystem";
 import { updatePowerups } from "./systems/powerupSystem/PowerupSystem";
 import {
+  awardBonusPoints,
   createScoreState,
   getScore,
   updateScore,
@@ -470,6 +474,10 @@ export class Game {
     );
     this.projectiles = projectileCollisionResult.projectiles;
     this.monsters = projectileCollisionResult.monsters;
+    this.scoreState = awardBonusPoints(
+      this.scoreState,
+      getMonsterKillPoints(projectileCollisionResult.killCount),
+    );
   }
 
   private toggleTimeScale(): void {

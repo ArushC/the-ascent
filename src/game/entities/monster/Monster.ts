@@ -5,6 +5,7 @@ export const TRIANGULAR_MONSTER_SIZE = 32;
 
 export const MONSTER_SPIKE_COLOR = "red";
 export const MONSTER_SPIKE_SIZE = 3;
+export const MONSTER_KILL_POINTS = 10;
 
 export type MonsterKind = "horizontal" | "circular" | "triangular";
 
@@ -55,6 +56,10 @@ export function isTriangularPathMonster(
   monster: Monster,
 ): monster is TriangularPathMonster {
   return monster.kind === "triangular";
+}
+
+export function getMonsterKillPoints(killCount: number): number {
+  return killCount * MONSTER_KILL_POINTS;
 }
 
 export function drawMonsterSpike(
