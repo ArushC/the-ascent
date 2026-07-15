@@ -14,5 +14,23 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'json-summary'],
+      include: ['src/**/*.{ts,tsx}', 'server/**/*.ts', 'shared/**/*.ts'],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/*.config.{ts,tsx}',
+        '**/*.d.ts',
+        'dist/**',
+        'node_modules/**',
+      ],
+      thresholds: {
+        statements: 67,
+        branches: 67,
+        functions: 73,
+        lines: 67,
+      },
+    },
   },
 })

@@ -1,5 +1,7 @@
 # The Ascent
 
+[![Codecov](https://codecov.io/gh/ArushC/the-ascent/graph/badge.svg)](https://codecov.io/gh/ArushC/the-ascent)
+
 The Ascent is a vertical arcade platformer built with React, TypeScript, and Vite. It includes a local leaderboard API backed by SQLite for submitted scores and personal bests.
 
 ## Stack
@@ -37,9 +39,11 @@ GitHub Actions runs CI on every pull request and every push to `main`. The CI wo
 ```bash
 npm ci
 npm run lint
-npm run test:run
+npm run test:coverage
 npm run build
 ```
+
+Coverage uses Vitest V8 thresholds in CI and uploads `coverage/lcov.info` to Codecov when the `CODECOV_TOKEN` repository secret is configured.
 
 When code is pushed to `main`, the CD workflow builds the existing Dockerfile and pushes the image to GitHub Container Registry with `latest` and commit SHA tags.
 
