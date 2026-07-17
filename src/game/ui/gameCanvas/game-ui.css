@@ -9,13 +9,17 @@
   --game-border-muted-width: 1px;
   --game-border-muted: var(--game-border-muted-width) solid #737373;
   --game-backdrop: rgba(0, 0, 0, 0.6);
+  --game-space-xs: 0.15rem;
   --game-space-sm: 0.75rem;
   --game-space-md: 1.5rem;
   --game-button-size: 2.5rem;
   --game-button-padding-y: 0.5rem;
   --game-menu-width: 18rem;
+  --game-tooltip-width: 14rem;
   --game-score-size: 1.1rem;
   --game-score-weight: 700;
+  --game-detail-size: 0.8rem;
+  --game-detail-weight: 400;
   --game-title-size: 2rem;
   --game-icon-size: 1.5rem;
   --game-shadow: 0 1px 2px black;
@@ -55,6 +59,12 @@
   font-size: var(--game-score-size);
   font-weight: var(--game-score-weight);
   text-shadow: var(--game-shadow);
+}
+
+.game-daily-title {
+  margin-top: var(--game-space-xs);
+  font-size: var(--game-detail-size);
+  font-weight: var(--game-detail-weight);
 }
 
 .game-icon-button {
@@ -110,6 +120,25 @@
   opacity: 0.85;
 }
 
+.game-menu-detail {
+  font-weight: var(--game-detail-weight);
+}
+
+.game-menu-detail-title,
+.game-menu-detail-blurb {
+  display: block;
+}
+
+.game-menu-detail-title {
+  font-size: var(--game-score-size);
+  font-weight: var(--game-score-weight);
+}
+
+.game-menu-detail-blurb {
+  margin-top: var(--game-space-xs);
+  font-size: var(--game-detail-size);
+}
+
 .game-menu-actions {
   display: flex;
   flex-direction: column;
@@ -117,8 +146,43 @@
   margin-top: var(--game-space-md);
 }
 
+.game-menu-action {
+  display: flex;
+}
+
 .game-btn {
+  width: 100%;
   padding: var(--game-button-padding-y) var(--game-space-md);
   font-size: var(--game-score-size);
   cursor: pointer;
+}
+
+.game-menu-tooltip {
+  position: fixed;
+  z-index: 3;
+  width: min(var(--game-tooltip-width), 100%);
+  padding: var(--game-button-padding-y) var(--game-space-sm);
+  border: var(--game-border-muted);
+  background: var(--game-surface);
+  color: var(--game-text);
+  font-size: var(--game-detail-size);
+  font-weight: var(--game-detail-weight);
+  pointer-events: none;
+  text-align: center;
+  text-shadow: var(--game-shadow);
+  transform: translate(-50%, calc(-100% - var(--game-space-sm)));
+}
+
+.game-menu-tooltip-title,
+.game-menu-tooltip-body {
+  display: block;
+}
+
+.game-menu-tooltip-title {
+  font-size: var(--game-score-size);
+  font-weight: var(--game-score-weight);
+}
+
+.game-menu-tooltip-body {
+  margin-top: var(--game-space-xs);
 }

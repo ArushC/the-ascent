@@ -84,16 +84,28 @@ import {
   updateScore,
   type ScoreState,
 } from "./systems/scoreSystem/ScoreSystem";
-import { createMathRng, type Rng } from "./rng/seededRng/SeededRng";
+import {
+  createMathRng,
+  createSeededRng,
+  type Rng,
+} from "./rng/seededRng/SeededRng";
+import type {
+  ChallengeModifiers,
+  DailyChallenge,
+} from "../../shared/dailyChallenge/types.ts";
 
 const MAX_DELTA_MS = 50;
 const NORMAL_TIME_SCALE = 1;
 const SLOW_MO_TIME_SCALE = 0.4 * NORMAL_TIME_SCALE;
 
 export type GamePhase = "ready" | "playing" | "paused" | "over";
+/** Classic is the unmodified base game; daily applies a seeded challenge. */
+export type RunMode = "classic" | "daily";
 
 export type GameUiState = {
   phase: GamePhase;
+  runMode: RunMode;
+  dailyTitle: string | null;
   score: number;
   powerupPanel: PowerupPanelState;
   helpOpen: boolean;
@@ -102,9 +114,11 @@ export type GameUiState = {
 
 export type GameControls = {
   beginRun: () => void;
+  beginDailyRun: (challenge: DailyChallenge) => void;
   pause: () => void;
   resume: () => void;
   restart: () => void;
+  returnHome: () => void;
   toggleHelp: () => void;
   closeHelp: () => void;
 };
@@ -132,6 +146,8 @@ export class Game {
   private phase: GamePhase = "ready";
   private helpOpen = false;
   private rng: Rng = createMathRng();
+  private runMode: RunMode = "classic";
+  private activeChallenge: DailyChallenge | null = null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -172,8 +188,22 @@ export class Game {
   beginRun(): void {
     if (this.phase !== "ready") return;
 
+    this.runMode = "classic";
+    this.activeChallenge = null;
+    this.rng = createMathRng();
     this.timeScale = NORMAL_TIME_SCALE;
     this.helpOpen = false;
+    this.setPhase("playing");
+  }
+
+  beginDailyRun(challenge: DailyChallenge): void {
+    if (this.phase !== "ready") return;
+
+    this.runMode = "daily";
+    this.activeChallenge = challenge;
+    this.rng = createSeededRng(challenge.seed);
+    this.helpOpen = false;
+    this.resetWorld();
     this.setPhase("playing");
   }
 
@@ -193,9 +223,24 @@ export class Game {
   restart(): void {
     if (this.phase !== "paused" && this.phase !== "over") return;
 
+    this.rng =
+      this.runMode === "daily" && this.activeChallenge
+        ? createSeededRng(this.activeChallenge.seed)
+        : createMathRng();
     this.helpOpen = false;
     this.resetWorld();
     this.setPhase("playing");
+  }
+
+  returnHome(): void {
+    if (this.phase === "ready") return;
+
+    this.runMode = "classic";
+    this.activeChallenge = null;
+    this.rng = createMathRng();
+    this.helpOpen = false;
+    this.resetWorld();
+    this.setPhase("ready");
   }
 
   toggleHelp(): void {
@@ -402,7 +447,10 @@ export class Game {
     );
     this.scoreState = updateScore(this.scoreState, this.player.y);
     this.updateAscension();
-    const difficultyParams = getDifficultyParams(getScore(this.scoreState));
+    const difficultyParams = getDifficultyParams(
+      getScore(this.scoreState),
+      this.getActiveModifiers(),
+    );
     const spawnEnabled = !isBlankSpawnActive(this.ascensionState);
     this.monsters = updateMonstersForCamera(
       this.monsters,
@@ -421,6 +469,7 @@ export class Game {
       difficultyParams,
       spawnEnabled,
       this.rng,
+      this.getActiveModifiers(),
     );
     this.projectiles = removeOffScreenProjectiles(this.projectiles, {
       screenTopY: this.screenTopY,
@@ -528,8 +577,9 @@ export class Game {
     this.platforms = createInitialPlatforms(
       this.canvas.width,
       this.canvas.height,
-      getDifficultyParams(0),
+      getDifficultyParams(0, this.getActiveModifiers()),
       this.rng,
+      this.getActiveModifiers(),
     );
     this.monsters = createInitialMonsters();
     this.projectiles = [];
@@ -556,6 +606,8 @@ export class Game {
 
     this.publishUiState({
       phase: this.phase,
+      runMode: this.runMode,
+      dailyTitle: this.activeChallenge?.title ?? null,
       score: getScore(this.scoreState),
       powerupPanel: getPowerupPanelState(this.powerupInventory, bigShotArmed),
       helpOpen: this.helpOpen,
@@ -565,5 +617,9 @@ export class Game {
 
   private getAscensionUiState(): GameUiState["ascension"] {
     return createAscensionUiState(this.ascensionState);
+  }
+
+  private getActiveModifiers(): ChallengeModifiers | undefined {
+    return this.activeChallenge?.modifiers;
   }
 }

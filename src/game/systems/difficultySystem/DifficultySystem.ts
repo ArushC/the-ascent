@@ -1,3 +1,5 @@
+import type { ChallengeModifiers } from "../../../../shared/dailyChallenge/types.ts";
+
 export const SCORE_RAMP_END = 10_000;
 
 export type DifficultyParams = {
@@ -61,6 +63,13 @@ const HARD_MAX_TRIANGULAR_MONSTER_PATH_SIZE = 96;
 
 const BASE_MONSTER_SIZE_SCALE = 1;
 const HARD_MONSTER_SIZE_SCALE = 1.25;
+const MIN_MOVING_SHARE = 0.15;
+const MAX_MOVING_SHARE = 0.65;
+const MIN_MONSTER_SPAWN_PROBABILITY = 0.05;
+const MAX_MONSTER_SPAWN_PROBABILITY = 0.45;
+const MIN_GAP_RATIO = 0.25;
+const MAX_GAP_RATIO = 0.85;
+const MIN_GAP_SPREAD = 0.01;
 
 export function getDifficultyProgress(score: number): number {
   const rawT = clamp(score / SCORE_RAMP_END, 0, 1);
@@ -68,28 +77,34 @@ export function getDifficultyProgress(score: number): number {
   return rawT * (2 - rawT);
 }
 
-export function getDifficultyParams(score: number): DifficultyParams {
-  const t = getDifficultyProgress(score);
-  const movingShare = lerp(BASE_MOVING_SHARE, HARD_MOVING_SHARE, t);
+/**
+ * Converts score into the spawn and monster tuning for the current run.
+ * Classic mode omits modifiers, so it follows the original curve exactly.
+ * Daily mode keeps that same curve, then applies bounded challenge biases.
+ */
+export function getDifficultyParams(
+  score: number,
+  modifiers?: ChallengeModifiers,
+): DifficultyParams {
+  const t = getDifficultyT(score, modifiers);
+  const movingShare = getMovingPlatformShare(t, modifiers);
+  const gapRatios = getGapRatios(t, modifiers);
+  const monsterSpawnProbability = getMonsterSpawnProbability(t, modifiers);
 
   return {
     staticWeight: 1 - movingShare,
     horizontalMovingWeight: movingShare * HORIZONTAL_MOVING_SHARE,
     verticalMovingWeight: movingShare * VERTICAL_MOVING_SHARE,
     diagonalMovingWeight: movingShare * DIAGONAL_MOVING_SHARE,
-    minGapRatio: lerp(BASE_MIN_GAP_RATIO, HARD_MIN_GAP_RATIO, t),
-    maxGapRatio: lerp(BASE_MAX_GAP_RATIO, HARD_MAX_GAP_RATIO, t),
+    minGapRatio: gapRatios.minGapRatio,
+    maxGapRatio: gapRatios.maxGapRatio,
     minPlatformWidth: lerp(
       BASE_MIN_PLATFORM_WIDTH,
       HARD_MIN_PLATFORM_WIDTH,
       t,
     ),
     maxPlatformWidth: MAX_PLATFORM_WIDTH,
-    monsterSpawnProbability: lerp(
-      BASE_MONSTER_SPAWN_PROBABILITY,
-      HARD_MONSTER_SPAWN_PROBABILITY,
-      t,
-    ),
+    monsterSpawnProbability,
     minMonsterSpeed: lerp(BASE_MIN_MONSTER_SPEED, HARD_MIN_MONSTER_SPEED, t),
     maxMonsterSpeed: lerp(BASE_MAX_MONSTER_SPEED, HARD_MAX_MONSTER_SPEED, t),
     minHorizontalMonsterTravel: lerp(
@@ -128,6 +143,90 @@ export function getDifficultyParams(score: number): DifficultyParams {
       t,
     ),
   };
+}
+
+/** Applies the daily ramp scale to the normal score progress. */
+function getDifficultyT(
+  score: number,
+  modifiers?: ChallengeModifiers,
+): number {
+  const baseT = getDifficultyProgress(score);
+
+  if (!modifiers) return baseT;
+
+  return clamp(baseT * modifiers.difficultyRampScale, 0, 1);
+}
+
+/** Adds the daily moving-platform bias while preserving safe spawn weights. */
+function getMovingPlatformShare(
+  t: number,
+  modifiers?: ChallengeModifiers,
+): number {
+  const baseMovingShare = lerp(BASE_MOVING_SHARE, HARD_MOVING_SHARE, t);
+
+  if (!modifiers) return baseMovingShare;
+
+  return clamp(
+    baseMovingShare + modifiers.movingShareBias,
+    MIN_MOVING_SHARE,
+    MAX_MOVING_SHARE,
+  );
+}
+
+/** Adds the daily monster-rate bias inside the allowed probability range. */
+function getMonsterSpawnProbability(
+  t: number,
+  modifiers?: ChallengeModifiers,
+): number {
+  const baseMonsterSpawnProbability = lerp(
+    BASE_MONSTER_SPAWN_PROBABILITY,
+    HARD_MONSTER_SPAWN_PROBABILITY,
+    t,
+  );
+
+  if (!modifiers) return baseMonsterSpawnProbability;
+
+  return clamp(
+    baseMonsterSpawnProbability + modifiers.monsterRateBias,
+    MIN_MONSTER_SPAWN_PROBABILITY,
+    MAX_MONSTER_SPAWN_PROBABILITY,
+  );
+}
+
+/**
+ * Applies the daily gap bias to both ends of the range while preserving an
+ * ordered min/max pair that remains inside the jumpable gameplay bounds.
+ */
+function getGapRatios(
+  t: number,
+  modifiers?: ChallengeModifiers,
+): Pick<DifficultyParams, "minGapRatio" | "maxGapRatio"> {
+  let minGapRatio = lerp(BASE_MIN_GAP_RATIO, HARD_MIN_GAP_RATIO, t);
+  let maxGapRatio = lerp(BASE_MAX_GAP_RATIO, HARD_MAX_GAP_RATIO, t);
+
+  if (modifiers) {
+    minGapRatio = clamp(
+      minGapRatio + modifiers.gapBias,
+      MIN_GAP_RATIO,
+      MAX_GAP_RATIO,
+    );
+    maxGapRatio = clamp(
+      maxGapRatio + modifiers.gapBias,
+      MIN_GAP_RATIO,
+      MAX_GAP_RATIO,
+    );
+  }
+
+  if (minGapRatio >= maxGapRatio) {
+    minGapRatio = clamp(
+      maxGapRatio - MIN_GAP_SPREAD,
+      MIN_GAP_RATIO,
+      MAX_GAP_RATIO - MIN_GAP_SPREAD,
+    );
+    maxGapRatio = Math.max(maxGapRatio, minGapRatio + MIN_GAP_SPREAD);
+  }
+
+  return { minGapRatio, maxGapRatio };
 }
 
 function clamp(value: number, min: number, max: number): number {

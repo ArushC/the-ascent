@@ -15,6 +15,7 @@ import {
   randomBetween,
   type Rng,
 } from "../../rng/seededRng/SeededRng";
+import type { ChallengeModifiers } from "../../../../shared/dailyChallenge/types.ts";
 import type { DifficultyParams } from "../difficultySystem/DifficultySystem";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "../physicsSystem/PhysicsSystem";
 
@@ -70,6 +71,7 @@ export function spawnNextPlatform(
   params: DifficultyParams,
   gapBounds = getGapBounds(params),
   rng: Rng = createMathRng(),
+  modifiers?: ChallengeModifiers,
 ): Platform {
   const { minGap, maxGap } = gapBounds;
   const gap = randomBetween(minGap, maxGap, rng);
@@ -77,7 +79,7 @@ export function spawnNextPlatform(
 
   switch (pickPlatformKind(rng(), params)) {
     case "horizontalMoving": {
-      const extras = rollPlatformExtras(rng);
+      const extras = rollPlatformExtras(rng, modifiers);
       const width = getPlatformSpawnWidth(params, extras, rng);
       const travelDistance = getMovingPlatformTravelDistance(
         canvasWidth,
@@ -98,7 +100,7 @@ export function spawnNextPlatform(
       );
     }
     case "verticalMoving": {
-      const extras = rollPlatformExtras(rng);
+      const extras = rollPlatformExtras(rng, modifiers);
       const width = getPlatformSpawnWidth(params, extras, rng);
       const travelDistance = getMovingPlatformTravelDistance(
         canvasWidth,
@@ -119,7 +121,7 @@ export function spawnNextPlatform(
       );
     }
     case "diagonalMoving": {
-      const extras = rollPlatformExtras(rng);
+      const extras = rollPlatformExtras(rng, modifiers);
       const width = getPlatformSpawnWidth(params, extras, rng);
       const travelDistance = getMovingPlatformTravelDistance(
         canvasWidth,
@@ -141,7 +143,7 @@ export function spawnNextPlatform(
       );
     }
     case "static": {
-      const extras = rollPlatformExtras(rng);
+      const extras = rollPlatformExtras(rng, modifiers);
       const width = getPlatformSpawnWidth(params, extras, rng);
       const x = getRandomPlatformX(canvasWidth, 0, width, rng);
 
@@ -163,6 +165,7 @@ export function spawnPlatformsAboveCamera(
   canvasHeight: number,
   params: DifficultyParams,
   rng: Rng = createMathRng(),
+  modifiers?: ChallengeModifiers,
 ): Platform[] {
   const platformsAhead = [...currentPlatforms];
   const lookaheadTopY = screenTopY - canvasHeight * SPAWN_LOOKAHEAD_SCREENS;
@@ -182,6 +185,7 @@ export function spawnPlatformsAboveCamera(
       params,
       getGapBounds(params),
       rng,
+      modifiers,
     );
     platformsAhead.push(platform);
     topmostY = getPlatformTopY(platform);
@@ -205,6 +209,7 @@ export function createInitialPlatforms(
   canvasHeight: number,
   params: DifficultyParams,
   rng: Rng = createMathRng(),
+  modifiers?: ChallengeModifiers,
 ): Platform[] {
   const playerStartX = (canvasWidth - PLAYER_WIDTH) / 2;
   const bottomPlatformX =
@@ -223,6 +228,7 @@ export function createInitialPlatforms(
     canvasHeight,
     params,
     rng,
+    modifiers,
   );
 }
 
@@ -234,6 +240,7 @@ export function updatePlatformsForCamera(
   params: DifficultyParams,
   spawnEnabled = true,
   rng: Rng = createMathRng(),
+  modifiers?: ChallengeModifiers,
 ): Platform[] {
   const visiblePlatforms = removePlatformsBelowCamera(
     platforms,
@@ -250,6 +257,7 @@ export function updatePlatformsForCamera(
     canvasHeight,
     params,
     rng,
+    modifiers,
   );
 }
 
@@ -259,13 +267,18 @@ export function updatePlatformsForCamera(
  */
 export function rollPlatformExtras(
   rng: Rng = createMathRng(),
+  modifiers?: ChallengeModifiers,
 ): PlatformExtras {
-  const hasPowerup = rng() < POWERUP_SPAWN_PROBABILITY;
+  const powerupSpawnProbability =
+    modifiers?.powerupSpawnProbability ?? POWERUP_SPAWN_PROBABILITY;
+  const springSpawnProbability =
+    modifiers?.springSpawnProbability ?? SPRING_SPAWN_PROBABILITY;
+  const hasPowerup = rng() < powerupSpawnProbability;
   if (hasPowerup) {
     return { hasSpring: false, hasPowerup: true };
   }
 
-  const hasSpring = rng() < SPRING_SPAWN_PROBABILITY;
+  const hasSpring = rng() < springSpawnProbability;
 
   return {
     hasSpring,

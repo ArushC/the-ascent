@@ -7,6 +7,7 @@ import { HelpMenu } from "../helpMenu/HelpMenu";
 import { GameMenu, type GameMenuPhase } from "../gameMenu/GameMenu";
 import { getOrCreatePlayerId } from "../../leaderboard/playerIdentity/playerIdentity";
 import { useGameOverLeaderboard } from "../../leaderboard/useGameOverLeaderboard/useGameOverLeaderboard";
+import { OFFLINE_DAILY_CHALLENGE } from "../../dailyChallenge/offlineDailyChallenge/offlineDailyChallenge";
 import "./game-ui.css";
 
 type GameCanvasProps = {
@@ -25,6 +26,8 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
     useState(false);
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
+    runMode: "classic",
+    dailyTitle: null,
     score: 0,
     powerupPanel: { mode: "empty" },
     helpOpen: false,
@@ -49,9 +52,11 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
 
     setUiControls({
       beginRun: () => game.beginRun(),
+      beginDailyRun: (challenge) => game.beginDailyRun(challenge),
       pause: () => game.pause(),
       resume: () => game.resume(),
       restart: () => game.restart(),
+      returnHome: () => game.returnHome(),
       toggleHelp: () => game.toggleHelp(),
       closeHelp: () => game.closeHelp(),
     });
@@ -79,6 +84,8 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
       {uiControls ? (
         <GameHud
           phase={ui.phase}
+          runMode={ui.runMode}
+          dailyTitle={ui.dailyTitle}
           score={ui.score}
           powerupPanel={ui.powerupPanel}
           onOpenMenu={() => uiControls.pause()}
@@ -90,6 +97,8 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
           score={ui.score}
           controls={uiControls}
           leaderboard={leaderboard}
+          dailyChallenge={OFFLINE_DAILY_CHALLENGE}
+          runMode={ui.runMode}
         />
       ) : null}
       {ui.helpOpen && uiControls ? (

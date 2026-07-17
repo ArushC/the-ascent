@@ -16,7 +16,9 @@ import {
   createTestVerticalMovingPlatform,
   createTestStaticPlatform,
 } from "../../testing/entityFactories";
+import { constantRng, sequenceRng } from "../../testing/rng";
 import { createSeededRng } from "../../rng/seededRng/SeededRng";
+import type { ChallengeModifiers } from "../../../../shared/dailyChallenge/types.ts";
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
@@ -54,6 +56,14 @@ const HARD_DIFFICULTY = getDifficultyParams(SCORE_RAMP_END);
 const BASE_GAP_BOUNDS = getGapBounds(BASE_DIFFICULTY);
 const LOW_ROLL_RNG = constantRng(0);
 const HIGH_ROLL_RNG = constantRng(1);
+const BASE_MODIFIERS: ChallengeModifiers = {
+  difficultyRampScale: 1,
+  movingShareBias: 0,
+  monsterRateBias: 0,
+  springSpawnProbability: 0.1,
+  powerupSpawnProbability: 0.03,
+  gapBias: 0,
+};
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -449,6 +459,31 @@ describe("rollPlatformExtras", () => {
       hasPowerup: false,
     });
   });
+
+  it("uses challenge powerup probability when modifiers are present", () => {
+    expect(
+      rollPlatformExtras(constantRng(0.07), {
+        ...BASE_MODIFIERS,
+        powerupSpawnProbability: 0.08,
+      }),
+    ).toEqual({
+      hasSpring: false,
+      hasPowerup: true,
+    });
+  });
+
+  it("uses challenge spring probability when modifiers are present", () => {
+    expect(
+      rollPlatformExtras(sequenceRng([0.08, 0.24]), {
+        ...BASE_MODIFIERS,
+        springSpawnProbability: 0.25,
+        powerupSpawnProbability: 0.08,
+      }),
+    ).toEqual({
+      hasSpring: true,
+      hasPowerup: false,
+    });
+  });
 });
 
 describe("spawnPlatformsAboveCamera", () => {
@@ -585,8 +620,4 @@ function snapshotLayout(platforms: ReturnType<typeof createInitialPlatforms>) {
     x: platform.x,
     y: platform.y,
   }));
-}
-
-function constantRng(value: number) {
-  return () => value;
 }
