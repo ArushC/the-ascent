@@ -9,6 +9,7 @@ import {
   type PowerupDefinition,
 } from "../powerupCatalog/PowerupCatalog";
 import type { ProjectileSizeMode } from "../../entities/player/Player";
+import { createMathRng, type Rng } from "../../rng/seededRng/SeededRng";
 
 export const POWERUP_GENERATION_DURATION_MS = 2000;
 
@@ -38,6 +39,7 @@ export function beginPowerupGeneration(
 export function updatePowerupInventory(
   inventory: PowerupInventory,
   deltaTime: number,
+  rng: Rng = createMathRng(),
 ): PowerupInventory {
   if (inventory.status !== "generating") return inventory;
 
@@ -53,7 +55,7 @@ export function updatePowerupInventory(
 
   return {
     status: "ready",
-    powerup: pickRandomPowerup(inventory.previousPowerup?.id ?? null),
+    powerup: pickRandomPowerup(inventory.previousPowerup?.id ?? null, rng),
   };
 }
 

@@ -1,31 +1,28 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   generateRandomMovingPlatformTravelDistance,
   generateRandomMovingPlatformVelocity,
 } from "./random";
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
 describe("moving platform random helpers", () => {
   it("generates signed velocity in the configured speed range", () => {
-    vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0);
-
-    expect(generateRandomMovingPlatformVelocity()).toBe(-0.07);
-
-    vi.spyOn(Math, "random").mockReturnValueOnce(1).mockReturnValueOnce(0.5);
-
-    expect(generateRandomMovingPlatformVelocity()).toBe(0.11);
+    expect(generateRandomMovingPlatformVelocity(rngFromSequence([0, 0]))).toBe(
+      -0.07,
+    );
+    expect(generateRandomMovingPlatformVelocity(rngFromSequence([1, 0.5]))).toBe(
+      0.11,
+    );
   });
 
   it("generates travel distance in the configured range", () => {
-    const randomSpy = vi.spyOn(Math, "random");
-
-    randomSpy.mockReturnValue(0);
-    expect(generateRandomMovingPlatformTravelDistance()).toBe(24);
-
-    randomSpy.mockReturnValue(1);
-    expect(generateRandomMovingPlatformTravelDistance()).toBe(48);
+    expect(generateRandomMovingPlatformTravelDistance(() => 0)).toBe(24);
+    expect(generateRandomMovingPlatformTravelDistance(() => 1)).toBe(48);
   });
 });
+
+function rngFromSequence(values: readonly number[]) {
+  let index = 0;
+
+  // Test RNG: returns each scripted roll in order, then repeats the last one.
+  return () => values[index++] ?? values[values.length - 1] ?? 0;
+}

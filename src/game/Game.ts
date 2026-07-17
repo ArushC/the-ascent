@@ -84,6 +84,7 @@ import {
   updateScore,
   type ScoreState,
 } from "./systems/scoreSystem/ScoreSystem";
+import { createMathRng, type Rng } from "./rng/seededRng/SeededRng";
 
 const MAX_DELTA_MS = 50;
 const NORMAL_TIME_SCALE = 1;
@@ -130,6 +131,7 @@ export class Game {
   private hasBouncedOnSpring = false;
   private phase: GamePhase = "ready";
   private helpOpen = false;
+  private rng: Rng = createMathRng();
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -145,6 +147,7 @@ export class Game {
       canvas.width,
       canvas.height,
       getDifficultyParams(0),
+      this.rng,
     );
     this.monsters = createInitialMonsters();
   }
@@ -359,6 +362,7 @@ export class Game {
       this.platforms,
       this.powerupInventory,
       simDt,
+      this.rng,
     );
     this.powerupInventory = powerupUpdate.inventory;
     if (powerupUpdate.didLoseReadyShrinkPowerup) {
@@ -407,6 +411,7 @@ export class Game {
       this.canvas.height,
       difficultyParams,
       spawnEnabled,
+      this.rng,
     );
     this.platforms = updatePlatformsForCamera(
       this.platforms,
@@ -415,6 +420,7 @@ export class Game {
       this.canvas.height,
       difficultyParams,
       spawnEnabled,
+      this.rng,
     );
     this.projectiles = removeOffScreenProjectiles(this.projectiles, {
       screenTopY: this.screenTopY,
@@ -523,6 +529,7 @@ export class Game {
       this.canvas.width,
       this.canvas.height,
       getDifficultyParams(0),
+      this.rng,
     );
     this.monsters = createInitialMonsters();
     this.projectiles = [];

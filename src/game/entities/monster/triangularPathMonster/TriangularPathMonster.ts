@@ -10,6 +10,7 @@ import {
   generateRandomMonsterSpeed,
   generateRandomTriangularMonsterPathSize,
 } from "../random/random";
+import { createMathRng, type Rng } from "../../../rng/seededRng/SeededRng";
 
 const TRIANGULAR_PATH_MONSTER_COLOR = "white";
 
@@ -108,24 +109,37 @@ export class TriangularPathMonster implements TriangularPathMonsterEntity {
 export function createTriangularMonster(
   x: number,
   y: number,
-  pathSize = generateRandomTriangularMonsterPathSize(),
-  pathT = Math.random(),
-  speed = generateRandomMonsterSpeed() * generateRandomMonsterDirection(),
+  pathSize?: number,
+  pathT?: number,
+  speed?: number,
   size = TRIANGULAR_MONSTER_SIZE,
+  rng: Rng = createMathRng(),
 ): TriangularPathMonster {
-  const height = (Math.sqrt(3) / 2) * pathSize;
+  // Provided values win, missing movement uses rng
+  const resolvedPathSize =
+    pathSize ?? generateRandomTriangularMonsterPathSize(
+      undefined,
+      undefined,
+      rng,
+    );
+  const resolvedPathT = pathT ?? rng();
+  const resolvedSpeed =
+    speed ??
+    generateRandomMonsterSpeed(undefined, undefined, rng) *
+      generateRandomMonsterDirection(rng);
+  const height = (Math.sqrt(3) / 2) * resolvedPathSize;
   const vertices: readonly [Point, Point, Point] = [
     { x, y: y - height / 2 },
-    { x: x + pathSize / 2, y: y + height / 2 },
-    { x: x - pathSize / 2, y: y + height / 2 },
+    { x: x + resolvedPathSize / 2, y: y + height / 2 },
+    { x: x - resolvedPathSize / 2, y: y + height / 2 },
   ];
 
   return new TriangularPathMonster(
     vertices,
     size,
     size,
-    pathT,
-    speed,
+    resolvedPathT,
+    resolvedSpeed,
   );
 }
 

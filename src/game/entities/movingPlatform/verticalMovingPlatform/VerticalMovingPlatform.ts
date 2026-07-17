@@ -10,6 +10,7 @@ import {
   generateRandomMovingPlatformTravelDistance,
   generateRandomMovingPlatformVelocity,
 } from "../random/random";
+import { createMathRng, type Rng } from "../../../rng/seededRng/SeededRng";
 
 const VERTICAL_MOVING_PLATFORM_COLOR = "purple";
 
@@ -69,20 +70,26 @@ export class VerticalMovingPlatform implements VerticalMovingPlatformEntity {
 export function createVerticalMovingPlatform(
   x: number,
   y: number,
-  velocityY = generateRandomMovingPlatformVelocity(),
-  travelDistance = generateRandomMovingPlatformTravelDistance(),
+  velocityY?: number,
+  travelDistance?: number,
   hasSpring = false,
   hasPowerup = false,
   width = DEFAULT_PLATFORM_WIDTH,
+  rng: Rng = createMathRng(),
 ): VerticalMovingPlatform {
-  const halfTravelDistance = travelDistance / 2;
+  // Provided values win, missing movement uses rng
+  const resolvedVelocityY =
+    velocityY ?? generateRandomMovingPlatformVelocity(rng);
+  const resolvedTravelDistance =
+    travelDistance ?? generateRandomMovingPlatformTravelDistance(rng);
+  const halfTravelDistance = resolvedTravelDistance / 2;
 
   return new VerticalMovingPlatform(
     x,
     y,
     width,
     DEFAULT_PLATFORM_HEIGHT,
-    velocityY,
+    resolvedVelocityY,
     y - halfTravelDistance,
     y + halfTravelDistance,
     hasSpring,

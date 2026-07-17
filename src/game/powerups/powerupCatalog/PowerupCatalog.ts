@@ -1,3 +1,5 @@
+import { createMathRng, type Rng } from "../../rng/seededRng/SeededRng";
+
 export type PowerupDefinition = {
   id: string;
   label: string;
@@ -43,12 +45,13 @@ export const ALL_POWERUP_IDS: readonly string[] = POWERUP_CATALOG.map(
 
 export function pickRandomPowerup(
   excludedPowerupId: string | null = null,
+  rng: Rng = createMathRng(),
 ): PowerupDefinition | null {
   const availablePowerups = POWERUP_CATALOG.filter(
     (powerup) => powerup.id !== excludedPowerupId,
   );
   if (availablePowerups.length === 0) return null;
 
-  const index = Math.floor(Math.random() * availablePowerups.length);
+  const index = Math.floor(rng() * availablePowerups.length);
   return availablePowerups[index];
 }

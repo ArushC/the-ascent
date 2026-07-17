@@ -10,6 +10,11 @@ import {
 import { PLAYER_WIDTH } from "../../entities/player/Player";
 import { SPRING_WIDTH } from "../../entities/spring/Spring";
 import { createStaticPlatform } from "../../entities/staticPlatform/StaticPlatform";
+import {
+  createMathRng,
+  randomBetween,
+  type Rng,
+} from "../../rng/seededRng/SeededRng";
 import type { DifficultyParams } from "../difficultySystem/DifficultySystem";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "../physicsSystem/PhysicsSystem";
 
@@ -64,21 +69,22 @@ export function spawnNextPlatform(
   canvasWidth: number,
   params: DifficultyParams,
   gapBounds = getGapBounds(params),
+  rng: Rng = createMathRng(),
 ): Platform {
   const { minGap, maxGap } = gapBounds;
-  const gap = randomBetween(minGap, maxGap);
+  const gap = randomBetween(minGap, maxGap, rng);
   const y = topmostY - gap;
 
-  switch (pickPlatformKind(Math.random(), params)) {
+  switch (pickPlatformKind(rng(), params)) {
     case "horizontalMoving": {
-      const extras = rollPlatformExtras();
-      const width = getPlatformSpawnWidth(params, extras);
+      const extras = rollPlatformExtras(rng);
+      const width = getPlatformSpawnWidth(params, extras, rng);
       const travelDistance = getMovingPlatformTravelDistance(
         canvasWidth,
         width,
         gapBounds,
       );
-      const x = getRandomPlatformX(canvasWidth, travelDistance, width);
+      const x = getRandomPlatformX(canvasWidth, travelDistance, width, rng);
 
       return createHorizontalMovingPlatform(
         x,
@@ -88,17 +94,18 @@ export function spawnNextPlatform(
         extras.hasSpring,
         extras.hasPowerup,
         width,
+        rng,
       );
     }
     case "verticalMoving": {
-      const extras = rollPlatformExtras();
-      const width = getPlatformSpawnWidth(params, extras);
+      const extras = rollPlatformExtras(rng);
+      const width = getPlatformSpawnWidth(params, extras, rng);
       const travelDistance = getMovingPlatformTravelDistance(
         canvasWidth,
         width,
         gapBounds,
       );
-      const x = getRandomPlatformX(canvasWidth, 0, width);
+      const x = getRandomPlatformX(canvasWidth, 0, width, rng);
 
       return createVerticalMovingPlatform(
         x,
@@ -108,17 +115,18 @@ export function spawnNextPlatform(
         extras.hasSpring,
         extras.hasPowerup,
         width,
+        rng,
       );
     }
     case "diagonalMoving": {
-      const extras = rollPlatformExtras();
-      const width = getPlatformSpawnWidth(params, extras);
+      const extras = rollPlatformExtras(rng);
+      const width = getPlatformSpawnWidth(params, extras, rng);
       const travelDistance = getMovingPlatformTravelDistance(
         canvasWidth,
         width,
         gapBounds,
       );
-      const x = getRandomPlatformX(canvasWidth, travelDistance, width);
+      const x = getRandomPlatformX(canvasWidth, travelDistance, width, rng);
 
       return createDiagonalMovingPlatform(
         x,
@@ -129,12 +137,13 @@ export function spawnNextPlatform(
         extras.hasSpring,
         extras.hasPowerup,
         width,
+        rng,
       );
     }
     case "static": {
-      const extras = rollPlatformExtras();
-      const width = getPlatformSpawnWidth(params, extras);
-      const x = getRandomPlatformX(canvasWidth, 0, width);
+      const extras = rollPlatformExtras(rng);
+      const width = getPlatformSpawnWidth(params, extras, rng);
+      const x = getRandomPlatformX(canvasWidth, 0, width, rng);
 
       return createStaticPlatform(
         x,
@@ -153,6 +162,7 @@ export function spawnPlatformsAboveCamera(
   canvasWidth: number,
   canvasHeight: number,
   params: DifficultyParams,
+  rng: Rng = createMathRng(),
 ): Platform[] {
   const platformsAhead = [...currentPlatforms];
   const lookaheadTopY = screenTopY - canvasHeight * SPAWN_LOOKAHEAD_SCREENS;
@@ -166,7 +176,13 @@ export function spawnPlatformsAboveCamera(
   // World Y decreases upward, so keep spawning until topmostY reaches the
   // upper edge of the lookahead region.
   while (topmostY > lookaheadTopY) {
-    const platform = spawnNextPlatform(topmostY, canvasWidth, params);
+    const platform = spawnNextPlatform(
+      topmostY,
+      canvasWidth,
+      params,
+      getGapBounds(params),
+      rng,
+    );
     platformsAhead.push(platform);
     topmostY = getPlatformTopY(platform);
   }
@@ -188,6 +204,7 @@ export function createInitialPlatforms(
   canvasWidth: number,
   canvasHeight: number,
   params: DifficultyParams,
+  rng: Rng = createMathRng(),
 ): Platform[] {
   const playerStartX = (canvasWidth - PLAYER_WIDTH) / 2;
   const bottomPlatformX =
@@ -205,6 +222,7 @@ export function createInitialPlatforms(
     canvasWidth,
     canvasHeight,
     params,
+    rng,
   );
 }
 
@@ -215,6 +233,7 @@ export function updatePlatformsForCamera(
   canvasHeight: number,
   params: DifficultyParams,
   spawnEnabled = true,
+  rng: Rng = createMathRng(),
 ): Platform[] {
   const visiblePlatforms = removePlatformsBelowCamera(
     platforms,
@@ -230,26 +249,23 @@ export function updatePlatformsForCamera(
     canvasWidth,
     canvasHeight,
     params,
+    rng,
   );
-}
-
-function randomBetween(min: number, max: number): number {
-  if (min === max) return min;
-
-  return min + Math.random() * (max - min);
 }
 
 /**
  * Rolls mutually exclusive platform extras.
  * Outcomes: powerup 3%, spring 9.7% (10% after a powerup miss), neither 87.3%.
  */
-export function rollPlatformExtras(): PlatformExtras {
-  const hasPowerup = Math.random() < POWERUP_SPAWN_PROBABILITY;
+export function rollPlatformExtras(
+  rng: Rng = createMathRng(),
+): PlatformExtras {
+  const hasPowerup = rng() < POWERUP_SPAWN_PROBABILITY;
   if (hasPowerup) {
     return { hasSpring: false, hasPowerup: true };
   }
 
-  const hasSpring = Math.random() < SPRING_SPAWN_PROBABILITY;
+  const hasSpring = rng() < SPRING_SPAWN_PROBABILITY;
 
   return {
     hasSpring,
@@ -307,6 +323,7 @@ export function getRandomPlatformX(
   canvasWidth: number,
   horizontalTravelDistance = 0,
   platformWidth = DEFAULT_PLATFORM_WIDTH,
+  rng: Rng = createMathRng(),
 ): number {
   const maxPlatformX = Math.max(0, canvasWidth - platformWidth);
   const halfTravelDistance = Math.min(
@@ -316,14 +333,19 @@ export function getRandomPlatformX(
   const minX = halfTravelDistance;
   const maxX = maxPlatformX - halfTravelDistance;
 
-  return minX + Math.random() * Math.max(0, maxX - minX);
+  return minX + rng() * Math.max(0, maxX - minX);
 }
 
 function getPlatformSpawnWidth(
   params: DifficultyParams,
   extras: PlatformExtras,
+  rng: Rng,
 ): number {
-  const width = randomBetween(params.minPlatformWidth, params.maxPlatformWidth);
+  const width = randomBetween(
+    params.minPlatformWidth,
+    params.maxPlatformWidth,
+    rng,
+  );
 
   return extras.hasSpring ? Math.max(width, SPRING_WIDTH) : width;
 }

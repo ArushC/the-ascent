@@ -10,6 +10,7 @@ import {
   generateRandomHorizontalMonsterTravelDistance,
   generateRandomMonsterVelocity,
 } from "../random/random";
+import { createMathRng, type Rng } from "../../../rng/seededRng/SeededRng";
 
 const HORIZONTAL_MONSTER_COLOR = "cyan";
 
@@ -109,19 +110,32 @@ export class HorizontalMonster implements HorizontalMonsterEntity {
 export function createHorizontalMonster(
   x: number,
   y: number,
-  velocityX = generateRandomMonsterVelocity(),
-  travelDistance = generateRandomHorizontalMonsterTravelDistance(),
+  velocityX?: number,
+  travelDistance?: number,
   width = HORIZONTAL_MONSTER_WIDTH,
   height = HORIZONTAL_MONSTER_HEIGHT,
+  rng: Rng = createMathRng(),
 ): HorizontalMonster {
-  const halfTravelDistance = travelDistance / 2;
+  // Provided values win, missing movement uses rng
+  const resolvedVelocityX = velocityX ?? generateRandomMonsterVelocity(
+    undefined,
+    undefined,
+    rng,
+  );
+  const resolvedTravelDistance =
+    travelDistance ?? generateRandomHorizontalMonsterTravelDistance(
+      undefined,
+      undefined,
+      rng,
+    );
+  const halfTravelDistance = resolvedTravelDistance / 2;
 
   return new HorizontalMonster(
     x,
     y,
     width,
     height,
-    velocityX,
+    resolvedVelocityX,
     x - halfTravelDistance,
     x + halfTravelDistance,
   );

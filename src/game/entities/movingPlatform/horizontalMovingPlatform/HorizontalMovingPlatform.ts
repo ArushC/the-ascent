@@ -10,6 +10,7 @@ import {
   generateRandomMovingPlatformTravelDistance,
   generateRandomMovingPlatformVelocity,
 } from "../random/random";
+import { createMathRng, type Rng } from "../../../rng/seededRng/SeededRng";
 
 const HORIZONTAL_MOVING_PLATFORM_COLOR = "blue";
 
@@ -68,20 +69,26 @@ export class HorizontalMovingPlatform
 export function createHorizontalMovingPlatform(
   x: number,
   y: number,
-  velocityX = generateRandomMovingPlatformVelocity(),
-  travelDistance = generateRandomMovingPlatformTravelDistance(),
+  velocityX?: number,
+  travelDistance?: number,
   hasSpring = false,
   hasPowerup = false,
   width = DEFAULT_PLATFORM_WIDTH,
+  rng: Rng = createMathRng(),
 ): HorizontalMovingPlatform {
-  const halfTravelDistance = travelDistance / 2;
+  // Provided values win, missing movement uses rng
+  const resolvedVelocityX =
+    velocityX ?? generateRandomMovingPlatformVelocity(rng);
+  const resolvedTravelDistance =
+    travelDistance ?? generateRandomMovingPlatformTravelDistance(rng);
+  const halfTravelDistance = resolvedTravelDistance / 2;
 
   return new HorizontalMovingPlatform(
     x,
     y,
     width,
     DEFAULT_PLATFORM_HEIGHT,
-    velocityX,
+    resolvedVelocityX,
     x - halfTravelDistance,
     x + halfTravelDistance,
     hasSpring,

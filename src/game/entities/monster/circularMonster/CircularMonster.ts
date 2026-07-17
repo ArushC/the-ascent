@@ -9,6 +9,7 @@ import {
   generateRandomCircularMonsterAngularVelocity,
   generateRandomCircularMonsterOrbitRadius,
 } from "../random/random";
+import { createMathRng, type Rng } from "../../../rng/seededRng/SeededRng";
 
 const CIRCULAR_MONSTER_COLOR = "magenta";
 
@@ -87,18 +88,32 @@ export class CircularMonster implements CircularMonsterEntity {
 export function createCircularMonster(
   centerX: number,
   centerY: number,
-  radius = generateRandomCircularMonsterOrbitRadius(),
-  angle = Math.random() * 2 * Math.PI,
-  angularVelocity = generateRandomCircularMonsterAngularVelocity(radius),
+  radius?: number,
+  angle?: number,
+  angularVelocity?: number,
   size = CIRCULAR_MONSTER_SIZE,
+  rng: Rng = createMathRng(),
 ): CircularMonster {
+  // Provided values win, missing movement uses rng
+  const resolvedRadius =
+    radius ?? generateRandomCircularMonsterOrbitRadius(undefined, undefined, rng);
+  const resolvedAngle = angle ?? rng() * 2 * Math.PI;
+  const resolvedAngularVelocity =
+    angularVelocity ??
+    generateRandomCircularMonsterAngularVelocity(
+      resolvedRadius,
+      undefined,
+      undefined,
+      rng,
+    );
+
   return new CircularMonster(
     centerX,
     centerY,
     size,
     size,
-    radius,
-    angle,
-    angularVelocity,
+    resolvedRadius,
+    resolvedAngle,
+    resolvedAngularVelocity,
   );
 }

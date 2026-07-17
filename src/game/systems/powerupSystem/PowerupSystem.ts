@@ -11,6 +11,7 @@ import {
   updatePowerupInventory,
   type PowerupInventory,
 } from "../../powerups/powerupInventory/PowerupInventory";
+import { createMathRng, type Rng } from "../../rng/seededRng/SeededRng";
 import { resolvePowerupCollision } from "../collisionSystem/CollisionSystem";
 
 export type PowerupUpdateResult = {
@@ -32,6 +33,7 @@ export function updatePowerups(
   platforms: readonly Platform[],
   inventory: PowerupInventory,
   deltaTime: number,
+  rng: Rng = createMathRng(),
 ): PowerupUpdateResult {
   const collectedPlatform = resolveFirstPowerupCollision(player, platforms);
   const didCollectPowerup = collectedPlatform !== null;
@@ -42,7 +44,7 @@ export function updatePowerups(
 
   const updatedInventory =
     inventoryAfterCollection.status === "generating"
-      ? updatePowerupInventory(inventoryAfterCollection, deltaTime)
+      ? updatePowerupInventory(inventoryAfterCollection, deltaTime, rng)
       : inventoryAfterCollection;
   const didGenerationFinish =
     inventoryAfterCollection.status === "generating" &&

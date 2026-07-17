@@ -13,6 +13,7 @@ import {
   generateRandomMovingPlatformTravelDistance,
   generateRandomMovingPlatformVelocity,
 } from "../random/random";
+import { createMathRng, type Rng } from "../../../rng/seededRng/SeededRng";
 
 const DIAGONAL_MOVING_PLATFORM_COLOR = "orange";
 
@@ -83,22 +84,30 @@ export class DiagonalMovingPlatform implements DiagonalMovingPlatformEntity {
 export function createDiagonalMovingPlatform(
   x: number,
   y: number,
-  velocityX = generateRandomMovingPlatformVelocity(),
-  velocityY = generateRandomMovingPlatformVelocity(),
-  travelDistance = generateRandomMovingPlatformTravelDistance(),
+  velocityX?: number,
+  velocityY?: number,
+  travelDistance?: number,
   hasSpring = false,
   hasPowerup = false,
   width = DEFAULT_PLATFORM_WIDTH,
+  rng: Rng = createMathRng(),
 ): DiagonalMovingPlatform {
-  const halfTravelDistance = travelDistance / 2;
+  // Provided values win, missing movement uses rng
+  const resolvedVelocityX =
+    velocityX ?? generateRandomMovingPlatformVelocity(rng);
+  const resolvedVelocityY =
+    velocityY ?? generateRandomMovingPlatformVelocity(rng);
+  const resolvedTravelDistance =
+    travelDistance ?? generateRandomMovingPlatformTravelDistance(rng);
+  const halfTravelDistance = resolvedTravelDistance / 2;
 
   return new DiagonalMovingPlatform(
     x,
     y,
     width,
     DEFAULT_PLATFORM_HEIGHT,
-    velocityX,
-    velocityY,
+    resolvedVelocityX,
+    resolvedVelocityY,
     x - halfTravelDistance,
     x + halfTravelDistance,
     y - halfTravelDistance,

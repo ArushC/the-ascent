@@ -16,6 +16,7 @@ import {
   createTestVerticalMovingPlatform,
   createTestStaticPlatform,
 } from "../../testing/entityFactories";
+import { createSeededRng } from "../../rng/seededRng/SeededRng";
 import {
   CANVAS_HEIGHT,
   CANVAS_WIDTH,
@@ -51,6 +52,8 @@ const PLATFORM_KIND_ROLL_OFFSET = 0.01;
 const BASE_DIFFICULTY = getDifficultyParams(0);
 const HARD_DIFFICULTY = getDifficultyParams(SCORE_RAMP_END);
 const BASE_GAP_BOUNDS = getGapBounds(BASE_DIFFICULTY);
+const LOW_ROLL_RNG = constantRng(0);
+const HIGH_ROLL_RNG = constantRng(1);
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -95,22 +98,38 @@ describe("createInitialPlatforms", () => {
   });
 
   it("uses random platform placement for different new game layouts", () => {
-    const randomSpy = vi.spyOn(Math, "random");
-    randomSpy.mockReturnValue(0);
     const firstLayout = createInitialPlatforms(
       CANVAS_WIDTH,
       CANVAS_HEIGHT,
       BASE_DIFFICULTY,
+      LOW_ROLL_RNG,
     );
 
-    randomSpy.mockReturnValue(1);
     const secondLayout = createInitialPlatforms(
       CANVAS_WIDTH,
       CANVAS_HEIGHT,
       BASE_DIFFICULTY,
+      HIGH_ROLL_RNG,
     );
 
     expect(snapshotLayout(secondLayout)).not.toEqual(snapshotLayout(firstLayout));
+  });
+
+  it("creates the same initial layout for the same seed", () => {
+    const firstLayout = createInitialPlatforms(
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
+      createSeededRng(12345),
+    );
+    const secondLayout = createInitialPlatforms(
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT,
+      BASE_DIFFICULTY,
+      createSeededRng(12345),
+    );
+
+    expect(snapshotLayout(secondLayout)).toEqual(snapshotLayout(firstLayout));
   });
 
   it("keeps generated vertical gaps within the physics-derived bounds", () => {
@@ -182,17 +201,25 @@ describe("platform spawn weights", () => {
 
 describe("getRandomPlatformX", () => {
   it("keeps the platform inside the canvas when no horizontal travel is needed", () => {
-    vi.spyOn(Math, "random").mockReturnValue(1);
-
-    expect(getRandomPlatformX(CANVAS_WIDTH)).toBe(
-      CANVAS_WIDTH - DEFAULT_PLATFORM_WIDTH,
-    );
+    expect(
+      getRandomPlatformX(
+        CANVAS_WIDTH,
+        0,
+        DEFAULT_PLATFORM_WIDTH,
+        HIGH_ROLL_RNG,
+      ),
+    ).toBe(CANVAS_WIDTH - DEFAULT_PLATFORM_WIDTH);
   });
 
   it("leaves room for horizontal travel on both sides of the platform", () => {
-    vi.spyOn(Math, "random").mockReturnValue(0);
-
-    expect(getRandomPlatformX(CANVAS_WIDTH, 100)).toBe(50);
+    expect(
+      getRandomPlatformX(
+        CANVAS_WIDTH,
+        100,
+        DEFAULT_PLATFORM_WIDTH,
+        LOW_ROLL_RNG,
+      ),
+    ).toBe(50);
   });
 });
 
@@ -558,4 +585,8 @@ function snapshotLayout(platforms: ReturnType<typeof createInitialPlatforms>) {
     x: platform.x,
     y: platform.y,
   }));
+}
+
+function constantRng(value: number) {
+  return () => value;
 }
