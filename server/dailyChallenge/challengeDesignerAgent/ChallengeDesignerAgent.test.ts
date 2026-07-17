@@ -80,12 +80,22 @@ describe("designChallenge", () => {
     expect(normalizeLlmBaseUrl(undefined)).toBe("https://api.openai.com/v1");
   });
 
-  it("builds a date-anchored JSON prompt", () => {
+  it("builds a simple date-inspired JSON prompt", () => {
     const prompt = buildChallengePrompt("2026-07-17");
 
     expect(prompt).toContain("2026-07-17");
-    expect(prompt).toContain("date as the creative anchor");
-    expect(prompt).toContain("Return only a JSON object");
+    expect(prompt).toContain("private variety cue");
+    expect(prompt).toContain("gameplay-first");
+    expect(prompt).toContain("jumps upward between platforms");
+    expect(prompt).toContain("Available mechanics");
+    expect(prompt).toContain("Do not invent unsupported characters");
+    expect(prompt).toContain("space, stars, cosmos");
+    expect(prompt).toContain("Good title style");
+    expect(prompt).toContain("Bad title style");
+    expect(prompt).toContain("actual player action");
+    expect(prompt).toContain("game mechanics alone");
+    expect(prompt).toContain("one flat JSON object");
+    expect(prompt).toContain("Do not include challengeDate, date, challenge");
   });
 
   it("repairs invalid agent seeds with the date hash", () => {
@@ -122,6 +132,41 @@ describe("designChallenge", () => {
     ).toMatchObject({
       challengeDate: "2026-07-17",
       seed: hashDateToSeed("2026-07-17"),
+      source: "agent",
+    });
+  });
+
+  it("unwraps nested challenge JSON from chatty providers", () => {
+    expect(
+      parseAgentChallenge("2026-07-17", {
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                date: "2026-07-17",
+                challenge: {
+                  seed: 12345,
+                  title: "Spring Chain",
+                  blurb:
+                    "Chain springs through wider gaps while keeping recovery jumps ready.",
+                  modifiers: {
+                    difficultyRampScale: 0.96,
+                    movingShareBias: 0.09,
+                    monsterRateBias: 0.01,
+                    springSpawnProbability: 0.22,
+                    powerupSpawnProbability: 0.04,
+                    gapBias: -0.01,
+                  },
+                },
+              }),
+            },
+          },
+        ],
+      }),
+    ).toMatchObject({
+      challengeDate: "2026-07-17",
+      seed: 12345,
+      title: "Spring Chain",
       source: "agent",
     });
   });

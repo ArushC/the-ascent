@@ -35,6 +35,10 @@ type ChallengeDraft = {
   modifiers?: unknown;
 };
 
+type NestedChallengeDraft = {
+  challenge?: unknown;
+};
+
 const DEFAULT_LLM_BASE_URL = "https://api.openai.com/v1";
 const DEFAULT_LLM_MODEL = "gpt-4o-mini";
 
@@ -115,8 +119,17 @@ async function requestChallengeCompletion(
 export function buildChallengePrompt(challengeDate: string): string {
   return [
     `Design the UTC daily challenge for ${challengeDate}.`,
-    "Use the date as the creative anchor for the title/theme, but do not mention news or real people.",
-    "Return only a JSON object with title, blurb, seed, and modifiers.",
+    "Use the date only as a private variety cue; the public title and blurb must be gameplay-first, not setting-first.",
+    "Game context: the player jumps upward between platforms in a Doodle Jump-style vertical climber.",
+    "Available mechanics are platforms, moving platforms, monsters, springs, powerups, gaps, jump timing, route choice, recovery jumps, and climb speed.",
+    "Do not invent unsupported characters, settings, goals, lore, or hazards.",
+    "Do not mention seasons, months, weekdays, news, living real people, relative dates like today/tomorrow, space, stars, cosmos, planets, portals, cities, relics, clouds, storms, skies, night, fireworks, terrain, weather, water, or dashes.",
+    "Create a compact challenge whose title and blurb could be understood from the game mechanics alone.",
+    "Good title style: Spring Chain, Monster Lane, Moving Gap Drill, Powerup Drought, Recovery Route.",
+    "Bad title style: Celestial Ascent, Galactic Ascent, Summer Skybound, Midnight Skybound, Skybound Oasis.",
+    "The blurb must describe an actual player action using available mechanics only.",
+    "Return only one flat JSON object with exactly these top-level keys: title, blurb, seed, modifiers.",
+    "Do not include challengeDate, date, challenge, metadata, or any nested wrapper object.",
     "title: 1-40 chars. blurb: 1-120 chars.",
     `seed: integer 0..${MAX_DAILY_CHALLENGE_SEED}.`,
     "modifiers: difficultyRampScale 0.75..1.35, movingShareBias -0.10..0.20, monsterRateBias -0.08..0.15, springSpawnProbability 0.05..0.25, powerupSpawnProbability 0.01..0.08, gapBias -0.05..0.08.",
@@ -148,7 +161,11 @@ function parseChallengeDraft(completion: ChatCompletionResponse): ChallengeDraft
     throw new Error("LLM response did not include JSON content.");
   }
 
-  return JSON.parse(content) as ChallengeDraft;
+  const draft = JSON.parse(content) as ChallengeDraft & NestedChallengeDraft;
+
+  return isObject(draft.challenge)
+    ? (draft.challenge as ChallengeDraft)
+    : draft;
 }
 
 /** Keeps valid LLM seeds and repairs invalid ones with the deterministic date hash. */
@@ -167,4 +184,8 @@ function isValidSeed(seed: unknown): seed is number {
     seed >= 0 &&
     seed <= MAX_DAILY_CHALLENGE_SEED
   );
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
