@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { HTTP_STATUS } from "../../../http.ts";
 import { createLeaderboardDb } from "../../../leaderboard/db.ts";
 import { initializeSchema } from "../../../leaderboard/databaseSchema.ts";
@@ -8,6 +8,11 @@ import { createFallbackChallenge } from "../../fallbackChallenge/FallbackChallen
 import { getDailyChallenge } from "./getDailyChallenge.ts";
 
 describe("getDailyChallenge", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
   it("returns a fallback challenge and reuses the stored row", async () => {
     const sqliteDb = openSqliteDatabase(":memory:");
     initializeSchema(sqliteDb);
@@ -30,6 +35,50 @@ describe("getDailyChallenge", () => {
       expect(designer).toHaveBeenCalledOnce();
     } finally {
       sqliteDb.close();
+    }
+  });
+
+  it("uses the agent on the first miss and reuses the stored daily challenge", async () => {
+    vi.stubEnv("LLM_API_KEY", "test-key");
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                seed: 99,
+                title: "First Light",
+                blurb: "A crisp climb that should be cached after generation.",
+                modifiers: {
+                  difficultyRampScale: 1,
+                  movingShareBias: 0,
+                  monsterRateBias: 0,
+                  springSpawnProbability: 0.1,
+                  powerupSpawnProbability: 0.03,
+                  gapBias: 0,
+                },
+              }),
+            },
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const db = createLeaderboardDb(":memory:");
+
+    try {
+      const first = await getDailyChallenge(db, "2026-07-17", "test");
+      const second = await getDailyChallenge(db, "2026-07-17", "test");
+
+      expect(first.status).toBe(HTTP_STATUS.OK);
+      expect(first.body).toMatchObject({
+        challengeDate: "2026-07-17",
+        source: "agent",
+      });
+      expect(second).toEqual(first);
+      expect(fetchMock).toHaveBeenCalledOnce();
+    } finally {
+      db.close();
     }
   });
 
