@@ -7,7 +7,7 @@ import { HelpMenu } from "../helpMenu/HelpMenu";
 import { GameMenu, type GameMenuPhase } from "../gameMenu/GameMenu";
 import { getOrCreatePlayerId } from "../../leaderboard/playerIdentity/playerIdentity";
 import { useGameOverLeaderboard } from "../../leaderboard/useGameOverLeaderboard/useGameOverLeaderboard";
-import { OFFLINE_DAILY_CHALLENGE } from "../../dailyChallenge/offlineDailyChallenge/offlineDailyChallenge";
+import { useDailyChallenge } from "../../dailyChallenge/useDailyChallenge/useDailyChallenge";
 import "./game-ui.css";
 
 type GameCanvasProps = {
@@ -24,6 +24,7 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const [playerId] = useState(() => getOrCreatePlayerId());
   const [ascensionBannerDismissed, setAscensionBannerDismissed] =
     useState(false);
+  const dailyChallengeState = useDailyChallenge();
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
     runMode: "classic",
@@ -97,7 +98,7 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
           score={ui.score}
           controls={uiControls}
           leaderboard={leaderboard}
-          dailyChallenge={OFFLINE_DAILY_CHALLENGE}
+          dailyChallengeState={dailyChallengeState}
           runMode={ui.runMode}
         />
       ) : null}

@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { createLeaderboardDb, type LeaderboardDb } from "./leaderboard/db.ts";
 import { HTTP_STATUS, type JsonResponse } from "./http.ts";
+import { getDailyChallenge } from "./dailyChallenge/routes/getDailyChallenge/getDailyChallenge.ts";
 import { DEFAULT_DATABASE_FILE } from "./leaderboard/databaseSchema.ts";
 import { getTopPlayerScore } from "./leaderboard/routes/getPlayerBest/getPlayerBest.ts";
 import { getUserLeaderboardEntries } from "./leaderboard/routes/getUserLeaderboardEntries/getUserLeaderboardEntries.ts";
@@ -89,6 +90,14 @@ async function handleRequest(
     sendJson(
       res,
       getUserLeaderboardEntries(database, url.searchParams.get("playerId")),
+    );
+    return;
+  }
+
+  if (req.method === "GET" && pathname === "/daily-challenge") {
+    sendJson(
+      res,
+      await getDailyChallenge(database, url.searchParams.get("date")),
     );
     return;
   }

@@ -17,11 +17,11 @@ export type ValidationResult =
 export function clampChallengeModifiers(
   modifiers: Partial<ChallengeModifiers> = {},
 ): ChallengeModifiers {
-  return ChallengeModifiersSchema.parse(modifiers);
+  return ChallengeModifiersSchema.parse(modifiers) as ChallengeModifiers;
 }
 
 export function parseDailyChallenge(value: unknown): DailyChallenge {
-  return DailyChallengeSchema.parse(value);
+  return DailyChallengeSchema.parse(value) as DailyChallenge;
 }
 
 export function validateDailyChallenge(

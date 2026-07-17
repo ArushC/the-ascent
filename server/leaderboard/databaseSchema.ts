@@ -27,9 +27,22 @@ const CREATE_LEADERBOARD_INDEX_SQL = `
     ON score_runs(player_id, score DESC, created_at ASC);
 `;
 
+const CREATE_DAILY_CHALLENGES_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS daily_challenges (
+    challenge_date TEXT PRIMARY KEY,
+    seed INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    blurb TEXT NOT NULL,
+    modifiers_json TEXT NOT NULL,
+    source TEXT NOT NULL CHECK (source IN ('agent', 'fallback')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`;
+
 export function initializeSchema(db: SqliteDatabase): void {
   db.exec(CREATE_PLAYERS_TABLE_SQL);
   db.exec(CREATE_SCORE_RUNS_TABLE_SQL);
+  db.exec(CREATE_DAILY_CHALLENGES_TABLE_SQL);
   migrateLegacyNameColumns(db);
   db.exec("DROP INDEX IF EXISTS idx_score_runs_leaderboard");
   db.exec(CREATE_LEADERBOARD_INDEX_SQL);

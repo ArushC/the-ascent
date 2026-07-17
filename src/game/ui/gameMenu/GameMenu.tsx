@@ -3,12 +3,14 @@ import {
   type CSSProperties,
   type FocusEvent,
   type MouseEvent,
+  type ReactNode,
 } from "react";
 import type { GamePhase, RunMode } from "../../Game";
 import type { GameControls } from "../../Game";
 import { Leaderboard } from "../leaderboard/Leaderboard";
 import type { LeaderboardState } from "../../leaderboard/state/leaderboardState";
 import type { DailyChallenge } from "../../../../shared/dailyChallenge/types.ts";
+import type { DailyChallengeLoadState } from "../../dailyChallenge/useDailyChallenge/useDailyChallenge";
 import "../leaderboard/leaderboard-ui.css";
 
 export type GameMenuPhase = Exclude<GamePhase, "playing">;
@@ -18,13 +20,14 @@ type GameMenuProps = {
   score: number;
   controls: GameControls;
   leaderboard: LeaderboardState;
-  dailyChallenge: DailyChallenge;
+  dailyChallengeState: DailyChallengeLoadState;
   runMode: RunMode;
 };
 
 type GameMenuAction = {
   label: string;
   onSelect: () => void;
+  disabled?: boolean;
   tooltip?: GameMenuTooltip;
 };
 
@@ -38,6 +41,13 @@ type TooltipPosition = {
   y: number;
 };
 
+type DailyChallengeMenuModel = {
+  challenge: DailyChallenge | null;
+  readyDetail: ReactNode;
+  dailyActionDisabled: boolean;
+  dailyActionTooltip?: GameMenuTooltip;
+};
+
 const MENU_TITLES: Record<GameMenuPhase, string> = {
   ready: "The Ascent",
   paused: "Paused",
@@ -49,10 +59,11 @@ export function GameMenu({
   score,
   controls,
   leaderboard,
-  dailyChallenge,
+  dailyChallengeState,
   runMode,
 }: GameMenuProps) {
   const title = MENU_TITLES[phase];
+  const dailyMenu = getDailyChallengeMenuModel(dailyChallengeState);
 
   return (
     <div className="game-menu-backdrop">
@@ -62,11 +73,14 @@ export function GameMenu({
           phase={phase}
           score={score}
           leaderboard={leaderboard}
-          dailyChallenge={dailyChallenge}
+          dailyMenu={dailyMenu}
           runMode={runMode}
         />
         {phase === "ready" ? (
-          <ReadyMenuActions controls={controls} dailyChallenge={dailyChallenge} />
+          <ReadyMenuActions
+            controls={controls}
+            dailyMenu={dailyMenu}
+          />
         ) : (
           <GameMenuActions actions={getMenuActions(phase, controls)} />
         )}
@@ -80,12 +94,11 @@ function GameMenuBody({
   phase,
   score,
   leaderboard,
-  dailyChallenge,
+  dailyMenu,
   runMode,
-}: Pick<
-  GameMenuProps,
-  "phase" | "score" | "leaderboard" | "dailyChallenge" | "runMode"
->) {
+}: Pick<GameMenuProps, "phase" | "score" | "leaderboard" | "runMode"> & {
+  dailyMenu: DailyChallengeMenuModel;
+}) {
   if (phase === "over") {
     return (
       <>
@@ -95,8 +108,16 @@ function GameMenuBody({
     );
   }
 
+  if (phase === "ready") {
+    return isRenderableDetail(dailyMenu.readyDetail)
+      ? dailyMenu.readyDetail
+      : null;
+  }
+
   if (phase === "paused" && runMode === "daily") {
-    return <DailyChallengeSummary dailyChallenge={dailyChallenge} />;
+    return dailyMenu.challenge ? (
+      <DailyChallengeSummary dailyChallenge={dailyMenu.challenge} />
+    ) : null;
   }
 
   return null;
@@ -119,24 +140,54 @@ function DailyChallengeSummary({
 
 function ReadyMenuActions({
   controls,
-  dailyChallenge,
-}: Pick<GameMenuProps, "controls" | "dailyChallenge">) {
+  dailyMenu,
+}: Pick<GameMenuProps, "controls"> & { dailyMenu: DailyChallengeMenuModel }) {
   return (
     <GameMenuActions
       actions={[
         { label: "Start", onSelect: controls.beginRun },
         {
           label: "Daily Challenge",
-          onSelect: () => controls.beginDailyRun(dailyChallenge),
-          tooltip: {
-            title: `Daily · ${dailyChallenge.title}`,
-            body: dailyChallenge.blurb,
+          onSelect: () => {
+            if (dailyMenu.challenge) {
+              controls.beginDailyRun(dailyMenu.challenge);
+            }
           },
+          disabled: dailyMenu.dailyActionDisabled,
+          tooltip: dailyMenu.dailyActionTooltip,
         },
         { label: "Help", onSelect: controls.toggleHelp },
       ]}
     />
   );
+}
+
+function getDailyChallengeMenuModel(
+  state: DailyChallengeLoadState,
+): DailyChallengeMenuModel {
+  if (state.status === "loaded") {
+    return {
+      challenge: state.challenge,
+      readyDetail: null,
+      dailyActionDisabled: false,
+      dailyActionTooltip: {
+        title: `Daily · ${state.challenge.title}`,
+        body: state.challenge.blurb,
+      },
+    };
+  }
+
+  return {
+    challenge: null,
+    readyDetail: state.status === "error" ? (
+      <p className="game-menu-detail">Daily challenge unavailable.</p>
+    ) : null,
+    dailyActionDisabled: true,
+  };
+}
+
+function isRenderableDetail(detail: ReactNode): boolean {
+  return detail !== null && detail !== undefined && detail !== false;
 }
 
 /** Renders menu buttons and optional in-game tooltips. */
@@ -166,6 +217,7 @@ function GameMenuActionButton({ action }: { action: GameMenuAction }) {
         aria-describedby={
           action.tooltip && tooltipPosition ? tooltipId : undefined
         }
+        disabled={action.disabled}
         onClick={action.onSelect}
         onMouseEnter={(event) => setTooltipFromPointer(event, setTooltipPosition)}
         onMouseMove={(event) => setTooltipFromPointer(event, setTooltipPosition)}

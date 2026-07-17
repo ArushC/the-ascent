@@ -6,6 +6,10 @@ import type {
   ScoreSubmission,
   ScoreSubmissionResult,
 } from "../../shared/leaderboard/types.ts";
+import type { DailyChallenge } from "../../shared/dailyChallenge/types.ts";
+import {
+  getOrCreateDailyChallenge as getOrCreateStoredDailyChallenge,
+} from "../dailyChallenge/db.ts";
 import {
   DELETE_EXCESS_PLAYER_SCORE_RUNS_SQL,
   INSERT_SCORE_RUN_SQL,
@@ -38,6 +42,8 @@ export type LeaderboardDb = {
   recordScoreRun(submission: ScoreSubmission): ScoreSubmissionResult;
   getTopScoreRunsForPlayer(playerId: string, limit: number): LeaderboardEntry[];
   getTopPlayerScore(playerId: string): PlayerBest | null;
+  /** Historical name aside, this wrapper owns the shared app SQLite file. */
+  getOrCreateDailyChallenge(challengeDate: string): Promise<DailyChallenge>;
 };
 
 export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
@@ -122,6 +128,10 @@ export function createLeaderboardDb(filename = DEFAULT_DATABASE_FILE) {
         bestScore: Number(row.best_score),
         achievedAt: row.best_score_at,
       };
+    },
+
+    getOrCreateDailyChallenge(challengeDate: string): Promise<DailyChallenge> {
+      return getOrCreateStoredDailyChallenge(db, challengeDate);
     },
   } satisfies LeaderboardDb;
 }
