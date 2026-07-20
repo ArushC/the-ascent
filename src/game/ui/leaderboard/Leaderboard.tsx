@@ -8,9 +8,13 @@ import type { LeaderboardState } from "../../leaderboard/state/leaderboardState"
 
 type LeaderboardProps = {
   leaderboard: LeaderboardState;
+  title?: string;
 };
 
-export function Leaderboard({ leaderboard }: LeaderboardProps) {
+export function Leaderboard({
+  leaderboard,
+  title = "Your Top Scores",
+}: LeaderboardProps) {
   const [page, setPage] = useState(0);
 
   if (leaderboard.status === "loading") {
@@ -31,7 +35,7 @@ export function Leaderboard({ leaderboard }: LeaderboardProps) {
 
   return (
     <div className="game-leaderboard" aria-label="Leaderboard">
-      <h2>Your Top Scores:</h2>
+      <h2>{title}:</h2>
       {visibleEntries.length > 0 ? (
         <div className="game-leaderboard-body">
           <table className="game-leaderboard-table">

@@ -64,6 +64,39 @@ describe("leaderboard database", () => {
     }
   });
 
+  it("keeps classic and daily score boards isolated by challenge date", () => {
+    const db = createLeaderboardDb(":memory:");
+
+    try {
+      db.recordScoreRun({ playerId: ADA_PLAYER_ID, score: 100 });
+      db.recordScoreRun({
+        playerId: ADA_PLAYER_ID,
+        score: 900,
+        mode: "daily",
+        challengeDate: "2026-07-20",
+      });
+      db.recordScoreRun({
+        playerId: ADA_PLAYER_ID,
+        score: 800,
+        mode: "daily",
+        challengeDate: "2026-07-19",
+      });
+
+      expect(db.getTopScoreRunsForPlayer(ADA_PLAYER_ID, 100)).toEqual([
+        expect.objectContaining({ score: 100 }),
+      ]);
+      expect(
+        db.getTopScoreRunsForPlayer(ADA_PLAYER_ID, 100, {
+          mode: "daily",
+          challengeDate: "2026-07-20",
+        }),
+      ).toEqual([expect.objectContaining({ score: 900 })]);
+      expect(db.getTopPlayerScore(ADA_PLAYER_ID)?.bestScore).toBe(100);
+    } finally {
+      db.close();
+    }
+  });
+
   it("trims stored runs to the top 100 for each player", () => {
     const db = createLeaderboardDb(":memory:");
 
@@ -157,6 +190,15 @@ describe("leaderboard database", () => {
         expect(tableColumnNames(rawDb, "score_runs")).not.toContain(
           LEGACY_DISPLAY_COLUMN,
         );
+        expect(tableColumnNames(rawDb, "score_runs")).toEqual(
+          expect.arrayContaining(["mode", "challenge_date"]),
+        );
+        expect(
+          rawDb
+            .prepare("PRAGMA index_list(score_runs)")
+            .all()
+            .map((row) => (row as { name: string }).name),
+        ).toContain("idx_score_runs_daily");
       } finally {
         rawDb.close();
         db.close();

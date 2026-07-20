@@ -106,6 +106,7 @@ export type GameUiState = {
   phase: GamePhase;
   runMode: RunMode;
   dailyTitle: string | null;
+  dailyChallengeDate: string | null;
   score: number;
   powerupPanel: PowerupPanelState;
   helpOpen: boolean;
@@ -608,6 +609,7 @@ export class Game {
       phase: this.phase,
       runMode: this.runMode,
       dailyTitle: this.activeChallenge?.title ?? null,
+      dailyChallengeDate: this.activeChallenge?.challengeDate ?? null,
       score: getScore(this.scoreState),
       powerupPanel: getPowerupPanelState(this.powerupInventory, bigShotArmed),
       helpOpen: this.helpOpen,

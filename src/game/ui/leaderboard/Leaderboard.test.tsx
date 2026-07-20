@@ -44,4 +44,15 @@ describe("Leaderboard", () => {
     expect(markup).not.toContain(formatScoreTimestamp(entries[10].createdAt));
     expect(markup).toContain("1 / 2");
   });
+
+  it("renders the daily board title", () => {
+    const markup = renderToStaticMarkup(
+      <Leaderboard
+        leaderboard={{ status: "loaded", entries: [] }}
+        title="Today’s Daily Runs"
+      />,
+    );
+
+    expect(markup).toContain("Today’s Daily Runs:");
+  });
 });

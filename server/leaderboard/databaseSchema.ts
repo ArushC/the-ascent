@@ -17,6 +17,8 @@ const CREATE_SCORE_RUNS_TABLE_SQL = `
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id TEXT NOT NULL,
     score INTEGER NOT NULL,
+    mode TEXT NOT NULL DEFAULT 'classic',
+    challenge_date TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (player_id) REFERENCES players(player_id)
   );
@@ -25,6 +27,11 @@ const CREATE_SCORE_RUNS_TABLE_SQL = `
 const CREATE_LEADERBOARD_INDEX_SQL = `
   CREATE INDEX IF NOT EXISTS idx_score_runs_player_board
     ON score_runs(player_id, score DESC, created_at ASC);
+`;
+
+const CREATE_DAILY_SCORE_INDEX_SQL = `
+  CREATE INDEX IF NOT EXISTS idx_score_runs_daily
+    ON score_runs(player_id, challenge_date, score DESC, created_at ASC);
 `;
 
 const CREATE_DAILY_CHALLENGES_TABLE_SQL = `
@@ -44,8 +51,21 @@ export function initializeSchema(db: SqliteDatabase): void {
   db.exec(CREATE_SCORE_RUNS_TABLE_SQL);
   db.exec(CREATE_DAILY_CHALLENGES_TABLE_SQL);
   migrateLegacyNameColumns(db);
+  migrateDailyScoreColumns(db);
   db.exec("DROP INDEX IF EXISTS idx_score_runs_leaderboard");
   db.exec(CREATE_LEADERBOARD_INDEX_SQL);
+  db.exec(CREATE_DAILY_SCORE_INDEX_SQL);
+}
+
+function migrateDailyScoreColumns(db: SqliteDatabase): void {
+  // Idempotent inline migrations upgrade existing SQLite files at startup.
+  if (!tableHasColumn(db, "score_runs", "mode")) {
+    db.exec("ALTER TABLE score_runs ADD COLUMN mode TEXT NOT NULL DEFAULT 'classic'");
+  }
+
+  if (!tableHasColumn(db, "score_runs", "challenge_date")) {
+    db.exec("ALTER TABLE score_runs ADD COLUMN challenge_date TEXT");
+  }
 }
 
 function migrateLegacyNameColumns(db: SqliteDatabase): void {

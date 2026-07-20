@@ -22,6 +22,7 @@ type GameMenuProps = {
   leaderboard: LeaderboardState;
   dailyChallengeState: DailyChallengeLoadState;
   runMode: RunMode;
+  leaderboardTitle: string;
 };
 
 type GameMenuAction = {
@@ -61,6 +62,7 @@ export function GameMenu({
   leaderboard,
   dailyChallengeState,
   runMode,
+  leaderboardTitle,
 }: GameMenuProps) {
   const title = MENU_TITLES[phase];
   const dailyMenu = getDailyChallengeMenuModel(dailyChallengeState);
@@ -75,6 +77,7 @@ export function GameMenu({
           leaderboard={leaderboard}
           dailyMenu={dailyMenu}
           runMode={runMode}
+          leaderboardTitle={leaderboardTitle}
         />
         {phase === "ready" ? (
           <ReadyMenuActions
@@ -96,14 +99,18 @@ function GameMenuBody({
   leaderboard,
   dailyMenu,
   runMode,
-}: Pick<GameMenuProps, "phase" | "score" | "leaderboard" | "runMode"> & {
+  leaderboardTitle,
+}: Pick<
+  GameMenuProps,
+  "phase" | "score" | "leaderboard" | "runMode" | "leaderboardTitle"
+> & {
   dailyMenu: DailyChallengeMenuModel;
 }) {
   if (phase === "over") {
     return (
       <>
         <p>Final score: {score}</p>
-        <Leaderboard leaderboard={leaderboard} />
+        <Leaderboard leaderboard={leaderboard} title={leaderboardTitle} />
       </>
     );
   }

@@ -1,8 +1,12 @@
+export type ScoreBoard =
+  | { mode?: "classic"; challengeDate?: never }
+  | { mode: "daily"; challengeDate: string };
+
 /** Score run submitted by the browser after a game-over event. */
 export type ScoreSubmission = {
   playerId: string;
   score: number;
-};
+} & ScoreBoard;
 
 /** API response returned after a score run is saved. */
 export type ScoreSubmissionResult = {

@@ -61,6 +61,7 @@ function renderReadyMenu(dailyChallengeState: DailyChallengeLoadState): string {
       leaderboard={{ status: "idle", entries: [] }}
       dailyChallengeState={dailyChallengeState}
       runMode="classic"
+      leaderboardTitle="Your Top Scores"
     />,
   );
 }

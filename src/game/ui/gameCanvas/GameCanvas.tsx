@@ -29,6 +29,7 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
     phase: "ready",
     runMode: "classic",
     dailyTitle: null,
+    dailyChallengeDate: null,
     score: 0,
     powerupPanel: { mode: "empty" },
     helpOpen: false,
@@ -41,6 +42,8 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
     phase: ui.phase,
     playerId,
     score: ui.score,
+    mode: ui.runMode,
+    challengeDate: ui.dailyChallengeDate,
   });
 
   useEffect(() => {
@@ -100,6 +103,9 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
           leaderboard={leaderboard}
           dailyChallengeState={dailyChallengeState}
           runMode={ui.runMode}
+          leaderboardTitle={
+            ui.runMode === "daily" ? "Today’s Daily Runs" : "Your Top Scores"
+          }
         />
       ) : null}
       {ui.helpOpen && uiControls ? (

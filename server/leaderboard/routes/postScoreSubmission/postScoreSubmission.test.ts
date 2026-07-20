@@ -100,6 +100,38 @@ describe("recordScore", () => {
     });
   });
 
+  it("requires a challenge date for daily scores", () => {
+    withLeaderboardDb((db) => {
+      expect(recordScore(db, scoreSubmission({ mode: "daily" }))).toEqual({
+        status: HTTP_STATUS.BAD_REQUEST,
+        body: {
+          error: "score_submission_validation_failed",
+          details: [
+            "challengeDate: Challenge date is required for daily scores.",
+          ],
+        },
+      });
+    });
+  });
+
+  it("accepts daily scores with a UTC challenge date", () => {
+    withLeaderboardDb((db) => {
+      const response = recordScore(
+        db,
+        scoreSubmission({ mode: "daily", challengeDate: "2026-07-20" }),
+      );
+
+      expect(response.status).toBe(HTTP_STATUS.CREATED);
+      expect(db.getTopScoreRunsForPlayer(PLAYER_ID, 100)).toEqual([]);
+      expect(
+        db.getTopScoreRunsForPlayer(PLAYER_ID, 100, {
+          mode: "daily",
+          challengeDate: "2026-07-20",
+        }),
+      ).toEqual([expect.objectContaining({ score: 100 })]);
+    });
+  });
+
   it("keeps the existing personal best for lower later submissions", () => {
     withLeaderboardDb((db) => {
       recordScore(db, scoreSubmission({ score: 500 }));

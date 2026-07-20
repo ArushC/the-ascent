@@ -68,4 +68,24 @@ describe("getUserLeaderboardEntries", () => {
       db.close();
     }
   });
+
+  it("requires a date when filtering daily runs", () => {
+    const db = createLeaderboardDb(":memory:");
+
+    try {
+      expect(
+        getUserLeaderboardEntries(db, PLAYER_ID, "daily", null),
+      ).toEqual({
+        status: HTTP_STATUS.BAD_REQUEST,
+        body: {
+          error: "leaderboard_filter_validation_failed",
+          details: [
+            "challengeDate: Challenge date is required for daily scores.",
+          ],
+        },
+      });
+    } finally {
+      db.close();
+    }
+  });
 });

@@ -3,6 +3,7 @@ import type {
   PlayerBest,
   ScoreSubmission,
   ScoreSubmissionResult,
+  ScoreBoard,
 } from "../../../shared/leaderboard/types.ts";
 
 export type {
@@ -10,6 +11,7 @@ export type {
   PlayerBest,
   ScoreSubmission,
   ScoreSubmissionResult,
+  ScoreBoard,
 } from "../../../shared/leaderboard/types.ts";
 
 export async function submitScore(
@@ -28,10 +30,11 @@ export async function submitScore(
   return (await response.json()) as ScoreSubmissionResult;
 }
 
-export async function fetchLeaderboard(playerId: string): Promise<LeaderboardEntry[]> {
-  const response = await fetch(
-    `/api/leaderboard?playerId=${encodeURIComponent(playerId)}`,
-  );
+export async function fetchLeaderboard(
+  playerId: string,
+  board: ScoreBoard = { mode: "classic" },
+): Promise<LeaderboardEntry[]> {
+  const response = await fetch(createLeaderboardUrl(playerId, board));
 
   if (!response.ok) {
     throw new Error("Leaderboard fetch failed.");
@@ -39,6 +42,18 @@ export async function fetchLeaderboard(playerId: string): Promise<LeaderboardEnt
 
   const result = (await response.json()) as { entries: LeaderboardEntry[] };
   return result.entries;
+}
+
+/** Encodes the selected score board as GET collection filters. */
+function createLeaderboardUrl(playerId: string, board: ScoreBoard): string {
+  const search = new URLSearchParams({ playerId });
+
+  if (board.mode === "daily") {
+    search.set("mode", "daily");
+    search.set("challengeDate", board.challengeDate);
+  }
+
+  return `/api/leaderboard?${search.toString()}`;
 }
 
 export async function fetchPersonalBest(playerId: string): Promise<PlayerBest> {

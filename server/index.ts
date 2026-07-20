@@ -89,7 +89,12 @@ async function handleRequest(
   if (req.method === "GET" && pathname === "/leaderboard") {
     sendJson(
       res,
-      getUserLeaderboardEntries(database, url.searchParams.get("playerId")),
+      getUserLeaderboardEntries(
+        database,
+        url.searchParams.get("playerId"),
+        url.searchParams.get("mode"),
+        url.searchParams.get("challengeDate"),
+      ),
     );
     return;
   }
