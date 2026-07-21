@@ -18,6 +18,9 @@ RUN npm ci --omit=dev
 
 COPY --from=build /app/server ./server
 COPY --from=build /app/shared ./shared
+COPY --from=build /app/src/game/rng ./src/game/rng
+COPY --from=build /app/src/game/systems/difficultySystem/DifficultySystem.ts ./src/game/systems/difficultySystem/DifficultySystem.ts
+COPY --from=build /app/src/game/systems/platformSpawner/platformExtras.ts ./src/game/systems/platformSpawner/platformExtras.ts
 COPY --from=build /app/dist ./dist
 
 EXPOSE 3001
