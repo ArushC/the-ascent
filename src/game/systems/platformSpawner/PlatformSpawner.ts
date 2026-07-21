@@ -18,6 +18,13 @@ import {
 import type { ChallengeModifiers } from "../../../../shared/dailyChallenge/types.ts";
 import type { DifficultyParams } from "../difficultySystem/DifficultySystem";
 import { GRAVITY, INITIAL_JUMP_VELOCITY } from "../physicsSystem/PhysicsSystem";
+import { rollPlatformExtras, type PlatformExtras } from "./platformExtras";
+
+export {
+  POWERUP_SPAWN_PROBABILITY,
+  rollPlatformExtras,
+  SPRING_SPAWN_PROBABILITY,
+} from "./platformExtras";
 
 export const BOTTOM_PLATFORM_OFFSET = 100;
 export const STATIC_PLATFORM_SPAWN_WEIGHT = 0.75;
@@ -28,15 +35,8 @@ export const MOVING_PLATFORM_TRAVEL_DISTANCE_RATIO = 0.32;
 
 export const MIN_PLATFORM_SPAWN_GAP_RATIO = 0.32;
 export const MAX_PLATFORM_SPAWN_GAP_RATIO = 0.6;
-export const POWERUP_SPAWN_PROBABILITY = 0.03;
-export const SPRING_SPAWN_PROBABILITY = 0.1;
 // Number of visible screen heights to keep spawned above the camera.
 export const SPAWN_LOOKAHEAD_SCREENS = 4;
-
-export type PlatformExtras = {
-  hasSpring: boolean;
-  hasPowerup: boolean;
-};
 
 export type GapBounds = {
   minGap: number;
@@ -259,31 +259,6 @@ export function updatePlatformsForCamera(
     rng,
     modifiers,
   );
-}
-
-/**
- * Rolls mutually exclusive platform extras.
- * Outcomes: powerup 3%, spring 9.7% (10% after a powerup miss), neither 87.3%.
- */
-export function rollPlatformExtras(
-  rng: Rng = createMathRng(),
-  modifiers?: ChallengeModifiers,
-): PlatformExtras {
-  const powerupSpawnProbability =
-    modifiers?.powerupSpawnProbability ?? POWERUP_SPAWN_PROBABILITY;
-  const springSpawnProbability =
-    modifiers?.springSpawnProbability ?? SPRING_SPAWN_PROBABILITY;
-  const hasPowerup = rng() < powerupSpawnProbability;
-  if (hasPowerup) {
-    return { hasSpring: false, hasPowerup: true };
-  }
-
-  const hasSpring = rng() < springSpawnProbability;
-
-  return {
-    hasSpring,
-    hasPowerup: false,
-  };
 }
 
 /**

@@ -47,15 +47,15 @@ describe("getDailyChallenge", () => {
             message: {
               content: JSON.stringify({
                 seed: 99,
-                title: "First Light",
-                blurb: "A crisp climb that should be cached after generation.",
+                title: "Moving Gap Drill",
+                blurb: "Time jumps between moving platforms and recover from wide gaps.",
                 modifiers: {
-                  difficultyRampScale: 1,
-                  movingShareBias: 0,
-                  monsterRateBias: 0,
+                  difficultyRampScale: 1.08,
+                  movingShareBias: 0.16,
+                  monsterRateBias: -0.01,
                   springSpawnProbability: 0.1,
                   powerupSpawnProbability: 0.03,
-                  gapBias: 0,
+                  gapBias: 0.02,
                 },
               }),
             },
