@@ -5,6 +5,8 @@ import type { DailyChallengeLoadState } from "../../dailyChallenge/useDailyChall
 import { createFallbackChallenge } from "../../../../server/dailyChallenge/fallbackChallenge/FallbackChallenge.ts";
 import { GameMenu } from "./GameMenu";
 
+const TEST_CHALLENGE_DATE = "2026-07-17";
+
 const CONTROLS: GameControls = {
   beginRun: vi.fn(),
   beginDailyRun: vi.fn(),
@@ -29,7 +31,7 @@ describe("GameMenu daily challenge CTA", () => {
   });
 
   it("keeps loaded daily details out of the home menu body", () => {
-    const challenge = createFallbackChallenge("2026-07-17");
+    const challenge = createFallbackChallenge(TEST_CHALLENGE_DATE);
     const markup = renderReadyMenu({
       status: "loaded",
       challenge,
@@ -49,6 +51,24 @@ describe("GameMenu daily challenge CTA", () => {
     });
 
     expect(markup).toContain("Daily challenge unavailable.");
+  });
+
+  it("adds a vs-normal hint to paused daily challenge copy", () => {
+    const challenge = createFallbackChallenge(TEST_CHALLENGE_DATE);
+    const markup = renderToStaticMarkup(
+      <GameMenu
+        phase="paused"
+        score={0}
+        controls={CONTROLS}
+        leaderboard={{ status: "idle", entries: [] }}
+        dailyChallengeState={{ status: "loaded", challenge, error: null }}
+        runMode="daily"
+        leaderboardTitle="Your Top Scores"
+      />,
+    );
+
+    expect(markup).toContain(challenge.blurb);
+    expect(markup).toContain("than normal.");
   });
 });
 

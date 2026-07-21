@@ -18,7 +18,7 @@ export const FALLBACK_CHALLENGE_PRESETS: Record<
 > = {
   calm: {
     title: "Calm Current",
-    blurb: "A steadier climb with gentle gaps and forgiving spawns.",
+    blurb: "Use forgiving gaps and generous spawns to recover.",
     modifiers: {
       difficultyRampScale: 0.88,
       movingShareBias: -0.04,
@@ -30,7 +30,7 @@ export const FALLBACK_CHALLENGE_PRESETS: Record<
   },
   movers: {
     title: "Moving Day",
-    blurb: "More drifting platforms ask for patient timing.",
+    blurb: "Time jumps across drifting platforms.",
     modifiers: {
       difficultyRampScale: 1.08,
       movingShareBias: 0.16,
@@ -42,7 +42,7 @@ export const FALLBACK_CHALLENGE_PRESETS: Record<
   },
   monster_alley: {
     title: "Monster Alley",
-    blurb: "A busier monster lane with enough tools to fight through.",
+    blurb: "Fight through the monster lane with the tools you find.",
     modifiers: {
       difficultyRampScale: 1.12,
       movingShareBias: 0.02,
@@ -54,7 +54,7 @@ export const FALLBACK_CHALLENGE_PRESETS: Record<
   },
   spring_fest: {
     title: "Spring Fest",
-    blurb: "Bouncy routes open higher lines and risky recoveries.",
+    blurb: "Bounce into higher lines and recover from risky landings.",
     modifiers: {
       difficultyRampScale: 1,
       movingShareBias: 0.04,
@@ -66,7 +66,7 @@ export const FALLBACK_CHALLENGE_PRESETS: Record<
   },
   starved: {
     title: "Starved Skies",
-    blurb: "Sparse help and wider gaps make every landing count.",
+    blurb: "Make every landing count across wider gaps.",
     modifiers: {
       difficultyRampScale: 1.18,
       movingShareBias: 0.06,
