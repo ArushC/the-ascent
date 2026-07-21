@@ -20,9 +20,19 @@ export type DailyChallengeDesigner = (challengeDate: string) => Promise<DailyCha
  */
 export async function designChallenge(challengeDate: string): Promise<DailyChallenge> {
   const config = getLlmConfig();
-  if (!config) return createFallbackChallenge(challengeDate);
+  if (!config) {
+    logDesignWarning(
+      challengeDate,
+      "LLM_API_KEY is missing; using a deterministic fallback.",
+    );
+    return createFallbackChallenge(challengeDate);
+  }
 
   try {
+    logDesignInfo(
+      challengeDate,
+      `Requesting a draft from model "${config.model}" at ${config.baseUrl}.`,
+    );
     let raw = await requestJsonCompletion(config, [
       { role: "system", content: "You design one Doodle Jump-style daily challenge as compact JSON." },
       { role: "user", content: buildDraftPrompt(challengeDate) },
@@ -33,15 +43,53 @@ export async function designChallenge(challengeDate: string): Promise<DailyChall
       const findings = critiqueCopy(challenge);
       const preview = previewSpawnStats(challenge);
       const report = scoreQuality(challenge, findings, preview);
-      if (report.ok) return challenge;
+      if (report.ok) {
+        logDesignInfo(
+          challengeDate,
+          `Accepted round ${round + 1}/${MAX_DESIGN_ROUNDS} with theme "${report.themeAxis}".`,
+        );
+        return challenge;
+      }
+
+      logDesignWarning(
+        challengeDate,
+        `Rejected round ${round + 1}/${MAX_DESIGN_ROUNDS}: ${report.reasons.join(" | ")}`,
+      );
       if (round === MAX_DESIGN_ROUNDS - 1) break;
       raw = await requestJsonCompletion(config, [
         { role: "system", content: "You revise a Doodle Jump daily challenge JSON to fix quality issues." },
         { role: "user", content: buildRevisePrompt({ challengeDate, previous: challenge, report }) },
       ], { temperature: REVISION_TEMPERATURE });
     }
-  } catch {
-    // Any invalid provider response or tool failure uses the known-good fallback.
+  } catch (error) {
+    logDesignError(challengeDate, error);
+    return createFallbackChallenge(challengeDate);
   }
+
+  logDesignWarning(
+    challengeDate,
+    "No proposal passed the quality gate; using a deterministic fallback.",
+  );
   return createFallbackChallenge(challengeDate);
+}
+
+function logDesignInfo(challengeDate: string, message: string): void {
+  if (process.env.NODE_ENV !== "test") {
+    console.info(`[daily-challenge:${challengeDate}] ${message}`);
+  }
+}
+
+function logDesignWarning(challengeDate: string, message: string): void {
+  if (process.env.NODE_ENV !== "test") {
+    console.warn(`[daily-challenge:${challengeDate}] ${message}`);
+  }
+}
+
+function logDesignError(challengeDate: string, error: unknown): void {
+  if (process.env.NODE_ENV !== "test") {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(
+      `[daily-challenge:${challengeDate}] Design failed; using a deterministic fallback. Cause: ${message}`,
+    );
+  }
 }

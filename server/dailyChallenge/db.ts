@@ -42,6 +42,11 @@ export async function getOrCreateDailyChallenge(
   const storedChallenge = selectDailyChallenge(db, challengeDate);
 
   if (storedChallenge) {
+    if (process.env.NODE_ENV !== "test") {
+      console.info(
+        `[daily-challenge:${challengeDate}] Returning cached ${storedChallenge.source} challenge "${storedChallenge.title}"; the designer was not called.`,
+      );
+    }
     return storedChallenge;
   }
 

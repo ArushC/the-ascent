@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "node --experimental-strip-types server/index.ts",
+    "dev:server": "node --env-file-if-exists=.env --experimental-strip-types server/index.ts",
     "dev:all": "npm run dev:server & npm run dev",
-    "start": "node --experimental-strip-types server/index.ts",
+    "start": "node --env-file-if-exists=.env --experimental-strip-types server/index.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test": "vitest",
