@@ -5,10 +5,10 @@
   "branch": "workflow/2026-07-22-palette-preview-feature",
   "prNumber": 3,
   "prUrl": "https://github.com/ArushC/the-ascent/pull/3",
-  "step": "spec",
+  "step": "propose",
   "status": "awaiting_approval",
-  "awaitingSince": "2026-07-22T07:27:43.289Z",
-  "updatedAt": "2026-07-22T07:27:43.289Z",
+  "awaitingSince": "2026-07-22T07:39:03.000Z",
+  "updatedAt": "2026-07-22T07:39:03.000Z",
   "size": "small",
   "cursorAgentId": null,
   "lastCursorRunId": null,
@@ -18,16 +18,6 @@
       "step": "propose",
       "status": "awaiting_approval",
       "at": "2026-07-22T07:16:54.991Z"
-    },
-    {
-      "step": "propose",
-      "status": "approved",
-      "at": "2026-07-22T07:27:41.658Z"
-    },
-    {
-      "step": "spec",
-      "status": "awaiting_approval",
-      "at": "2026-07-22T07:27:43.289Z"
     }
   ]
 }
