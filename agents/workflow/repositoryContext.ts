@@ -41,7 +41,10 @@ export function rankRelevantFiles(query: string, files: RepositoryFile[]): Repos
     .map(({ path, content }) => ({ path, content }));
 }
 
-/** Builds bounded repository context for Groq planning and review prompts. */
+/**
+ * Builds bounded repository context for Groq's propose/spec/arch/review steps.
+ * Cursor uses CURSOR_API_KEY and a full cloud checkout for impl/test instead.
+ */
 export function buildRepositoryContext(query: string): string {
   const trackedFiles = execFileSync("git", ["ls-files"], { cwd: projectRoot, encoding: "utf8" })
     .trim()
