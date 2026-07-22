@@ -18,6 +18,22 @@ const CONTROLS: GameControls = {
   closeHelp: vi.fn(),
 };
 
+describe("GameMenu theme selector", () => {
+  it("renders theme options on the ready menu", () => {
+    const markup = renderReadyMenu({
+      status: "loading",
+      challenge: null,
+      error: null,
+    });
+
+    expect(markup).toContain("Theme");
+    expect(markup).toContain("Classic");
+    expect(markup).toContain("Neon");
+    expect(markup).toContain("Ocean");
+    expect(markup.match(/class="theme-selector-swatch"/g)?.length).toBe(15);
+  });
+});
+
 describe("GameMenu daily challenge CTA", () => {
   it("disables Daily Challenge until the challenge loads", () => {
     const markup = renderReadyMenu({
@@ -63,6 +79,8 @@ describe("GameMenu daily challenge CTA", () => {
         dailyChallengeState={{ status: "loaded", challenge, error: null }}
         runMode="daily"
         leaderboardTitle="Your Top Scores"
+        selectedThemeId="classic"
+        onThemeSelect={vi.fn()}
       />,
     );
 
@@ -80,6 +98,8 @@ function renderReadyMenu(dailyChallengeState: DailyChallengeLoadState): string {
       dailyChallengeState={dailyChallengeState}
       runMode="classic"
       leaderboardTitle="Your Top Scores"
+      selectedThemeId="classic"
+      onThemeSelect={vi.fn()}
     />,
   );
 }

@@ -1,0 +1,69 @@
+.theme-selector {
+  margin: var(--game-space-sm) 0 0;
+  padding: 0;
+  border: none;
+  text-align: left;
+}
+
+.theme-selector-legend {
+  margin-bottom: var(--game-space-xs);
+  font-size: var(--game-detail-size);
+  font-weight: var(--game-score-weight);
+}
+
+.theme-selector-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--game-space-xs);
+}
+
+.theme-selector-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--game-space-sm);
+  padding: var(--game-space-xs) var(--game-space-sm);
+  border: var(--game-border-muted);
+  cursor: pointer;
+}
+
+.theme-selector-option.is-selected {
+  border: var(--game-border);
+}
+
+.theme-selector-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.theme-selector-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--game-detail-size);
+}
+
+.theme-selector-swatches {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.theme-selector-swatch {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border: var(--game-border-muted);
+  border-radius: 50%;
+}
