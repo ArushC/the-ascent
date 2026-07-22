@@ -1,17 +1,17 @@
-import { requestTextCompletion } from "../llmClient.ts";
+import { runCursorTextAgent } from "../cursorAgent.ts";
 import { createPullRequestComment } from "../github.ts";
-import { gatherGitDiff, readParams, renderPrompt } from "../promptRender.ts";
-import { buildRepositoryContext } from "../repositoryContext.ts";
+import { renderPrompt } from "../promptRender.ts";
 import type { RunState } from "../types.ts";
 
 /** Generates an advisory code review and posts it to the workflow PR. */
 export async function runReview(state: RunState): Promise<string> {
-  const params = readParams(state.paramsPath);
   const prompt = renderPrompt("review", {
-    DIFF: gatherGitDiff(state.prNumber)
+    DIFF: "Inspect the workflow branch diff against origin/main directly."
   });
-  const context = buildRepositoryContext(`${params.FEATURE}\n${params.REQUIREMENTS}`);
-  const output = await requestTextCompletion(`${prompt}\n\n${context}`);
+  const result = await runCursorTextAgent(prompt, state.branch);
+  const output = result.text;
+  state.cursorAgentId = result.agentId;
+  state.lastCursorRunId = result.runId;
   if (state.prNumber) createPullRequestComment(state.prNumber, output);
   return output;
 }

@@ -1,10 +1,8 @@
-import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { artifactPath } from "../activeRun.ts";
-import { requestJsonCompletion } from "../llmClient.ts";
+import { runCursorTextAgent } from "../cursorAgent.ts";
 import { projectRoot } from "../promptRender.ts";
-import { buildRepositoryContext } from "../repositoryContext.ts";
 import type { RunState } from "../types.ts";
 
 type Proposal = { feature: string; requirements: string; size: "small" | "normal"; slug: string };
@@ -27,6 +25,14 @@ export function parseProposal(value: unknown): Proposal {
   return proposal as Proposal;
 }
 
+/** Extracts the single JSON object requested from a Cursor text response. */
+export function parseProposalResponse(text: string): Proposal {
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace < 0 || lastBrace <= firstBrace) throw new Error("Cursor proposal did not contain a JSON object.");
+  return parseProposal(JSON.parse(text.slice(firstBrace, lastBrace + 1)));
+}
+
 /** Builds the shared parameter object consumed by later prompt templates. */
 export function featureParams(proposal: Proposal): Record<string, string> {
   return {
@@ -47,16 +53,11 @@ export function featureParams(proposal: Proposal): Record<string, string> {
 
 /** Proposes one feature from the backlog and recent repository history. */
 export async function proposeFeature(date = new Date()): Promise<{ state: RunState; proposal: Proposal } | null> {
-  const backlogPath = resolve(projectRoot, "agents/backlog.md");
-  const backlog = existsSync(backlogPath) ? readFileSync(backlogPath, "utf8") : "";
-  const pkg = JSON.parse(readFileSync(resolve(projectRoot, "package.json"), "utf8")) as { name: string };
-  const commits = execFileSync("git", ["log", "-5", "--oneline"], { cwd: projectRoot, encoding: "utf8" });
-  const context = buildRepositoryContext(backlog);
-  const response = await requestJsonCompletion<unknown>(
-    `Propose one focused, incremental feature for the existing ${pkg.name} repository. Return exactly one JSON object with string fields feature, requirements, slug, and size equal to "small" or "normal". Do not propose systems already implemented. Prefer an uncompleted backlog idea.\n\nBacklog:\n${backlog}\n\nRecent commits:\n${commits}\n\n${context}`
+  const cursorResult = await runCursorTextAgent(
+    "Read agents/backlog.md, package.json, recent Git history, and relevant source/tests. Propose one focused, incremental feature that is not already implemented. Prefer an uncompleted backlog idea. Return exactly one JSON object with string fields feature, requirements, slug, and size equal to \"small\" or \"normal\". Return no prose or Markdown fences.",
+    process.env.WORKFLOW_DEFAULT_BRANCH?.trim() || "main"
   );
-  if (response && typeof response === "object" && (response as Record<string, unknown>).feature === "") return null;
-  const proposal = parseProposal(response);
+  const proposal = parseProposalResponse(cursorResult.text);
   proposal.slug = slugify(proposal.slug || proposal.feature);
   proposal.size = proposal.size === "small" ? "small" : "normal";
   const day = date.toISOString().slice(0, 10);
@@ -75,8 +76,8 @@ export async function proposeFeature(date = new Date()): Promise<{ state: RunSta
     awaitingSince: null,
     updatedAt: now,
     size: proposal.size,
-    cursorAgentId: null,
-    lastCursorRunId: null,
+    cursorAgentId: cursorResult.agentId,
+    lastCursorRunId: cursorResult.runId,
     lastError: null,
     history: []
   };

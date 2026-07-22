@@ -41,7 +41,7 @@ export async function runDaily(options: DailyOptions = {}): Promise<void> {
   let activeId = readActiveRunId();
   if (!activeId && !options.dryRun && resumeOpenWorkflowBranch()) activeId = readActiveRunId();
   if (!activeId) {
-    if (options.dryRun) return console.log("Dry run: no active run; next action is propose via Groq, then create a workflow branch and PR.");
+    if (options.dryRun) return console.log("Dry run: no active run; next action is propose via Cursor, then create a workflow branch and PR.");
     const created = await proposeFeature();
     if (!created) { if (!options.idleOk) console.log("No feature proposed; workflow remains idle."); return; }
     let { state } = created;
