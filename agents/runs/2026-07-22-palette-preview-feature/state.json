@@ -1,0 +1,53 @@
+{
+  "runId": "2026-07-22-palette-preview-feature",
+  "featureSlug": "palette-preview-feature",
+  "paramsPath": "agents/params/palette-preview-feature.json",
+  "branch": "workflow/2026-07-22-palette-preview-feature",
+  "prNumber": 3,
+  "prUrl": "https://github.com/ArushC/the-ascent/pull/3",
+  "step": "impl",
+  "status": "awaiting_approval",
+  "awaitingSince": "2026-07-22T16:52:58.074Z",
+  "updatedAt": "2026-07-22T16:52:58.074Z",
+  "size": "small",
+  "cursorAgentId": "bc-ce101ee5-aba4-4604-a2d4-6134393ee317",
+  "lastCursorRunId": "run-790fdbb2-3925-4e76-aec8-8a95ff8dea99",
+  "lastError": null,
+  "history": [
+    {
+      "step": "propose",
+      "status": "awaiting_approval",
+      "at": "2026-07-22T07:16:54.991Z"
+    },
+    {
+      "step": "propose",
+      "status": "approved",
+      "at": "2026-07-22T16:32:22.656Z"
+    },
+    {
+      "step": "spec",
+      "status": "awaiting_approval",
+      "at": "2026-07-22T16:32:24.257Z"
+    },
+    {
+      "step": "spec",
+      "status": "approved",
+      "at": "2026-07-22T16:45:07.585Z"
+    },
+    {
+      "step": "arch",
+      "status": "awaiting_approval",
+      "at": "2026-07-22T16:46:32.763Z"
+    },
+    {
+      "step": "arch",
+      "status": "approved",
+      "at": "2026-07-22T16:48:37.107Z"
+    },
+    {
+      "step": "impl",
+      "status": "awaiting_approval",
+      "at": "2026-07-22T16:52:58.074Z"
+    }
+  ]
+}
