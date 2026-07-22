@@ -19,7 +19,6 @@ export type DailyChallenge = {
   /** Unsigned 32-bit seed used by the local deterministic RNG. */
   seed: number;
   title: string;
-  blurb: string;
   modifiers: ChallengeModifiers;
   source: "agent" | "fallback";
 };

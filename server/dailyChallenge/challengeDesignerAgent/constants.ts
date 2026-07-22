@@ -23,7 +23,7 @@ export const BANNED_COPY_TERMS = [
   "tomorrow", "news",
 ] as const;
 
-/** Words that show the title or blurb refers to something the player can do. */
+/** Words that show the title refers to a supported gameplay mechanic. */
 export const MECHANIC_TERMS = [
   "platform", "platforms", "moving", "mover", "monster", "monsters", "spring",
   "springs", "powerup", "powerups", "gap", "gaps", "jump", "jumps", "timing",

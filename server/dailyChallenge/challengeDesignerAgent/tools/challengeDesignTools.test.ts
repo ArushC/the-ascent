@@ -30,7 +30,6 @@ describe("challenge design validation and quality tools", () => {
     const challenge = {
       ...createFallbackChallenge(TEST_CHALLENGE_DATE),
       title: "Spring Chain",
-      blurb: "Bounce between springs and platforms.",
     };
 
     expect(critiqueCopy(challenge)).toEqual([]);

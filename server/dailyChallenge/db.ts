@@ -10,13 +10,12 @@ type DailyChallengeRow = {
   challenge_date: string;
   seed: number;
   title: string;
-  blurb: string;
   modifiers_json: string;
   source: "agent" | "fallback";
 };
 
 const SELECT_DAILY_CHALLENGE_SQL = `
-  SELECT challenge_date, seed, title, blurb, modifiers_json, source
+  SELECT challenge_date, seed, title, modifiers_json, source
   FROM daily_challenges
   WHERE challenge_date = ?
 `;
@@ -26,11 +25,10 @@ const INSERT_DAILY_CHALLENGE_SQL = `
     challenge_date,
     seed,
     title,
-    blurb,
     modifiers_json,
     source
   )
-  VALUES (?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?)
 `;
 
 /** Select-or-insert one persisted challenge per UTC date. */
@@ -92,7 +90,6 @@ export function insertDailyChallenge(
     challenge.challengeDate,
     challenge.seed,
     challenge.title,
-    challenge.blurb,
     JSON.stringify(challenge.modifiers),
     challenge.source,
   );
@@ -103,7 +100,6 @@ function mapDailyChallengeRow(row: DailyChallengeRow): DailyChallenge {
     challengeDate: row.challenge_date,
     seed: Number(row.seed),
     title: String(row.title),
-    blurb: String(row.blurb),
     modifiers: JSON.parse(row.modifiers_json) as unknown,
     source: row.source,
   });

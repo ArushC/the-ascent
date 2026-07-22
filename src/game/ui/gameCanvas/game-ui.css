@@ -125,7 +125,7 @@
 }
 
 .game-menu-detail-title,
-.game-menu-detail-blurb {
+.game-menu-detail-hint {
   display: block;
 }
 
@@ -134,7 +134,7 @@
   font-weight: var(--game-score-weight);
 }
 
-.game-menu-detail-blurb {
+.game-menu-detail-hint {
   margin-top: var(--game-space-xs);
   font-size: var(--game-detail-size);
 }

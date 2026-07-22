@@ -48,7 +48,6 @@ describe("getDailyChallenge", () => {
               content: JSON.stringify({
                 seed: 99,
                 title: "Moving Gap Drill",
-                blurb: "Time jumps between moving platforms and recover from wide gaps.",
                 modifiers: {
                   difficultyRampScale: 1.08,
                   movingShareBias: 0.16,

@@ -45,7 +45,6 @@ describe("DailyChallenge validation", () => {
         challengeDate: "2026-07-17",
         seed: 123,
         title: "  Spring Lab  ",
-        blurb: "  A bouncy climb.  ",
         modifiers: {},
         source: "fallback",
       }),
@@ -53,7 +52,6 @@ describe("DailyChallenge validation", () => {
       challengeDate: "2026-07-17",
       seed: 123,
       title: "Spring Lab",
-      blurb: "A bouncy climb.",
       source: "fallback",
     });
   });
@@ -64,7 +62,6 @@ describe("DailyChallenge validation", () => {
         challengeDate: "07-17-2026",
         seed: -1,
         title: "",
-        blurb: "A bouncy climb.",
         modifiers: {},
         source: "fallback",
       }).ok,

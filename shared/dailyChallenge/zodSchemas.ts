@@ -4,7 +4,6 @@ import { z } from "zod";
 export const DAILY_CHALLENGE_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const MAX_DAILY_CHALLENGE_SEED = 2 ** 32 - 1;
 export const MAX_DAILY_CHALLENGE_TITLE_LENGTH = 40;
-export const MAX_DAILY_CHALLENGE_BLURB_LENGTH = 120;
 
 export const CHALLENGE_MODIFIER_LIMITS = {
   difficultyRampScale: { min: 0.75, max: 1.35, defaultValue: 1 },
@@ -48,7 +47,6 @@ export const DailyChallengeSchema = z.object({
   challengeDate: z.string().regex(DAILY_CHALLENGE_DATE_PATTERN),
   seed: z.number().int().min(0).max(MAX_DAILY_CHALLENGE_SEED),
   title: z.string().trim().min(1).max(MAX_DAILY_CHALLENGE_TITLE_LENGTH),
-  blurb: z.string().trim().min(1).max(MAX_DAILY_CHALLENGE_BLURB_LENGTH),
   modifiers: ChallengeModifiersSchema,
   source: z.enum(["agent", "fallback"]),
 });
