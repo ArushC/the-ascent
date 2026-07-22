@@ -1,0 +1,23 @@
+{
+  "runId": "2026-07-22-palette-preview-feature",
+  "featureSlug": "palette-preview-feature",
+  "paramsPath": "agents/params/palette-preview-feature.json",
+  "branch": "workflow/2026-07-22-palette-preview-feature",
+  "prNumber": null,
+  "prUrl": null,
+  "step": "propose",
+  "status": "awaiting_approval",
+  "awaitingSince": "2026-07-22T07:16:54.991Z",
+  "updatedAt": "2026-07-22T07:16:54.991Z",
+  "size": "small",
+  "cursorAgentId": null,
+  "lastCursorRunId": null,
+  "lastError": null,
+  "history": [
+    {
+      "step": "propose",
+      "status": "awaiting_approval",
+      "at": "2026-07-22T07:16:54.991Z"
+    }
+  ]
+}

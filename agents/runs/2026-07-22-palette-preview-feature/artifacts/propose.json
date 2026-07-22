@@ -1,0 +1,8 @@
+{
+  "feature": "Subtle Palette Preview",
+  "requirements": [
+    "Add a palette preview beside each theme option before it is selected"
+  ],
+  "size": "small",
+  "slug": "palette-preview-feature"
+}

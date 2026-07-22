@@ -1,0 +1,16 @@
+{
+  "PROJECT": "Vertical endless climber in React, TypeScript, and Canvas",
+  "FEATURE": "Subtle Palette Preview",
+  "REQUIREMENTS": [
+    "Add a palette preview beside each theme option before it is selected"
+  ],
+  "ARCHITECTURE": "Paste approved architecture here before running ai:impl.",
+  "EXPECTED": "",
+  "ACTUAL": "",
+  "REPRODUCTION": "",
+  "CODE": "",
+  "LOGS": "",
+  "SYSTEM": "",
+  "SOURCE_FILE": "",
+  "EDGE_CASES": ""
+}
