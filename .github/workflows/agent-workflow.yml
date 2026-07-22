@@ -7,12 +7,23 @@ on:
         description: "Allow small-feature arch to implementation in one run"
         type: boolean
         default: false
-  # Enable after a successful dry-run:
-  # schedule:
-  #   - cron: "0 15 * * *"
+  pull_request:
+    types: [labeled]
+  schedule:
+    - cron: "0 15 * * *"
+
+concurrency:
+  group: agent-workflow
+  cancel-in-progress: false
 
 jobs:
   daily:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'workflow/') &&
+      (github.event.label.name == 'workflow:approve' ||
+      github.event.label.name == 'workflow:reject'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -38,6 +49,7 @@ jobs:
           WORKFLOW_EMAIL_FROM: ${{ secrets.WORKFLOW_EMAIL_FROM }}
           WORKFLOW_REPO: ${{ github.repository }}
           WORKFLOW_DEFAULT_BRANCH: main
+          WORKFLOW_PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ALLOW_COMBINE: ${{ inputs.allow_combine }}
+          ALLOW_COMBINE: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_combine || false }}
         run: npm run workflow:daily

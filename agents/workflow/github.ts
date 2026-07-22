@@ -81,8 +81,12 @@ export function getPullRequestGateData(prNumber: number): PullRequestGateData {
   return { ...pr, events };
 }
 
-/** Checks out the first open workflow PR branch so Actions can resume state. */
-export function resumeOpenWorkflowBranch(): boolean {
+/** Checks out the triggered workflow PR, or the first open run during scheduled execution. */
+export function resumeOpenWorkflowBranch(prNumber?: number): boolean {
+  if (prNumber) {
+    gh(["pr", "checkout", String(prNumber)]);
+    return true;
+  }
   const prs = JSON.parse(gh(["pr", "list", "--state", "open", "--json", "number,headRefName"])) as { number: number; headRefName: string }[];
   const match = prs.find((pr) => pr.headRefName.startsWith("workflow/"));
   if (!match) return false;

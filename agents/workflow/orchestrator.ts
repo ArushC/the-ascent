@@ -39,7 +39,8 @@ async function executeStep(state: RunState): Promise<string> {
 /** Advances at most one human-gated workflow step for the active feature run. */
 export async function runDaily(options: DailyOptions = {}): Promise<void> {
   let activeId = readActiveRunId();
-  if (!activeId && !options.dryRun && resumeOpenWorkflowBranch()) activeId = readActiveRunId();
+  const triggeredPr = Number(process.env.WORKFLOW_PR_NUMBER) || undefined;
+  if (!activeId && !options.dryRun && resumeOpenWorkflowBranch(triggeredPr)) activeId = readActiveRunId();
   if (!activeId) {
     if (options.dryRun) return console.log("Dry run: no active run; next action is propose via Cursor, then create a workflow branch and PR.");
     const created = await proposeFeature();
