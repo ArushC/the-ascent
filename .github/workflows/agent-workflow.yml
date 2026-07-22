@@ -1,0 +1,42 @@
+name: Agent workflow daily
+
+on:
+  workflow_dispatch:
+    inputs:
+      allow_combine:
+        description: "Allow small-feature arch to implementation in one run"
+        type: boolean
+        default: false
+  # Enable after a successful dry-run:
+  # schedule:
+  #   - cron: "0 15 * * *"
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Run daily workflow
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          WORKFLOW_EMAIL_TO: ${{ secrets.WORKFLOW_EMAIL_TO }}
+          WORKFLOW_EMAIL_FROM: ${{ secrets.WORKFLOW_EMAIL_FROM }}
+          WORKFLOW_REPO: ${{ github.repository }}
+          WORKFLOW_DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ALLOW_COMBINE: ${{ inputs.allow_combine }}
+        run: npm run workflow:daily

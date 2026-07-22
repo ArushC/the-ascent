@@ -23,9 +23,11 @@
     "ai:debug": "node --experimental-strip-types scripts/ai.ts debug",
     "ai:refactor": "node --experimental-strip-types scripts/ai.ts refactor",
     "ai:test": "node --experimental-strip-types scripts/ai.ts test",
-    "ai:feature": "node --experimental-strip-types scripts/ai.ts feature"
+    "ai:feature": "node --experimental-strip-types scripts/ai.ts feature",
+    "workflow:daily": "node --env-file-if-exists=.env --experimental-strip-types scripts/workflow-daily.ts"
   },
   "dependencies": {
+    "@cursor/sdk": "1.0.24",
     "better-sqlite3": "^12.11.1",
     "clsx": "^2.1.1",
     "react": "^19.2.7",

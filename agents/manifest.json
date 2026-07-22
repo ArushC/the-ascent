@@ -5,7 +5,9 @@
     "params": ["PROJECT", "REQUIREMENTS"],
     "cursorMode": "plan",
     "gather": [],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "groq",
+    "needsApproval": true
   },
   "arch": {
     "template": "prompts/02-architecture-review.md",
@@ -13,7 +15,9 @@
     "params": ["FEATURE", "REQUIREMENTS"],
     "cursorMode": "plan",
     "gather": [],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "groq",
+    "needsApproval": true
   },
   "impl": {
     "template": "prompts/03-implementation.md",
@@ -21,7 +25,9 @@
     "params": ["FEATURE", "REQUIREMENTS", "ARCHITECTURE"],
     "cursorMode": "agent",
     "gather": [],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "cursor",
+    "needsApproval": true
   },
   "review": {
     "template": "prompts/04-code-review.md",
@@ -29,7 +35,9 @@
     "params": [],
     "cursorMode": "ask",
     "gather": ["git-diff"],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "groq",
+    "needsApproval": true
   },
   "debug": {
     "template": "prompts/05-debugging.md",
@@ -37,7 +45,9 @@
     "params": ["EXPECTED", "ACTUAL", "REPRODUCTION", "CODE", "LOGS"],
     "cursorMode": "agent",
     "gather": ["read-file:CODE", "test-output"],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "human",
+    "needsApproval": true
   },
   "refactor": {
     "template": "prompts/07-refactoring.md",
@@ -45,7 +55,9 @@
     "params": ["CODE"],
     "cursorMode": "agent",
     "gather": ["read-file:CODE"],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "human",
+    "needsApproval": true
   },
   "test": {
     "template": "prompts/08-testing.md",
@@ -53,6 +65,8 @@
     "params": ["SYSTEM", "SOURCE_FILE", "REQUIREMENTS", "EDGE_CASES"],
     "cursorMode": "agent",
     "gather": [],
-    "defaultOut": null
+    "defaultOut": null,
+    "executor": "cursor",
+    "needsApproval": true
   }
 }

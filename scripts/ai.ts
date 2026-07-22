@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import { loadManifest, renderPrompt } from "../agents/workflow/promptRender.ts";
 
 type Agent = {
   template: string;
@@ -23,8 +24,7 @@ type CliOptions = {
 };
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const manifestPath = resolve(root, "agents/manifest.json");
-const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as Record<string, Agent>;
+const manifest = loadManifest() as Record<string, Agent>;
 let terminal: ReturnType<typeof readline.createInterface> | undefined;
 const pipedAnswers = input.isTTY ? undefined : readFileSync(0, "utf8").split(/\r?\n/);
 let pipedAnswerIndex = 0;
@@ -132,12 +132,6 @@ async function askForMissingParams(keys: string[], params: Record<string, string
   }
 }
 
-function render(command: string, params: Record<string, string>): string {
-  const agent = manifest[command];
-  const template = readFileSync(resolve(root, agent.template), "utf8");
-  return template.replace(/\{\{([A-Z0-9_]+)\}\}/g, (_, key: string) => params[key] ?? "");
-}
-
 function writeOutput(text: string, options: CliOptions): void {
   if (options.outPath) {
     writeFileSync(resolve(root, options.outPath), text);
@@ -165,7 +159,7 @@ async function renderCommand(command: string, options: CliOptions): Promise<void
   const params = readParams(options.paramsPath);
   await addGatheredContext(agent, params);
   await askForMissingParams(agent.params, params);
-  writeOutput(render(command, params), options);
+  writeOutput(renderPrompt(command, params), options);
 }
 
 async function startFeature(options: CliOptions): Promise<void> {
@@ -181,7 +175,7 @@ async function startFeature(options: CliOptions): Promise<void> {
   mkdirSync(dirname(absoluteParamsPath), { recursive: true });
   writeFileSync(absoluteParamsPath, JSON.stringify(createFeatureParams(feature, requirements), null, 2) + "\n");
 
-  const archPrompt = render("arch", { FEATURE: feature, REQUIREMENTS: requirements });
+  const archPrompt = renderPrompt("arch", { FEATURE: feature, REQUIREMENTS: requirements });
   console.log(`Created ${paramsPath}\n`);
   printFeatureChecklist(paramsPath);
   writeOutput(archPrompt, { ...options, outPath: undefined });
