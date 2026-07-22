@@ -8,7 +8,6 @@ const TEST_CHALLENGE_DATE = "2026-07-17";
 const COPY_REJECTED_MOVERS_DRAFT = {
   seed: 12345,
   title: "Celestial Ascent",
-  blurb: "Climb platforms through the stars.",
   modifiers: {
     difficultyRampScale: 1.08, movingShareBias: 0.16, monsterRateBias: -0.01,
     springSpawnProbability: 0.1, powerupSpawnProbability: 0.03, gapBias: 0.02,
@@ -17,7 +16,6 @@ const COPY_REJECTED_MOVERS_DRAFT = {
 const VALID_MOVERS_DRAFT = {
   ...COPY_REJECTED_MOVERS_DRAFT,
   title: "Moving Gap Drill",
-  blurb: "Time jumps between moving platforms and recover from wide gaps.",
 };
 
 function completion(draft: unknown): Response {

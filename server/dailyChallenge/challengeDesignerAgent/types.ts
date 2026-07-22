@@ -10,7 +10,6 @@ import type {
 export type ChallengeDraft = {
   seed?: unknown;
   title?: unknown;
-  blurb?: unknown;
   modifiers?: unknown;
   challenge?: unknown;
 };
@@ -18,12 +17,10 @@ export type ChallengeDraft = {
 export type CritiqueCode =
   | "banned_term"
   | "missing_mechanic"
-  | "empty_copy"
-  | "unsupported_claim";
+  | "empty_copy";
 
 export type CritiqueFinding = {
   code: CritiqueCode;
-  field: "title" | "blurb" | "both";
   detail: string;
 };
 

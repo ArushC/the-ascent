@@ -141,8 +141,8 @@ function DailyChallengeSummary({
       <span className="game-menu-detail-title">
         Daily · {dailyChallenge.title}
       </span>
-      <span className="game-menu-detail-blurb">
-        {formatChallengeBlurb(dailyChallenge)}
+      <span className="game-menu-detail-hint">
+        {getChallengeDifferenceHint(dailyChallenge.modifiers)}
       </span>
     </p>
   );
@@ -182,7 +182,7 @@ function getDailyChallengeMenuModel(
       dailyActionDisabled: false,
       dailyActionTooltip: {
         title: `Daily · ${state.challenge.title}`,
-        body: formatChallengeBlurb(state.challenge),
+        body: getChallengeDifferenceHint(state.challenge.modifiers),
       },
     };
   }
@@ -194,10 +194,6 @@ function getDailyChallengeMenuModel(
     ) : null,
     dailyActionDisabled: true,
   };
-}
-
-function formatChallengeBlurb(challenge: DailyChallenge): string {
-  return `${challenge.blurb} ${getChallengeDifferenceHint(challenge.modifiers)}`;
 }
 
 function isRenderableDetail(detail: ReactNode): boolean {

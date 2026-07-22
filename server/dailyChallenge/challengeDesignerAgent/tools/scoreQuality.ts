@@ -61,7 +61,7 @@ function countExtremeModifiers(modifiers: ChallengeModifiers): number {
 
 /** Checks whether the player-facing copy names the inferred gameplay idea. */
 function mentionsTheme(challenge: DailyChallenge, axis: ThemeAxis): boolean {
-  const text = `${challenge.title} ${challenge.blurb}`.toLowerCase();
+  const text = challenge.title.toLowerCase();
   const terms: Record<ThemeAxis, string[]> = {
     movers: ["moving", "mover", "platform"], monsters: ["monster"],
     springs: ["spring", "bounce", "bouncy"], scarcity: ["sparse", "scarce", "gap", "drought", "recover", "starved"],

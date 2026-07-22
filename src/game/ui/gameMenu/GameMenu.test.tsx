@@ -39,7 +39,6 @@ describe("GameMenu daily challenge CTA", () => {
     });
 
     expect(markup).not.toContain(challenge.title);
-    expect(markup).not.toContain(challenge.blurb);
     expect(markup).not.toContain("disabled");
   });
 
@@ -67,7 +66,6 @@ describe("GameMenu daily challenge CTA", () => {
       />,
     );
 
-    expect(markup).toContain(challenge.blurb);
     expect(markup).toContain("than normal.");
   });
 });

@@ -17,7 +17,6 @@ export function validateDraft(challengeDate: string, raw: unknown) {
     challengeDate,
     seed: getValidSeedOrDateHash(draft.seed, challengeDate),
     title: draft.title,
-    blurb: draft.blurb,
     modifiers: draft.modifiers,
     source: "agent",
   });

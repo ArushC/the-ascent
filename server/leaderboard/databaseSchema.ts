@@ -39,7 +39,6 @@ const CREATE_DAILY_CHALLENGES_TABLE_SQL = `
     challenge_date TEXT PRIMARY KEY,
     seed INTEGER NOT NULL,
     title TEXT NOT NULL,
-    blurb TEXT NOT NULL,
     modifiers_json TEXT NOT NULL,
     source TEXT NOT NULL CHECK (source IN ('agent', 'fallback')),
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -52,9 +51,16 @@ export function initializeSchema(db: SqliteDatabase): void {
   db.exec(CREATE_DAILY_CHALLENGES_TABLE_SQL);
   migrateLegacyNameColumns(db);
   migrateDailyScoreColumns(db);
+  migrateDailyChallengeBlurb(db);
   db.exec("DROP INDEX IF EXISTS idx_score_runs_leaderboard");
   db.exec(CREATE_LEADERBOARD_INDEX_SQL);
   db.exec(CREATE_DAILY_SCORE_INDEX_SQL);
+}
+
+function migrateDailyChallengeBlurb(db: SqliteDatabase): void {
+  if (tableHasColumn(db, "daily_challenges", "blurb")) {
+    db.exec("ALTER TABLE daily_challenges DROP COLUMN blurb");
+  }
 }
 
 function migrateDailyScoreColumns(db: SqliteDatabase): void {
