@@ -5,6 +5,7 @@ const shapeRules = [
   "Return only one flat JSON object with exactly these top-level keys: title, blurb, seed, modifiers.",
   "Do not include challengeDate, date, challenge, metadata, or a nested wrapper.",
   "title: 1-40 chars. blurb: 1-120 chars.",
+  "Keep the blurb to a short action line; the UI adds a separate normal-mode comparison.",
   `seed: integer 0..${MAX_DAILY_CHALLENGE_SEED}.`,
   `modifiers: ${Object.entries(CHALLENGE_MODIFIER_LIMITS).map(([key, limits]) => `${key} ${limits.min}..${limits.max}`).join(", ")}.`,
 ];
