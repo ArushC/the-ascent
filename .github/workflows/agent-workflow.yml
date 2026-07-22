@@ -26,6 +26,10 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       - name: Run daily workflow
         env:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
