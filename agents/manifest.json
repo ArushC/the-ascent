@@ -6,7 +6,7 @@
     "cursorMode": "plan",
     "gather": [],
     "defaultOut": null,
-    "executor": "groq",
+    "executor": "cursor",
     "needsApproval": true
   },
   "arch": {
@@ -16,7 +16,7 @@
     "cursorMode": "plan",
     "gather": [],
     "defaultOut": null,
-    "executor": "groq",
+    "executor": "cursor",
     "needsApproval": true
   },
   "impl": {
@@ -36,7 +36,7 @@
     "cursorMode": "ask",
     "gather": ["git-diff"],
     "defaultOut": null,
-    "executor": "groq",
+    "executor": "cursor",
     "needsApproval": true
   },
   "debug": {
