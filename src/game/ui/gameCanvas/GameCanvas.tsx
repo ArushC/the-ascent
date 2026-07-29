@@ -8,6 +8,11 @@ import { GameMenu, type GameMenuPhase } from "../gameMenu/GameMenu";
 import { getOrCreatePlayerId } from "../../leaderboard/playerIdentity/playerIdentity";
 import { useGameOverLeaderboard } from "../../leaderboard/useGameOverLeaderboard/useGameOverLeaderboard";
 import { useDailyChallenge } from "../../dailyChallenge/useDailyChallenge/useDailyChallenge";
+import type { GameThemeId } from "../../theme/themeCatalog/themeCatalog";
+import {
+  getStoredThemeId,
+  storeThemeId,
+} from "../../theme/themePreference/themePreference";
 import "./game-ui.css";
 
 type GameCanvasProps = {
@@ -24,6 +29,9 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const [playerId] = useState(() => getOrCreatePlayerId());
   const [ascensionBannerDismissed, setAscensionBannerDismissed] =
     useState(false);
+  const [selectedThemeId, setSelectedThemeId] = useState<GameThemeId>(() =>
+    getStoredThemeId(),
+  );
   const dailyChallengeState = useDailyChallenge();
   const [ui, setUi] = useState<GameUiState>({
     phase: "ready",
@@ -82,6 +90,11 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
   const menuPhase: GameMenuPhase | null =
     ui.phase === "playing" ? null : ui.phase;
 
+  const handleThemeSelect = (id: GameThemeId) => {
+    setSelectedThemeId(id);
+    storeThemeId(id);
+  };
+
   return (
     <div className="game-shell" style={{ width, height }}>
       <canvas ref={canvasRef} width={width} height={height} />
@@ -106,6 +119,8 @@ export function GameCanvas({ width, height }: GameCanvasProps) {
           leaderboardTitle={
             ui.runMode === "daily" ? "Today’s Daily Runs" : "Your Top Scores"
           }
+          selectedThemeId={selectedThemeId}
+          onThemeSelect={handleThemeSelect}
         />
       ) : null}
       {ui.helpOpen && uiControls ? (

@@ -9,6 +9,15 @@ export type PullRequestGateData = {
   events: { event: string; created_at: string; label?: { name: string } }[];
 };
 
+export type RevisionComment = {
+  body: string;
+  createdAt: string;
+  authorAssociation: string;
+  author: string;
+  path?: string;
+  line?: number | null;
+};
+
 function gh(args: string[]): string {
   return execFileSync("gh", args, { cwd: projectRoot, encoding: "utf8", env: process.env }).trim();
 }
@@ -19,7 +28,7 @@ function git(args: string[]): string {
 
 /** Creates the workflow gate labels when they do not already exist. */
 export function ensureWorkflowLabels(): void {
-  for (const [name, color] of [["workflow:approve", "0e8a16"], ["workflow:reject", "b60205"]]) {
+  for (const [name, color] of [["workflow:approve", "0e8a16"], ["workflow:revise", "fbca04"], ["workflow:reject", "b60205"]]) {
     gh(["label", "create", name, "--color", color, "--force"]);
   }
 }
@@ -29,8 +38,22 @@ export function createWorkflowBranch(branch: string): void {
   git(["checkout", "-b", branch]);
 }
 
+/**
+ * Returns true when HEAD is detached or on a different branch than the workflow
+ * branch, so Actions PR checkouts can still push by branch name.
+ */
+export function needsLocalBranch(branch: string, currentRef: string): boolean {
+  return currentRef === "HEAD" || currentRef !== branch;
+}
+
+/** Points a local branch at the current HEAD when Actions left a detached checkout. */
+export function ensureLocalBranch(branch: string, currentRef: string): void {
+  if (needsLocalBranch(branch, currentRef)) git(["checkout", "-B", branch]);
+}
+
 /** Commits workflow artifacts and pushes them after rebasing remote agent work. */
 export function commitAndPush(branch: string, message: string): void {
+  ensureLocalBranch(branch, git(["rev-parse", "--abbrev-ref", "HEAD"]));
   git(["add", "agents"]);
   const diff = spawnSync("git", ["diff", "--cached", "--quiet"], { cwd: projectRoot });
   if (diff.status === 1) git(["commit", "-m", message]);
@@ -59,13 +82,73 @@ export function createPullRequestComment(prNumber: number, body: string): void {
   gh(["pr", "comment", String(prNumber), "--body", body]);
 }
 
-/** Removes a consumed approval label so each workflow step needs a fresh approval. */
-export function removeApprovalLabel(prNumber: number): void {
+function removeWorkflowLabel(prNumber: number, name: string): void {
   const data = JSON.parse(gh([
     "pr", "view", String(prNumber), "--json", "labels"
   ])) as { labels: { name: string }[] };
-  const hasApprovalLabel = data.labels.some((label) => label.name === "workflow:approve");
-  if (hasApprovalLabel) gh(["pr", "edit", String(prNumber), "--remove-label", "workflow:approve"]);
+  if (data.labels.some((label) => label.name === name)) {
+    gh(["pr", "edit", String(prNumber), "--remove-label", name]);
+  }
+}
+
+/** Removes a consumed approval label so each workflow step needs a fresh approval. */
+export function removeApprovalLabel(prNumber: number): void {
+  removeWorkflowLabel(prNumber, "workflow:approve");
+}
+
+/** Removes a consumed revision label so it cannot re-trigger. */
+export function removeReviseLabel(prNumber: number): void {
+  removeWorkflowLabel(prNumber, "workflow:revise");
+}
+
+const COLLABORATORS = new Set(["OWNER", "MEMBER", "COLLABORATOR"]);
+const workflowNotification = /^(?:\w+ is (?:awaiting_approval|running)|Workflow failed)/;
+
+/** Filters and formats PR comments for revision prompt injection. */
+export function formatRevisionComments(comments: RevisionComment[], awaitingSince: string): string {
+  const since = Date.parse(awaitingSince);
+  const usable = comments.filter((comment) => (
+    Date.parse(comment.createdAt) >= since
+    && COLLABORATORS.has(comment.authorAssociation)
+    && comment.author !== "github-actions[bot]"
+    && comment.body.trim() !== "/approve"
+    && !workflowNotification.test(comment.body.trim())
+  ));
+  if (!usable.length) return "";
+  const sections = usable.map((comment) => {
+    const location = comment.path ? ` inline on ${comment.path}${comment.line ? `:${comment.line}` : ""}` : "";
+    return `### Comment by ${comment.author}${location} (${comment.createdAt})\n${comment.body.trim()}`;
+  });
+  return `## Revision feedback from PR review\n\n${sections.join("\n\n")}`;
+}
+
+/** Collects issue and inline review comments created after the current gate opened. */
+export function collectRevisionFeedback(prNumber: number, awaitingSince: string): string {
+  const repo = process.env.WORKFLOW_REPO;
+  if (!repo) throw new Error("WORKFLOW_REPO is required.");
+  type ApiComment = {
+    body: string;
+    created_at: string;
+    author_association: string;
+    user: { login: string } | null;
+    path?: string;
+    line?: number | null;
+  };
+  const issueComments = JSON.parse(gh([
+    "api", `repos/${repo}/issues/${prNumber}/comments`, "--paginate"
+  ])) as ApiComment[];
+  const reviewComments = JSON.parse(gh([
+    "api", `repos/${repo}/pulls/${prNumber}/comments`, "--paginate"
+  ])) as ApiComment[];
+  const comments = [...issueComments, ...reviewComments].map((comment): RevisionComment => ({
+    body: comment.body,
+    createdAt: comment.created_at,
+    authorAssociation: comment.author_association,
+    author: comment.user?.login ?? "unknown",
+    path: comment.path,
+    line: comment.line
+  }));
+  return formatRevisionComments(comments, awaitingSince);
 }
 
 /** Loads merge state and timestamped approval signals for the current PR gate. */

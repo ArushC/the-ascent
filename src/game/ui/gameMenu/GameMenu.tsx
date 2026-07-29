@@ -12,6 +12,9 @@ import type { LeaderboardState } from "../../leaderboard/state/leaderboardState"
 import type { DailyChallenge } from "../../../../shared/dailyChallenge/types.ts";
 import { getChallengeDifferenceHint } from "../../../../shared/dailyChallenge/challengeDifferenceHint.ts";
 import type { DailyChallengeLoadState } from "../../dailyChallenge/useDailyChallenge/useDailyChallenge";
+import type { GameThemeId } from "../../theme/themeCatalog/themeCatalog";
+import { THEME_OPTIONS } from "../../theme/themeCatalog/themeCatalog";
+import { ThemeSelector } from "../themeSelector/ThemeSelector";
 import "../leaderboard/leaderboard-ui.css";
 
 export type GameMenuPhase = Exclude<GamePhase, "playing">;
@@ -24,6 +27,8 @@ type GameMenuProps = {
   dailyChallengeState: DailyChallengeLoadState;
   runMode: RunMode;
   leaderboardTitle: string;
+  selectedThemeId: GameThemeId;
+  onThemeSelect: (id: GameThemeId) => void;
 };
 
 type GameMenuAction = {
@@ -64,6 +69,8 @@ export function GameMenu({
   dailyChallengeState,
   runMode,
   leaderboardTitle,
+  selectedThemeId,
+  onThemeSelect,
 }: GameMenuProps) {
   const title = MENU_TITLES[phase];
   const dailyMenu = getDailyChallengeMenuModel(dailyChallengeState);
@@ -81,10 +88,17 @@ export function GameMenu({
           leaderboardTitle={leaderboardTitle}
         />
         {phase === "ready" ? (
-          <ReadyMenuActions
-            controls={controls}
-            dailyMenu={dailyMenu}
-          />
+          <>
+            <ThemeSelector
+              options={THEME_OPTIONS}
+              selectedId={selectedThemeId}
+              onSelect={onThemeSelect}
+            />
+            <ReadyMenuActions
+              controls={controls}
+              dailyMenu={dailyMenu}
+            />
+          </>
         ) : (
           <GameMenuActions actions={getMenuActions(phase, controls)} />
         )}

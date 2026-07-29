@@ -1,10 +1,10 @@
 import { readActiveRunId, readState, writeActiveRunId, writeState } from "./activeRun.ts";
 import { checkApproval } from "./gates/githubGate.ts";
-import { commitAndPush, createPullRequestComment, createWorkflowBranch, ensureWorkflowLabels, removeApprovalLabel, resumeOpenWorkflowBranch, upsertPullRequest } from "./github.ts";
+import { collectRevisionFeedback, commitAndPush, createPullRequestComment, createWorkflowBranch, ensureWorkflowLabels, removeApprovalLabel, removeReviseLabel, resumeOpenWorkflowBranch, upsertPullRequest } from "./github.ts";
 import { notificationText, sendEmail } from "./notify/email.ts";
 import { mirrorToPullRequest } from "./notify/prComment.ts";
-import { afterApproved, afterMerged, afterRejected, afterStepSucceeded } from "./stateMachine.ts";
-import { proposeFeature } from "./steps/propose.ts";
+import { afterApproved, afterMerged, afterRejected, afterRevised, afterStepSucceeded } from "./stateMachine.ts";
+import { proposeFeature, reviseProposal } from "./steps/propose.ts";
 import { runSpec } from "./steps/spec.ts";
 import { runArch } from "./steps/arch.ts";
 import { runImpl } from "./steps/impl.ts";
@@ -28,6 +28,7 @@ async function notify(state: RunState, detail: string): Promise<void> {
 }
 
 async function executeStep(state: RunState): Promise<string> {
+  if (state.step === "propose") return await reviseProposal(state);
   if (state.step === "spec") return await runSpec(state);
   if (state.step === "arch") return await runArch(state);
   if (state.step === "impl") { await runImpl(state); return "Cursor implementation run completed."; }
@@ -60,11 +61,12 @@ export async function runDaily(options: DailyOptions = {}): Promise<void> {
   }
 
   let state = readState(activeId);
-  if (options.dryRun) return console.log(`Dry run: ${state.status === "awaiting_approval" ? `check approval for ${state.step}` : `run ${state.step}`} on ${state.runId}.`);
+  if (options.dryRun) return console.log(`Dry run: ${state.status === "awaiting_approval" ? `check approval or revision for ${state.step}` : `run ${state.step}`} on ${state.runId}.`);
   if (state.status === "running") {
     if (!stale(state)) return console.log("Workflow step is already running.");
     state.status = "failed";
     state.lastError = "Running state was stale for more than two hours.";
+    state.revisionFeedback = null;
     state.updatedAt = new Date().toISOString();
     writeState(state);
     commitAndPush(state.branch, `chore(workflow): record stale ${state.step} failure`);
@@ -73,26 +75,37 @@ export async function runDaily(options: DailyOptions = {}): Promise<void> {
   }
   if (state.status === "blocked" || state.status === "failed") { await notify(state, state.lastError || `Run is ${state.status}.`); return; }
   if (state.status === "done") { writeActiveRunId(null); return; }
+  let isRevision = false;
+  let revisionError: string | null = null;
   if (state.status === "awaiting_approval") {
     if (!state.prNumber || !state.awaitingSince) throw new Error("Awaiting run lacks PR gate data.");
     const gate = checkApproval(state.prNumber, state.awaitingSince);
     if (gate === "waiting") { await notify(state, "Still waiting for human approval."); return; }
     if (gate === "rejected") { state = afterRejected(state); writeState(state); commitAndPush(state.branch, `chore(workflow): block ${state.featureSlug}`); await notify(state, "Run was rejected and is blocked."); return; }
     if (gate === "merged") { state = afterMerged(state); writeState(state); writeActiveRunId(null); await notify(state, "PR merged; workflow is complete."); return; }
-    removeApprovalLabel(state.prNumber);
-    state = afterApproved(state);
-    if (state.status === "done") { writeState(state); writeActiveRunId(null); commitAndPush(state.branch, `chore(workflow): complete ${state.featureSlug}`); await notify(state, "Workflow is complete."); return; }
+    if (gate === "revised") {
+      const feedback = collectRevisionFeedback(state.prNumber, state.awaitingSince);
+      removeReviseLabel(state.prNumber);
+      state = afterRevised(state, feedback);
+      isRevision = true;
+      if (!feedback.trim()) revisionError = "workflow:revise requires at least one reviewer comment since the gate opened";
+    } else {
+      removeApprovalLabel(state.prNumber);
+      state = afterApproved(state);
+      if (state.status === "done") { writeState(state); writeActiveRunId(null); commitAndPush(state.branch, `chore(workflow): complete ${state.featureSlug}`); await notify(state, "Workflow is complete."); return; }
+    }
   }
 
   writeState(state);
   try {
+    if (revisionError) throw new Error(revisionError);
     const detail = await executeStep(state);
     state = afterStepSucceeded(state);
     writeState(state);
-    commitAndPush(state.branch, `chore(workflow): ${state.step} for ${state.featureSlug}`);
+    commitAndPush(state.branch, `chore(workflow): ${isRevision ? "revise " : ""}${state.step} for ${state.featureSlug}`);
     await notify(state, detail.slice(0, 4000));
   } catch (error) {
-    state.status = "failed"; state.lastError = error instanceof Error ? error.message : String(error); state.updatedAt = new Date().toISOString(); writeState(state);
+    state.status = "failed"; state.lastError = error instanceof Error ? error.message : String(error); state.revisionFeedback = null; state.updatedAt = new Date().toISOString(); writeState(state);
     try { commitAndPush(state.branch, `chore(workflow): record ${state.step} failure`); } catch { /* preserve original failure */ }
     if (state.prNumber) createPullRequestComment(state.prNumber, `Workflow failed at ${state.step}: ${state.lastError}`);
     await sendEmail(state, notificationText(state, state.lastError));

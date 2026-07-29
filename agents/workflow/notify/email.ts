@@ -4,7 +4,7 @@ import type { RunState } from "../types.ts";
 export function notificationText(state: RunState, detail: string): string {
   const heading = `${state.step} is ${state.status} for ${state.featureSlug}`;
   const reviewInstructions = state.status === "awaiting_approval"
-    ? "\nApprove with the workflow:approve label or a /approve collaborator comment. Reject with workflow:reject."
+    ? "\nApprove with workflow:approve or a /approve collaborator comment. Request changes with workflow:revise after leaving PR comments. Reject with workflow:reject."
     : "";
   return `${heading}\n\n${detail}\n\nPR: ${state.prUrl ?? "not created"}${reviewInstructions}`;
 }
