@@ -29,8 +29,22 @@ export function createWorkflowBranch(branch: string): void {
   git(["checkout", "-b", branch]);
 }
 
+/**
+ * Returns true when HEAD is detached or on a different branch than the workflow
+ * branch, so Actions PR checkouts can still push by branch name.
+ */
+export function needsLocalBranch(branch: string, currentRef: string): boolean {
+  return currentRef === "HEAD" || currentRef !== branch;
+}
+
+/** Points a local branch at the current HEAD when Actions left a detached checkout. */
+export function ensureLocalBranch(branch: string, currentRef: string): void {
+  if (needsLocalBranch(branch, currentRef)) git(["checkout", "-B", branch]);
+}
+
 /** Commits workflow artifacts and pushes them after rebasing remote agent work. */
 export function commitAndPush(branch: string, message: string): void {
+  ensureLocalBranch(branch, git(["rev-parse", "--abbrev-ref", "HEAD"]));
   git(["add", "agents"]);
   const diff = spawnSync("git", ["diff", "--cached", "--quiet"], { cwd: projectRoot });
   if (diff.status === 1) git(["commit", "-m", message]);
