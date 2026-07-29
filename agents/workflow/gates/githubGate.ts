@@ -14,6 +14,7 @@ export function evaluateApproval(data: GateData, awaitingSince: string): GateRes
     && Date.parse(event.created_at) >= since
   )) ?? false;
   if (freshLabel("workflow:reject")) return "rejected";
+  if (freshLabel("workflow:revise")) return "revised";
   if (freshLabel("workflow:approve")) return "approved";
   const approvedByComment = data.comments?.some((comment) => (
     comment.body.trim() === "/approve"

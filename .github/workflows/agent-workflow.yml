@@ -23,7 +23,8 @@ jobs:
       (github.event.pull_request.head.repo.full_name == github.repository &&
       startsWith(github.event.pull_request.head.ref, 'workflow/') &&
       (github.event.label.name == 'workflow:approve' ||
-      github.event.label.name == 'workflow:reject'))
+      github.event.label.name == 'workflow:reject' ||
+      github.event.label.name == 'workflow:revise'))
     runs-on: ubuntu-latest
     permissions:
       contents: write

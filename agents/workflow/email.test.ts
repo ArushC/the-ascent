@@ -17,6 +17,7 @@ const state = (status: RunState["status"], overrides: Partial<RunState> = {}): R
   cursorAgentId: null,
   lastCursorRunId: null,
   lastError: null,
+  revisionFeedback: null,
   history: [],
   ...overrides
 });
@@ -37,6 +38,7 @@ describe("notificationText", () => {
 
   it("includes approval instructions only while awaiting approval", () => {
     expect(notificationText(state("awaiting_approval"), "Ready")).toContain("workflow:approve");
+    expect(notificationText(state("awaiting_approval"), "Ready")).toContain("workflow:revise");
     for (const status of ["failed", "blocked", "done"] as const) {
       expect(notificationText(state(status), "Not reviewable")).not.toContain("workflow:approve");
     }

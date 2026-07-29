@@ -1,5 +1,6 @@
 import { gatherGitDiff, readParams, renderPrompt } from "../promptRender.ts";
 import { runCursorAgent } from "../cursorAgent.ts";
+import { appendRevisionFeedback } from "../revisionPrompt.ts";
 import type { RunState } from "../types.ts";
 
 /** Runs Cursor's focused testing prompt with PR-derived fallback context. */
@@ -9,7 +10,7 @@ export async function runTest(state: RunState): Promise<void> {
   params.SYSTEM ||= "Infer the affected system from the PR diff";
   params.SOURCE_FILE ||= "Infer the source files from the PR diff";
   params.EDGE_CASES ||= "Cover important boundary and regression cases";
-  const ids = await runCursorAgent(renderPrompt("test", params), state);
+  const ids = await runCursorAgent(appendRevisionFeedback(renderPrompt("test", params), state), state);
   state.cursorAgentId = ids.agentId;
   state.lastCursorRunId = ids.runId;
 }

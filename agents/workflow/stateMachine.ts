@@ -24,7 +24,22 @@ export function afterStepSucceeded(state: RunState, now = new Date().toISOString
     awaitingSince: now,
     updatedAt: now,
     lastError: null,
+    revisionFeedback: null,
     history: [...state.history, { step: state.step, status: "awaiting_approval", at: now }]
+  };
+}
+
+/** Re-runs the current step with human feedback. */
+export function afterRevised(state: RunState, feedback: string, now = new Date().toISOString()): RunState {
+  assertCanAdvance(state, "revised");
+  return {
+    ...state,
+    status: "running",
+    awaitingSince: null,
+    revisionFeedback: feedback,
+    updatedAt: now,
+    lastError: null,
+    history: [...state.history, { step: state.step, status: "running", at: now }]
   };
 }
 
@@ -38,6 +53,7 @@ export function afterApproved(state: RunState, now = new Date().toISOString()): 
       step: "done",
       status: "done",
       awaitingSince: null,
+      revisionFeedback: null,
       updatedAt: now,
       history: [...state.history, { step: state.step, status: "approved", at: now }]
     };
@@ -47,6 +63,7 @@ export function afterApproved(state: RunState, now = new Date().toISOString()): 
     step: next,
     status: "running",
     awaitingSince: null,
+    revisionFeedback: null,
     updatedAt: now,
     history: [...state.history, { step: state.step, status: "approved", at: now }]
   };
@@ -59,6 +76,7 @@ export function afterRejected(state: RunState, now = new Date().toISOString()): 
     ...state,
     status: "blocked",
     awaitingSince: null,
+    revisionFeedback: null,
     updatedAt: now,
     history: [...state.history, { step: state.step, status: "blocked", at: now }]
   };
@@ -71,6 +89,7 @@ export function afterMerged(state: RunState, now = new Date().toISOString()): Ru
     step: "done",
     status: "done",
     awaitingSince: null,
+    revisionFeedback: null,
     updatedAt: now,
     history: [...state.history, { step: state.step, status: "done", at: now }]
   };

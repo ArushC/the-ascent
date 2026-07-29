@@ -19,7 +19,8 @@ export type RunState = {
   cursorAgentId: string | null;
   lastCursorRunId: string | null;
   lastError: string | null;
+  revisionFeedback: string | null;
   history: HistoryEntry[];
 };
 
-export type GateResult = "approved" | "rejected" | "merged" | "waiting";
+export type GateResult = "approved" | "rejected" | "revised" | "merged" | "waiting";

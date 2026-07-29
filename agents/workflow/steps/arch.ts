@@ -3,12 +3,13 @@ import { resolve } from "node:path";
 import { artifactPath } from "../activeRun.ts";
 import { runCursorTextAgent } from "../cursorAgent.ts";
 import { projectRoot, readParams, renderPrompt } from "../promptRender.ts";
+import { appendRevisionFeedback } from "../revisionPrompt.ts";
 import type { RunState } from "../types.ts";
 
 /** Generates architecture and copies it into the implementation parameters. */
 export async function runArch(state: RunState): Promise<string> {
   const params = readParams(state.paramsPath);
-  const prompt = `${renderPrompt("arch", params)}\n\nRead the approved specification at agents/runs/${state.runId}/artifacts/spec.md and inspect the relevant source/tests. Design only the requested change against existing files and conventions. Return Markdown only.`;
+  const prompt = appendRevisionFeedback(`${renderPrompt("arch", params)}\n\nRead the approved specification at agents/runs/${state.runId}/artifacts/spec.md and inspect the relevant source/tests. Design only the requested change against existing files and conventions. Return Markdown only.`, state);
   const result = await runCursorTextAgent(prompt, state.branch);
   const output = result.text;
   state.cursorAgentId = result.agentId;
